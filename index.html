@@ -3,254 +3,803 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="G. Krishna Teja - Integrated M.Sc. Biotechnology Student at VIT | Passionate about Biotech, Sustainability, and Community Impact">
     <title>G. Krishna Teja - Portfolio</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="script.js" defer></script>
 </head>
 <body>
-    <!-- Navigation Bar (displays sections at the top, fixed) -->
+    <!-- Navigation -->
     <nav>
-        <ul>
-            <li><a href="#hero">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#projects">Portfolio/Projects</a></li> <!-- Prominent portfolio link -->
-            <li><a href="#education">Education</a></li>
-            <li><a href="#experience">Experience</a></li>
-            <li><a href="#skills">Skills</a></li>
-            <li><a href="#certifications">Certifications & Awards</a></li>
-            <li><a href="#clubs">Clubs</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
+        <div class="nav-container">
+            <div class="logo-section">
+                <img src="images/IMG_20250601_195837.jpg" alt="G. Krishna Teja" class="nav-profile">
+                <div class="logo-name">G. Krishna Teja</div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="#about"><i class="fas fa-user"></i> About</a></li>
+                <li><a href="#education"><i class="fas fa-graduation-cap"></i> Education</a></li>
+                <li><a href="#experience"><i class="fas fa-briefcase"></i> Experience</a></li>
+                <li><a href="#internships"><i class="fas fa-industry"></i> Internships</a></li>
+                <li><a href="#projects"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                <li><a href="#skills"><i class="fas fa-chart-line"></i> Skills</a></li>
+                <li><a href="#certifications"><i class="fas fa-award"></i> Certifications</a></li>
+                <li><a href="#languages"><i class="fas fa-globe"></i> Languages</a></li>
+                <li><a href="#resume"><i class="fas fa-file-pdf"></i> Resume</a></li>
+                <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
     </nav>
 
-    <!-- Hero Section with Gradient, Parallax, and Particles -->
-    <section id="hero" class="parallax">
-        <div class="hero-content">
-            <img src="images/IMG_20250601_195837.jpg" alt="G. Krishna Teja" class="profile-photo">
-            <h1>G. Krishna Teja</h1>
-            <p>Integrated M.Sc. Biotechnology Student | VIT | Passionate about Biotech, Sustainability, and Community Impact</p>
-            <a href="#projects" class="btn">View Portfolio</a> <!-- Direct to portfolio -->
+    <!-- Home/Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-bg">
+            <div class="particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <!-- Add more particles for density -->
+            </div>
         </div>
-        <canvas id="particles"></canvas> <!-- Animating particles -->
+        <div class="hero-content">
+            <img src="images/IMG_20250601_195837.jpg" alt="Profile photo of G. Krishna Teja" class="profile-photo" loading="lazy">
+            <h1 class="hero-name">G. Krishna Teja</h1>
+            <p class="hero-tagline">Integrated M.Sc. Biotechnology Student | VIT | Passionate about Biotech, Sustainability, and Community Impact</p>
+            <a href="#resume" class="btn hero-btn">View Resume</a>
+            <!-- Contact Details in Hero -->
+            <div class="hero-contact">
+                <p><i class="fas fa-envelope"></i> <a href="mailto:krishnatejareddy2003@gmail.com">krishnatejareddy2003@gmail.com</a></p>
+                <p><i class="fas fa-phone"></i> <a href="tel:+919390850349">+91 93908 50349</a></p>
+                <div class="hero-social-links">
+                    <a href="https://www.linkedin.com/in/gkrishnateja" aria-label="LinkedIn" target="_blank">
+                        <img src="images/LINKEDIN.png" alt="LinkedIn" class="social-icon" loading="lazy">
+                    </a>
+                    <a href="https://www.instagram.com/krishna_theja_reddy" aria-label="Instagram" target="_blank">
+                        <img src="images/INSTA.png" alt="Instagram" class="social-icon" loading="lazy">
+                    </a>
+                    <a href="https://www.facebook.com/share/16RTshSy8n/" aria-label="Facebook" target="_blank">
+                        <img src="images/FB.png" alt="Facebook" class="social-icon" loading="lazy">
+                    </a>
+                    <a href="https://x.com/GKrishnaTeja10" aria-label="X" target="_blank">
+                        <img src="images/X.png" alt="X" class="social-icon" loading="lazy">
+                    </a>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- About Section -->
     <section id="about">
+        <div class="section-icon"><i class="fas fa-user-tie"></i></div>
         <h2>About Me</h2>
-        <p>Dedicated 4th-year Integrated M.Sc. Biotechnology student at VIT with a CGPA of 8.9 and two 100% attendance awards. Blends event finance & operations (Reviéra'25, Gravitas'24) with software development (NSS donor management system) and sustainability research (aquaculture). Passionate about community impact through NSS initiatives and award-winning water conservation ideas.</p>
-    </section>
-
-    <!-- Portfolio/Projects Section (moved up for prominence) -->
-    <section id="projects">
-        <h2>Portfolio / Projects</h2>
-        <div class="project-item flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h3>Biotechnological E-Waste Leaching Strategies</h3>
-                    <p>Sept 2025</p>
-                </div>
-                <div class="flip-card-back">
-                    <p>Developed microbial leaching methods for metal recovery and environmental protection; presented on Engineer's Day 2025 under Dr. Anand Prem Ranjan (SBST, VIT).</p>
-                </div>
-            </div>
-        </div>
-        <div class="project-item flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h3>NSS Blood Donation Camp Software</h3>
-                    <p>Mar 2023 – Present</p>
-                </div>
-                <div class="flip-card-back">
-                    <p>Created an Apps Script system automating donor data management and email alerts for 500+ NSS participants.</p>
-                </div>
-            </div>
-        </div>
-        <div class="project-item flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h3>Aquaculture Research</h3>
-                    <p>Jun 2025 – Present</p>
-                </div>
-                <div class="flip-card-back">
-                    <p>Studying sustainable aquaculture techniques to enhance productivity and ecological balance.</p>
-                </div>
-            </div>
-        </div>
-        <div class="project-item flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h3>Water Conservation Ideathon – 3rd Place</h3>
-                    <p>Mar 2023</p>
-                </div>
-                <div class="flip-card-back">
-                    <p>Designed innovative campus-scale water conservation solutions during World Water Conservation Week.</p>
-                </div>
-            </div>
+        <div class="about-content" data-animate>
+            <p>I am an <strong>Integrated M.Sc. Biotechnology student at VIT</strong> with a strong academic foundation (CGPA 8.9) and proven leadership experience through NSS, event finance management, research projects, and technical software development. I combine biotechnology knowledge with practical digital skills such as Google Apps Script automation, data management, portfolio development, and bioinformatics tools like STRING, DGIdb, and NCBI resources.</p>
+            <p>I have contributed to major university events as <strong>Finance Manager (Reviera’25)</strong>, <strong>Purchase Coordinator (Gravitas’24)</strong>, and <strong>NSS Secretary Board Member</strong>, along with organizing and supporting multiple NSS Special Camps across Tamil Nadu villages. My research interests include sustainable aquaculture, microbial e-waste leaching, and systems biology applications.</p>
+            <p>Driven, disciplined, and community-focused, I aim to apply biotechnology and data-driven tools to create impactful solutions in health, research, and sustainable development.</p>
         </div>
     </section>
 
     <!-- Education Section -->
     <section id="education">
+        <div class="section-icon"><i class="fas fa-graduation-cap"></i></div>
         <h2>Education</h2>
-        <div class="education-item">
-            <h3>Vellore Institute of Technology (VIT), Vellore</h3>
-            <p>Integrated M.Sc., Biotechnology (2022–2027) | CGPA: 8.9</p>
-        </div>
-        <div class="education-item">
-            <h3>Sri Chaitanya Junior College, Vijayawada</h3>
-            <p>11th & 12th (2018–2020) | Percentage: 96%</p>
-        </div>
-        <div class="education-item">
-            <h3>Masters EM High School</h3>
-            <p>10th (2017–2018) | GPA: 10</p>
+        <div class="education-grid">
+            <div class="education-card" data-animate>
+                <i class="fas fa-university edu-icon"></i>
+                <h3>Integrated M.Sc. Biotechnology</h3>
+                <p><strong>Vellore Institute of Technology (VIT), Vellore</strong> | 2022 – 2027</p>
+                <p><strong>CGPA: 8.9</strong></p>
+                <ul>
+                    <li>Awarded 100% Attendance Awards for academic years 2022–23 and 2024–25.</li>
+                    <li>Active involvement in research including Aquaculture sustainability, Biotechnological e-waste leaching strategies, and bioinformatics-based projects.</li>
+                    <li>Leadership experience through NSS (Secretary Board Member), Biosummit organization, and DNA Day coordination.</li>
+                    <li>Relevant coursework includes molecular biology, genetics, bioinformatics, systems biology, bioprocess engineering, biotechnology techniques, plant and microbial sciences.</li>
+                </ul>
+            </div>
+            <div class="education-card" data-animate>
+                <i class="fas fa-school edu-icon"></i>
+                <h3>Intermediate – BiPC (Botany, Zoology, Physics, Chemistry)</h3>
+                <p><strong>Sri Chaitanya Junior College, Vijayawada, Andhra Pradesh</strong> | 2018 – 2020</p>
+                <p><strong>Score: 954 / 1000 (96%)</strong></p>
+                <ul>
+                    <li>Studied Sanskrit, English, Botany, Zoology, Physics, and Chemistry with strong academic performance.</li>
+                    <li>Gained a strong foundational knowledge in life sciences and physical sciences.</li>
+                    <li>Built interest in biotechnology through biology practicals and competitive examination training.</li>
+                </ul>
+            </div>
+            <div class="education-card" data-animate>
+                <i class="fas fa-home edu-icon"></i>
+                <h3>SSC – 10th Standard</h3>
+                <p><strong>Masters EM High School, Sathyavedu, Andhra Pradesh</strong> | 2017 – 2018</p>
+                <p><strong>GPA: 10 / 10</strong></p>
+                <ul>
+                    <li>Studied Telugu, Hindi, English, Mathematics, Physical Science, Biology, and Social Studies, scoring full marks across all subjects.</li>
+                    <li>Recognized for academic consistency and overall excellence in core science and language subjects.</li>
+                    <li>Active in sports; represented school in Kabaddi and regularly played Chess, developing strategic thinking and teamwork skills.</li>
+                </ul>
+            </div>
         </div>
     </section>
 
     <!-- Experience Section -->
     <section id="experience">
+        <div class="section-icon"><i class="fas fa-briefcase"></i></div>
         <h2>Experience</h2>
-        <div class="experience-item flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h3>Finance Manager, Riviera'25 – VIT</h3>
-                    <p>FEB 20-23, 2025</p>
-                </div>
-                <div class="flip-card-back">
-                    <p>Managed finances for VIT's flagship fest ensuring budget compliance and optimal resource use.</p>
-                </div>
+        <div class="timeline">
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-chart-line timeline-icon"></i>
+                <h3>Finance Manager — Reviera’25</h3>
+                <p><strong>Vellore Institute of Technology (VIT), Vellore</strong> | Jan 2025 – Apr 2025</p>
+                <ul>
+                    <li>Managed complete financial planning and execution for VIT’s flagship cultural festival with large-scale student participation.</li>
+                    <li>Ensured budget compliance, vendor payment coordination, invoice verification, and accurate expense reconciliation.</li>
+                    <li>Collaborated with 15+ organizing teams to streamline procurement workflows and reduce unnecessary expenditures.</li>
+                    <li>Improved financial transparency through structured tracking systems and documentation.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-shopping-cart timeline-icon"></i>
+                <h3>Purchase Coordinator — Gravitas’24</h3>
+                <p><strong>VIT, Vellore</strong> | Aug 2024 – Oct 2024</p>
+                <ul>
+                    <li>Handled procurement operations for the university’s major technical festival.</li>
+                    <li>Negotiated with vendors, secured materials at cost-efficient rates, and ensured timely delivery for all event departments.</li>
+                    <li>Developed an inventory tracking system to reduce delays and avoid duplication of requests.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-users timeline-icon"></i>
+                <h3>Secretary Board Member — National Service Scheme (NSS), VIT</h3>
+                <p><strong>VIT, Vellore</strong> | Aug 2023 – Present</p>
+                <ul>
+                    <li>Led NSS initiatives including blood donation camps, awareness programs, and university-level outreach events.</li>
+                    <li>Coordinated volunteer activities, documentation, public communication, and field engagement.</li>
+                    <li>Played a key role in planning, logistics, and execution of multiple NSS projects.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-campground timeline-icon"></i>
+                <h3>Organizer & Coordinator — NSS Special Camps</h3>
+                <p><strong>NSS VIT</strong> | 2023, 2024, 2025</p>
+                <ul>
+                    <li><strong>Student Organiser — Clean India Domain (Special Camp 2025)</strong> — Anaicut & surrounding villages | 6 Feb 2025 – 12 Feb 2025</li>
+                    <li>Led Clean India domain activities for a 7-day rural development camp.</li>
+                    <li>Worked across design, technical, videography, photography, documentation, and logistics to support project implementation.</li>
+                    <li>Coordinated village outreach activities and volunteer task distribution.</li>
+                    <li><strong>Student Volunteer — Clean India Domain + Media (Special Camp 2024)</strong> — Vandranthangal & surrounding villages | 19 Feb 2024 – 25 Feb 2024</li>
+                    <li>Participated in cleanliness drives and awareness campaigns under the Clean India domain.</li>
+                    <li>Managed videography, photography, and official VIT NSS social media updates, improving content quality and engagement.</li>
+                    <li><strong>Student Volunteer — Food Domain (Special Camp 2023)</strong> — Katpadi Block, Thiruvalam & nearby villages | 2 Mar 2023 – 8 Mar 2023</li>
+                    <li>Managed food distribution and meal coordination for volunteers throughout the 7-day camp.</li>
+                    <li>Assisted in kitchen logistics and ensured smooth meal delivery operations for all participants.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-microphone timeline-icon"></i>
+                <h3>Student Organizer — VIT Biosummit 2024</h3>
+                <p><strong>VIT, Vellore</strong> | Sept 2024 – Oct 2024</p>
+                <ul>
+                    <li>Led Outreach Team operations including manual design, digital design, videography, photography, and documentation.</li>
+                    <li>Achieved 800+ registrations — the highest ever recorded for VIT Biosummit.</li>
+                    <li>Ensured consistent branding and effective communication across all event promotional channels.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-microphone-alt timeline-icon"></i>
+                <h3>Student Organizer — VIT Biosummit 2023</h3>
+                <p><strong>VIT, Vellore</strong> | Sept 2023 – Oct 2023</p>
+                <ul>
+                    <li>Assisted with logistics, participant coordination, event documentation, and hall management for 500+ participants.</li>
+                    <li>Supported speaker coordination and session execution during the summit.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-dna timeline-icon"></i>
+                <h3>Student Coordinator — DNA Day 2024</h3>
+                <p><strong>VIT, Vellore</strong> | Apr 2024</p>
+                <ul>
+                    <li>Organized departmental academic celebrations focusing on biotechnology awareness.</li>
+                    <li>Assisted in crowd management, event logistics, and media coverage.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-code timeline-icon"></i>
+                <h3>Software Developer — NSS Blood Donation Management System</h3>
+                <p><strong>NSS VIT</strong> | Mar 2023 – Present</p>
+                <ul>
+                    <li>Designed and developed a donor data management system using Google Apps Script, Google Sheets, Google Forms, and automation workflows.</li>
+                    <li>Enabled efficient handling of 1500+ donor entries across multiple blood donation camps.</li>
+                    <li>Implemented automated eligibility checks, PDF generation, email alerts, and logging features to improve reliability.</li>
+                    <li>Contributed to faster on-ground processing and data accuracy during NSS donation events.</li>
+                </ul>
             </div>
         </div>
-        <div class="experience-item flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h3>Purchase Coordinator, Gravitas'24 – VIT</h3>
-                    <p>Aug 2024 – Oct 2024</p>
-                </div>
-                <div class="flip-card-back">
-                    <p>Handled procurement and vendor negotiations, improving cost-efficiency and inventory flow.</p>
-                </div>
+    </section>
+
+    <!-- Internships & Industrial Training Section -->
+    <section id="internships">
+        <div class="section-icon"><i class="fas fa-industry"></i></div>
+        <h2>Internship & Industrial Training Experience</h2>
+        <div class="timeline">
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-pills timeline-icon"></i>
+                <h3>Industrial Intern — Glory Pharma Chem India Pvt Ltd</h3>
+                <p><strong>Pharmaceutical Manufacturing Industry</strong> | 2 June 2025 – 4 July 2025</p>
+                <ul>
+                    <li>Gained hands-on experience in pharmaceutical manufacturing operations, production workflows, and batch processing.</li>
+                    <li>Observed and assisted in API handling, formulation processes, material transfer, and equipment sanitation.</li>
+                    <li>Learned Good Manufacturing Practices (GMP), documentation standards, and regulatory compliance procedures.</li>
+                    <li>Worked with Quality Assurance/Quality Control teams to understand testing, sampling, and deviation reporting.</li>
+                    <li>Strengthened knowledge of industrial safety, SOP compliance, and process optimization in pharma manufacturing.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-paper-plane timeline-icon"></i>
+                <h3>Industrial Intern — GSK Technologies Pvt Ltd</h3>
+                <p><strong>Paper Manufacturing Industry (Paper Mill)</strong> | July 2024</p>
+                <ul>
+                    <li>Understood complete packaging paper production processes, including pulping, bleaching, refining, sheet formation, pressing, and drying.</li>
+                    <li>Assisted in Quality Control procedures such as GSM analysis, moisture content, tensile strength, burst factor, and raw material evaluation.</li>
+                    <li>Observed machine operations, troubleshooting procedures, and workflow optimization in large-scale manufacturing.</li>
+                    <li>Gained insights into industrial chemistry, sustainability practices, and wastewater treatment used in modern paper mills.</li>
+                </ul>
+            </div>
+            <div class="timeline-item" data-animate>
+                <i class="fas fa-flask timeline-icon"></i>
+                <h3>Industrial Training (Industrial Visit) — Sthree Chemicals Pvt Ltd</h3>
+                <p><strong>Chemical Manufacturing Industry</strong> | Nov 2024</p>
+                <ul>
+                    <li>Completed industrial training through a guided visit to understand chemical production processes and plant operations.</li>
+                    <li>Observed synthesis, purification, chemical handling procedures, and plant-level safety protocols.</li>
+                    <li>Understood the use of reactors, mixers, filtration units, and QA/QC systems in chemical manufacturing.</li>
+                    <li>Gained exposure to industrial safety mechanisms, hazard management, and environmental compliance workflows.</li>
+                    <li>Improved understanding of real-world industrial chemical processes linked to biotechnology and applied sciences.</li>
+                </ul>
             </div>
         </div>
-        <div class="experience-item flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h3>Secretary Board Member, NSS VIT</h3>
-                    <p>Aug 2023 – Present</p>
-                </div>
-                <div class="flip-card-back">
-                    <p>Lead NSS activities and blood donation camps for 500+ donors with software-based data automation.</p>
-                </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects">
+        <div class="section-icon"><i class="fas fa-project-diagram"></i></div>
+        <h2>Projects</h2>
+        <div class="projects-grid">
+            <div class="project-card" data-animate>
+                <i class="fas fa-heartbeat project-icon"></i>
+                <h3>NSS Blood Donation Management System</h3>
+                <p><strong>Tools:</strong> Google Apps Script, Google Sheets, Google Forms, Automation, APIs</p>
+                <p><strong>Duration:</strong> Mar 2023 – Present</p>
+                <ul>
+                    <li>Developed an automated donor management system used in multiple NSS blood donation camps with 1500+ participants.</li>
+                    <li>Implemented automated email responses, eligibility checks, data cleaning, and PDF report generation.</li>
+                    <li>Integrated error logging, form triggers, and emergency donor retrieval features for faster on-ground operations.</li>
+                    <li>Improved data accuracy and reduced manual workload for NSS teams.</li>
+                </ul>
             </div>
-        </div>
-        <div class="experience-item flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h3>Student Organizer, VIT Biosummit</h3>
-                    <p>Sep 2023, Oct 2024</p>
-                </div>
-                <div class="flip-card-back">
-                    <p>Coordinated logistics and participant management for 500+ attendees at annual bioscience summits.</p>
-                </div>
+            <div class="project-card" data-animate>
+                <i class="fas fa-fish project-icon"></i>
+                <h3>Aquaculture Sustainability Research</h3>
+                <p><strong>Institution:</strong> VIT — School of Biosciences & Technology</p>
+                <p><strong>Duration:</strong> Jun 2024 – Present</p>
+                <ul>
+                    <li>Conducting research on sustainable aquaculture systems, focusing on nutrient optimization and water-quality analysis.</li>
+                    <li>Studying environmentally friendly methods to improve fish growth and reduce ecological impact.</li>
+                    <li>Collaborating on experimental design, data collection, and interpretation of findings for publication relevance.</li>
+                </ul>
+            </div>
+            <div class="project-card" data-animate>
+                <i class="fas fa-recycle project-icon"></i>
+                <h3>Biotechnological E-Waste Leaching Strategies</h3>
+                <p><strong>Presented at:</strong> Engineer’s Day 2025, VIT</p>
+                <p><strong>Duration:</strong> Sept 2025</p>
+                <ul>
+                    <li>Developed microbial leaching techniques for metal recovery from electronic waste.</li>
+                    <li>Studied bioleaching principles using bacteria and fungi for sustainable extraction.</li>
+                    <li>Designed posters and models demonstrating eco-friendly e-waste management.</li>
+                    <li>Earned recognition during Engineer’s Day under the guidance of Dr. Anand Prem Ranjan (SBST).</li>
+                </ul>
+            </div>
+            <div class="project-card" data-animate>
+                <i class="fas fa-tint project-icon"></i>
+                <h3>Water Conservation Ideathon Project</h3>
+                <p><strong>Achievement:</strong> 1st Prize — World Water Conservation Week 2023</p>
+                <p><strong>Duration:</strong> Mar 2023</p>
+                <ul>
+                    <li>Proposed innovative water-saving strategies for urban and semi-urban environments.</li>
+                    <li>Designed a model focusing on community-level water reuse, rainwater harvesting, and household conservation.</li>
+                    <li>Awarded for feasibility, innovation, and environmental impact.</li>
+                </ul>
+            </div>
+            <div class="project-card" data-animate>
+                <i class="fas fa-image project-icon"></i>
+                <h3>EntrepreNATION Poster Innovation Project</h3>
+                <p><strong>Achievement:</strong> 2nd Prize (₹3000)</p>
+                <p><strong>Duration:</strong> 2025</p>
+                <ul>
+                    <li>Designed and presented a scientific poster on microbial metal recovery from waste using biotechnology-based approaches.</li>
+                    <li>Recognized for creativity, scientific accuracy, and presentation quality.</li>
+                </ul>
+            </div>
+            <div class="project-card" data-animate>
+                <i class="fas fa-laptop-code project-icon"></i>
+                <h3>Personal Portfolio Website</h3>
+                <p><strong>Tools:</strong> HTML, CSS, JavaScript, Netlify, GitHub</p>
+                <p><strong>Duration:</strong> Dec 2025</p>
+                <ul>
+                    <li>Built a fully responsive personal portfolio website with elegant UI, section-based navigation, and resume integration.</li>
+                    <li>Implemented Netlify deployment, contact form (Netlify Forms), and downloadable PDF resume interface.</li>
+                    <li>Designed rich layouts for experience, projects, certificates, and skills.</li>
+                </ul>
             </div>
         </div>
     </section>
 
     <!-- Skills Section -->
     <section id="skills">
+        <div class="section-icon"><i class="fas fa-chart-bar"></i></div>
         <h2>Skills</h2>
-        <div class="skills-category">
-            <h3>Management & Leadership</h3>
-            <ul>
-                <li>Communication</li>
-                <li>Leadership</li>
-                <li>Event and Finance Management</li>
-                <li>Public Relations</li>
-            </ul>
-        </div>
-        <div class="skills-category">
-            <h3>Technical & Digital</h3>
-            <ul>
-                <li>Google Apps Script</li>
-                <li>Excel</li>
-                <li>Data Analysis</li>
-                <li>Graphic Design</li>
-                <li>HTML</li>
-            </ul>
-        </div>
-        <div class="skills-category">
-            <h3>Biotechnology & Laboratory</h3>
-            <ul>
-                <li>Gel Electrophoresis</li>
-                <li>Chromatography</li>
-                <li>UV–Vis Spectroscopy</li>
-                <li>DNA Isolation</li>
-                <li>HPLC</li>
-            </ul>
-        </div>
-        <div class="skills-category">
-            <h3>Bioinformatics</h3>
-            <ul>
-                <li>UniProt</li>
-                <li>NCBI</li>
-                <li>PDB</li>
-                <li>Vaccine Design</li>
-                <li>AI Tools</li>
-            </ul>
-        </div>
-        <div class="skills-category">
-            <h3>Industrial Exposure</h3>
-            <ul>
-                <li>Pharmaceutical and Paper Manufacturing</li>
-                <li>Quality Control</li>
-                <li>Process Optimization</li>
-            </ul>
+        <div class="skills-grid">
+            <div class="skills-category" data-animate>
+                <i class="fas fa-users-cog category-icon"></i>
+                <h3>Management & Leadership</h3>
+                <div class="skill-item">
+                    <div class="skill-name">Communication <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Leadership <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Event and Finance Management <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Public Relations <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+            </div>
+            <div class="skills-category" data-animate>
+                <i class="fas fa-code category-icon"></i>
+                <h3>Technical & Digital</h3>
+                <div class="skill-item">
+                    <div class="skill-name">Google Apps Script <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Excel <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Data Analysis <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Graphic Design <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">HTML <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Google Sheets Automation <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Google Forms Integration <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Google AI Studio (Prompt Engineering) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Python (Data & Bioinformatics basics) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="60"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">JavaScript (basic) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="50"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Netlify (Website Deployment) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Canva Premium (Design & Video Editing) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Google Colab (Data analysis & bioinformatics) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">MS Office (Word, Excel, PowerPoint) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+            </div>
+            <div class="skills-category" data-animate>
+                <i class="fas fa-vial category-icon"></i>
+                <h3>Biotechnology & Laboratory</h3>
+                <div class="skill-item">
+                    <div class="skill-name">Gel Electrophoresis <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Chromatography <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">UV-Vis Spectroscopy <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">DNA Isolation <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">HPLC <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Molecular Biology Concepts (DNA/RNA, transcription, regulation) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Sequence Alignment & Scoring Matrices <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Codon Optimization <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Plant Tissue Culture (Callus, Organogenesis, Somatic Embryogenesis) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Human Leukocyte Culture & Chromosome Preparation <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Vaccinology: DIVA, Edible, Suicidal Vaccines <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Plant Stress Physiology (Water deficit, Osmotic, Cold stress) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Transgenic Crop Improvement <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Gene/Protein Interaction Analysis (STRING, DGIdb) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+            </div>
+            <div class="skills-category" data-animate>
+                <i class="fas fa-database category-icon"></i>
+                <h3>Bioinformatics</h3>
+                <div class="skill-item">
+                    <div class="skill-name">UniProt <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">NCBI <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">PDB <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Vaccine Design <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">AI Tools <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Sequence alignment (global/local, BLAST basics) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Gene–protein network analysis (STRING) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Drug–target mapping (DGIdb) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Metabolic/Regulatory Network Understanding <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Systems Biology modeling concepts (FFL circuits, logic gates) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="65"></div></div>
+                </div>
+            </div>
+            <div class="skills-category" data-animate>
+                <i class="fas fa-cogs category-icon"></i>
+                <h3>Industrial Exposure</h3>
+                <div class="skill-item">
+                    <div class="skill-name">Pharmaceutical and Paper Manufacturing <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Quality Control <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Process Optimization <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Pharmaceutical Manufacturing Processes (Glory Pharma Chem internship) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="65"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Paper Mill Processing & QC Overview <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="60"></div></div>
+                </div>
+            </div>
+            <div class="skills-category" data-animate>
+                <i class="fas fa-search category-icon"></i>
+                <h3>Research & Analytical Skills</h3>
+                <div class="skill-item">
+                    <div class="skill-name">Biological Database Design <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Data Cleaning & Structuring <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Research Methodology & Hypothesis Formation <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Scientific Report Writing <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Literature Review <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Case Study Development <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Internship Report Writing <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
+                </div>
+            </div>
+            <div class="skills-category" data-animate>
+                <i class="fas fa-calendar-alt category-icon"></i>
+                <h3>Event & Leadership Skills</h3>
+                <div class="skill-item">
+                    <div class="skill-name">Event Planning & Coordination (NSS Events, Awareness Programs) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Finance Management (Handled Reviera’25) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Blood Donation Camp Organization <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Team Leadership & Communication <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Poster & Template Designing (Canva) <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="75"></div></div>
+                </div>
+            </div>
+            <div class="skills-category" data-animate>
+                <i class="fas fa-lightbulb category-icon"></i>
+                <h3>Soft Skills</h3>
+                <div class="skill-item">
+                    <div class="skill-name">Problem Solving <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Time Management <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Attention to Detail <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Communication & Presentation <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="85"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name">Quick Learning & Adaptability <span class="progress-label"></span></div>
+                    <div class="progress-bar"><div class="progress-fill" data-width="90"></div></div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- Certifications & Awards Section -->
+    <!-- Certifications Section -->
     <section id="certifications">
+        <div class="section-icon"><i class="fas fa-medal"></i></div>
         <h2>Certifications & Awards</h2>
-        <ul>
-            <li>100% Attendance Awards – VIT – 2023 & 2025</li>
-            <li>Water Conservation Ideathon – 3rd Place – VIT, Mar 2023</li>
-            <li>Internship – Paper Manufacturing, GSK Technologies Pvt Ltd, Jul 2024</li>
-            <li>Industrial Visit – Sthree Chemicals Pvt Ltd, Nov 2024</li>
-            <li>Blood Donation Certificates – NSS VIT, Aug & Dec 2024</li>
-            <li>Finance Manager – Riviera'25, VIT, Apr 2025</li>
-            <li>Purchase Coordinator – Gravitas'24, VIT, Oct 2024</li>
-            <li>Secretary Board Member – NSS VIT, Aug 2023–Present</li>
-            <li>Student Organizer – VIT Biosummit (2023 & 2024)</li>
-            <li>Student Organiser – NSS Special Camps (2024 & 2025)</li>
-            <li>Student Coordinator – DNA Day 2024, VIT</li>
-        </ul>
+        <div class="cert-grid">
+            <div class="cert-card" data-animate>
+                <i class="fas fa-check-circle cert-icon"></i>
+                <p>100% Attendance Award, VIT, Jun 2023 (₹1000 cash prize)</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-check-circle cert-icon"></i>
+                <p>100% Attendance Award, VIT, Jun 2025 (₹1000 cash prize)</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-trophy cert-icon"></i>
+                <p>Water Conservation Ideathon Winner, VIT, Mar 2023 (₹750 cash prize)</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-briefcase cert-icon"></i>
+                <p>Internship in Paper Manufacturing, GSK Technologies Pvt Ltd, Jul 2024</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-building cert-icon"></i>
+                <p>Industrial Visit to STHREE Chemicals Pvt Ltd, VIT, Nov 2024</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-heart cert-icon"></i>
+                <p>Blood Donation Certificate, NSS VIT, Aug 2024</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-heart cert-icon"></i>
+                <p>Blood Donation Certificate, NSS VIT, Dec 2024</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-chart-line cert-icon"></i>
+                <p>Finance Manager, Reviera’25, VIT, Apr 2025</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-shopping-cart cert-icon"></i>
+                <p>Purchase Coordinator, Gravitas’24, VIT, Oct 2024</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-users cert-icon"></i>
+                <p>Secretary Board Member, NSS VIT, Aug 2023</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-microphone cert-icon"></i>
+                <p>Student Organizer, VIT Biosummit 2024, VIT, Oct 2024</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-microphone-alt cert-icon"></i>
+                <p>Student Organizer, VIT Biosummit 2023, VIT, Oct 2023</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-campground cert-icon"></i>
+                <p>Student Organizer, NSS Special Camp 2025, NSS VIT, Mar 2025</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-campground cert-icon"></i>
+                <p>Student Coordinator, NSS Special Camp 2024, NSS VIT, Mar 2024</p>
+            </div>
+            <div class="cert-card" data-animate>
+                <i class="fas fa-dna cert-icon"></i>
+                <p>Student Coordinator, DNA Day 2024, VIT, Apr 2024</p>
+            </div>
+        </div>
     </section>
 
-    <!-- Clubs Section -->
-    <section id="clubs">
-        <h2>Clubs & Chapters</h2>
-        <ul>
-            <li>Society of Manufacturing Engineers (SME), VIT – Member (2023–Present)</li>
-            <li>Sigma Xi, VIT – Member (2023–Present)</li>
-            <li>Health Club – Member (2023–Present)</li>
-            <li>Zero Waste Management Club – Member (2023–Present)</li>
-            <li>VIT Community Radio Club – Member (2023–Present)</li>
-        </ul>
+    <!-- Languages Section -->
+    <section id="languages">
+        <div class="section-icon"><i class="fas fa-globe-americas"></i></div>
+        <h2>Languages</h2>
+        <div class="skills-grid">
+            <div class="skills-category lang-card" data-animate>
+                <i class="fas fa-language lang-icon"></i>
+                <h3>Telugu — Native / Mother Tongue</h3>
+                <ul>
+                    <li><i class="fas fa-book"></i> Reading: Excellent</li>
+                    <li><i class="fas fa-pen"></i> Writing: Excellent</li>
+                    <li><i class="fas fa-microphone"></i> Speaking: Excellent</li>
+                </ul>
+            </div>
+            <div class="skills-category lang-card" data-animate>
+                <i class="fas fa-language lang-icon"></i>
+                <h3>English — Professional Proficiency</h3>
+                <ul>
+                    <li><i class="fas fa-book"></i> Reading: Excellent</li>
+                    <li><i class="fas fa-pen"></i> Writing: Excellent</li>
+                    <li><i class="fas fa-microphone"></i> Speaking: Excellent</li>
+                </ul>
+            </div>
+            <div class="skills-category lang-card" data-animate>
+                <i class="fas fa-language lang-icon"></i>
+                <h3>Tamil — Conversational Proficiency</h3>
+                <ul>
+                    <li><i class="fas fa-book"></i> Reading: Not proficient</li>
+                    <li><i class="fas fa-pen"></i> Writing: Not proficient</li>
+                    <li><i class="fas fa-microphone"></i> Speaking: Very Good</li>
+                </ul>
+            </div>
+            <div class="skills-category lang-card" data-animate>
+                <i class="fas fa-language lang-icon"></i>
+                <h3>Hindi — Working Knowledge</h3>
+                <ul>
+                    <li><i class="fas fa-book"></i> Reading: Good</li>
+                    <li><i class="fas fa-pen"></i> Writing: Good</li>
+                    <li><i class="fas fa-microphone"></i> Understanding: Good</li>
+                    <li><i class="fas fa-microphone-slash"></i> Speaking: Limited</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resume Section -->
+    <section id="resume">
+        <div class="section-icon"><i class="fas fa-file-alt"></i></div>
+        <h2>Resume</h2>
+        <div class="resume-content" data-animate>
+            <a href="assets/resume.pdf" download class="btn">Download Resume PDF</a>
+        </div>
     </section>
 
     <!-- Contact Section -->
     <section id="contact">
+        <div class="section-icon"><i class="fas fa-address-book"></i></div>
         <h2>Contact Me</h2>
-        <form id="contact-form">
-            <input type="text" placeholder="Your Name" required>
-            <input type="email" placeholder="Your Email" required>
-            <textarea placeholder="Your Message" required></textarea>
+        <form name="contact" method="POST" data-netlify="true" aria-label="Contact Form">
+            <input type="hidden" name="form-name" value="contact">
+            <input type="text" name="name" placeholder="Your Name" required aria-label="Your Name">
+            <input type="email" name="email" placeholder="Your Email" required aria-label="Your Email">
+            <textarea name="message" placeholder="Your Message" required aria-label="Your Message"></textarea>
             <button type="submit" class="btn">Send Message</button>
         </form>
-        <p>Email: krishnatejareddy2003@gmail.com | Phone: +91 93908 50349 | LinkedIn: linkedin.com/in/gkrishnateja</p>
+        <div class="contact-info">
+            <p><i class="fas fa-envelope"></i> Email: <a href="mailto:krishnatejareddy2003@gmail.com">krishnatejareddy2003@gmail.com</a></p>
+            <p><i class="fas fa-phone"></i> Phone: <a href="tel:+919390850349">+91 93908 50349</a></p>
+        </div>
+        <div class="social-links">
+            <a href="https://www.linkedin.com/in/gkrishnateja" target="_blank" aria-label="LinkedIn Profile">
+                <img src="images/LINKEDIN.png" alt="LinkedIn" class="social-icon" loading="lazy">
+            </a>
+            <a href="https://www.instagram.com/krishna_theja_reddy" target="_blank" aria-label="Instagram Profile">
+                <img src="images/INSTA.png" alt="Instagram" class="social-icon" loading="lazy">
+            </a>
+            <a href="https://www.facebook.com/share/16RTshSy8n/" target="_blank" aria-label="Facebook Profile">
+                <img src="images/FB.png" alt="Facebook" class="social-icon" loading="lazy">
+            </a>
+            <a href="images/X.png" target="_blank" aria-label="X Profile">
+                <img src="images/x-icon.jpg" alt="X" class="social-icon" loading="lazy">
+            </a>
+        </div>
     </section>
 
     <footer>
-        <p>&copy; 2025 G. Krishna Teja. All rights reserved.</p>
+        <p>&copy; 2025 G. Krishna Teja. All rights reserved. | Designed with <i class="fas fa-heart"></i> for Biotech Innovation</p>
     </footer>
 </body>
 </html>
