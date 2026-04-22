@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import LogoLoop from './LogoLoop';
+import { socialLogos } from '../data/socialLogos';
 
 export default function Sidebar({ isOpen, onClose }) {
   const navLinks = [
@@ -59,22 +61,19 @@ export default function Sidebar({ isOpen, onClose }) {
             </li>
           ))}
         </ul>
-        <div className="sidebar-footer">
-          <a href="https://www.linkedin.com/in/gkrishnateja" target="_blank" rel="noreferrer">
-            <img src="/images/LINKEDIN.png" alt="LinkedIn" className="social-icon" />
-          </a>
-          <a href="https://www.instagram.com/krishna_theja_reddy" target="_blank" rel="noreferrer">
-            <img src="/images/INSTA.png" alt="Instagram" className="social-icon" />
-          </a>
-          <a href="https://www.facebook.com/share/16RTshSy8n/" target="_blank" rel="noreferrer">
-            <img src="/images/FB.png" alt="Facebook" className="social-icon" />
-          </a>
-          <a href="https://x.com/GKrishnaTeja10" target="_blank" rel="noreferrer">
-            <img src="/images/X.png" alt="X" className="social-icon" />
-          </a>
-          <a href="https://github.com/krishnathejaofficial" target="_blank" rel="noreferrer">
-            <img src="/images/GITHUB.png" alt="GitHub" className="social-icon" />
-          </a>
+        <div className="sidebar-footer" style={{ overflow: 'hidden', padding: '20px 0', borderTop: '1px solid var(--gold-dim)' }}>
+          <LogoLoop
+            logos={socialLogos}
+            speed={50}
+            direction="left"
+            logoHeight={28}
+            gap={24}
+            hoverSpeed={0}
+            scaleOnHover={true}
+            fadeOut={true}
+            fadeOutColor="rgba(10,10,10,0.97)"
+            ariaLabel="Social Links"
+          />
         </div>
       </aside>
     </>

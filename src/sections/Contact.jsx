@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import LogoLoop from '../components/LogoLoop';
+import { socialLogos } from '../data/socialLogos';
 
 export default function Contact() {
   const ref = useRef(null);
@@ -54,7 +56,7 @@ export default function Contact() {
         <input type="text" name="name" placeholder="Your Name" required />
         <input type="email" name="email" placeholder="Your Email" required />
         <textarea name="message" placeholder="Your Message" required />
-        <button type="submit" className="btn" style={{ alignSelf: 'flex-start', ...btnStyle }} disabled={status === 'sending'}>
+        <button type="submit" className="btn" style={{ alignSelf: 'center', ...btnStyle }} disabled={status === 'sending'}>
           {btnText}
         </button>
       </form>
@@ -63,18 +65,19 @@ export default function Contact() {
         <p style={{ marginTop: '10px' }}><i className="fas fa-envelope" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="mailto:krishnatejareddy2001@gmail.com">krishnatejareddy2001@gmail.com</a></p>
         <p style={{ marginTop: '10px' }}><i className="fas fa-phone" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="tel:+919390850349">+91 93908 50349</a></p>
       </div>
-      <div className="social-links" data-animate>
-        {[
-          { href: 'https://www.linkedin.com/in/gkrishnateja', src: '/images/LINKEDIN.png', alt: 'LinkedIn' },
-          { href: 'https://www.instagram.com/krishna_theja_reddy', src: '/images/INSTA.png', alt: 'Instagram' },
-          { href: 'https://www.facebook.com/share/16RTshSy8n/', src: '/images/FB.png', alt: 'Facebook' },
-          { href: 'https://x.com/GKrishnaTeja10', src: '/images/X.png', alt: 'X' },
-          { href: 'https://github.com/krishnathejaofficial', src: '/images/GITHUB.png', alt: 'GitHub' },
-        ].map(s => (
-          <a key={s.alt} href={s.href} target="_blank" rel="noreferrer" title={s.alt}>
-            <img src={s.src} alt={s.alt} className="social-icon" />
-          </a>
-        ))}
+      <div className="social-links" data-animate style={{ width: '100%', overflow: 'hidden' }}>
+        <LogoLoop
+          logos={socialLogos}
+          speed={100}
+          direction="left"
+          logoHeight={48}
+          gap={36}
+          hoverSpeed={0}
+          scaleOnHover={true}
+          fadeOut={true}
+          fadeOutColor="var(--bg)"
+          ariaLabel="Social Links"
+        />
       </div>
     </section>
   );

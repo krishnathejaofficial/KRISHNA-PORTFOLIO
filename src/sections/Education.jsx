@@ -15,7 +15,7 @@ export default function Education() {
       <div className="section-icon"><i className="fas fa-graduation-cap" /></div>
       <h2>Education</h2>
       <div className="section-divider" />
-      <div className="grid-2">
+      <div className="grid-3">
         <div className="card" data-animate>
           <i className="fas fa-university edu-icon" />
           <h3>Integrated M.Sc. Biotechnology</h3>

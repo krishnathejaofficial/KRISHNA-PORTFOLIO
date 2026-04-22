@@ -15,9 +15,9 @@ export default function Internships() {
       <div className="section-icon"><i className="fas fa-industry" /></div>
       <h2>Internship &amp; Industrial Training</h2>
       <div className="section-divider" />
-      <div className="timeline">
-        <div className="timeline-item card" data-animate>
-          <i className="fas fa-pills tl-icon" />
+      <div className="grid-3">
+        <div className="card" data-animate>
+          <i className="fas fa-pills proj-icon" />
           <h3>Industrial Intern — Glory Pharma Chem India Pvt Ltd</h3>
           <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Pharmaceutical Manufacturing | 2 June – 4 July 2025</p>
           <ul>
@@ -27,8 +27,8 @@ export default function Internships() {
             <li>Worked with QA/QC teams on testing, sampling, and deviation reporting.</li>
           </ul>
         </div>
-        <div className="timeline-item card" data-animate>
-          <i className="fas fa-paper-plane tl-icon" />
+        <div className="card" data-animate>
+          <i className="fas fa-paper-plane proj-icon" />
           <h3>Industrial Intern — GSK Technologies Pvt Ltd</h3>
           <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Paper Manufacturing Industry | July 2024</p>
           <ul>
@@ -37,8 +37,8 @@ export default function Internships() {
             <li>Insights into industrial chemistry, sustainability, and wastewater treatment.</li>
           </ul>
         </div>
-        <div className="timeline-item card" data-animate>
-          <i className="fas fa-flask tl-icon" />
+        <div className="card" data-animate>
+          <i className="fas fa-flask proj-icon" />
           <h3>Industrial Training — Sthree Chemicals Pvt Ltd</h3>
           <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Chemical Manufacturing | Nov 2024</p>
           <ul>
