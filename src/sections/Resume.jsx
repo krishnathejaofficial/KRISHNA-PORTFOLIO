@@ -17,7 +17,7 @@ export default function Resume() {
       <div className="section-divider" />
       <div className="card resume-box" data-animate>
         <p style={{ marginBottom: '28px', opacity: 0.8 }}>Download my complete resume with all details, academic records, and project information.</p>
-        <a href="/assets/resume.pdf" download className="btn">
+        <a href={`/assets/resume.pdf?v=${Date.now()}`} download="G_Krishna_Teja_Resume.pdf" className="btn">
           <i className="fas fa-download" style={{ marginRight: '8px' }} />Download Resume PDF
         </a>
       </div>

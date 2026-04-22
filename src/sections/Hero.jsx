@@ -1,6 +1,4 @@
 import { useEffect, useRef } from 'react';
-import PixelTransition from '../components/PixelTransition';
-import LogoLoop from '../components/LogoLoop';
 import { socialLogos } from '../data/socialLogos';
 export default function Hero() {
   const nameRef = useRef(null);
@@ -44,26 +42,11 @@ export default function Hero() {
       <div className="hero-bg" />
       <div className="particles" ref={particlesRef} />
       <div className="hero-content">
-        <PixelTransition
-          firstContent={
-            <img
-              src="/images/IMG_20250601_195837.jpg"
-              alt="G. Krishna Teja"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={e => { e.target.onerror = null; e.target.src = '/images/krishna teja profile.jpg'; }}
-            />
-          }
-          secondContent={
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(10, 10, 10, 0.95)' }}>
-              <h2 style={{ margin: 0, color: '#ffffff', fontSize: '2.5rem', fontFamily: "'Cormorant Garamond', serif" }}>Teja</h2>
-            </div>
-          }
-          gridSize={10}
-          pixelColor="#ffffff"
-          animationStepDuration={0.4}
-          aspectRatio=""
+        <img
+          src="/images/IMG_20250601_195837.jpg"
+          alt="G. Krishna Teja"
           className="profile-photo"
-          style={{ padding: 0 }}
+          onError={e => { e.target.onerror = null; e.target.src = '/images/krishna teja profile.jpg'; }}
         />
         <h1 className="hero-name" ref={nameRef}>G. Krishna Teja</h1>
         <p className="hero-tagline">
@@ -74,19 +57,12 @@ export default function Hero() {
           <p><i className="fas fa-map-marker-alt" style={{ color: 'var(--gold)', marginRight: '8px' }} />Madharapakkam, Tiruvallur, Tamil Nadu - 601202</p>
           <p><i className="fas fa-envelope" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="mailto:krishnatejareddy2001@gmail.com">krishnatejareddy2001@gmail.com</a></p>
           <p><i className="fas fa-phone" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="tel:+919390850349">+91 93908 50349</a></p>
-          <div className="hero-social-links" style={{ width: '100%', overflow: 'hidden', justifyContent: 'center' }}>
-            <LogoLoop
-              logos={socialLogos}
-              speed={60}
-              direction="left"
-              logoHeight={32}
-              gap={28}
-              hoverSpeed={0}
-              scaleOnHover={true}
-              fadeOut={true}
-              fadeOutColor="rgba(18,18,18,0.92)"
-              ariaLabel="Social Links"
-            />
+          <div className="hero-social-links">
+            {socialLogos.map(s => (
+              <a key={s.alt} href={s.href} target="_blank" rel="noreferrer" title={s.alt}>
+                <img src={s.src} alt={s.alt} className="social-icon" />
+              </a>
+            ))}
           </div>
         </div>
       </div>
