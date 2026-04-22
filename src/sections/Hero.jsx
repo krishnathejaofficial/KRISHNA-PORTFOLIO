@@ -59,8 +59,8 @@ export default function Hero() {
           <p><i className="fas fa-phone" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="tel:+919390850349">+91 93908 50349</a></p>
           <div className="hero-social-links">
             {socialLogos.map(s => (
-              <a key={s.alt} href={s.href} target="_blank" rel="noreferrer" title={s.alt}>
-                <img src={s.src} alt={s.alt} className="social-icon" />
+              <a key={s.title} href={s.href} target="_blank" rel="noreferrer" title={s.title} className="social-icon-link">
+                {s.node}
               </a>
             ))}
           </div>
