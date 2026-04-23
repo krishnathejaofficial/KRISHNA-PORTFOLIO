@@ -8,11 +8,11 @@ export const knowledgeChunks = [
   `Career objective: Seeking roles in pharmaceutical operations, industrial biotechnology, healthcare systems, and business development with long-term interest in industry-integrated applied research. He has demonstrated ability to deliver high-impact outcomes including managing Rs. 7 crore finances across 150+ events and executing 952 successful blood donations within approximately 7 hours — a university record.`,
 
   // --- EDUCATION ---
-  `Education: Krishna completed his Integrated M.Sc. Biotechnology from Vellore Institute of Technology (VIT), Vellore from 2022 to 2027. His CGPA is 9.01. He received 100% Attendance Awards in 2023 and 2025.`,
+  `Education: Krishna completed his Integrated M.Sc. Biotechnology from Vellore Institute of Technology (VIT), Vellore from 2022 to 2027. His CGPA is 9.01. He received 100% Attendance Awards for 2 times in 2023 and 2025.`,
 
   `Education: He completed Intermediate (BiPC) from Sri Chaitanya Junior College, Vijayawada from 2019 to 2021, scoring 96% (954/1000).`,
 
-  `Education: He completed his Secondary School Certificate (SSC) from Masters EM High School in 2018-2019, achieving a perfect GPA of 10.0.`,
+  `Education: He completed his 10th class/Secondary School Certificate (SSC) from Masters EM High School, Sathyavedu, Tirupati district, Andhra Pradesh in 2018-2019, achieving a perfect GPA of 10.0. For this achievement, he was selected for the prestigious Prathiba Award from the Andhra Pradesh Government.`,
 
   // --- RESEARCH ---
   `Research: Krishna worked on Aquaculture Feed Formulation Research at VIT Vellore (SBST) from June 2025 to May 2026 under Dr. R. Sudhakaran, Department of Integrative Biology. He developed sustainable, antioxidant-rich aquafeed formulations using agro-industrial fruit peel waste, reducing reliance on commercial feed inputs. He conducted proximate analysis and biochemical assays including protein estimation (Bradford, BCA, Lowry), lipid, carbohydrate, and antioxidant evaluation (DPPH, ABTS) for nutritional profiling.`,
@@ -67,7 +67,7 @@ export const knowledgeChunks = [
 
   `Leadership: Blood Donation Camp In-Charge at NSS VIT (4 Camps, 2023–2025). Executed healthcare camps with 1,104+ registrations and 952 successful donations — the highest university record. Coordinated with hospitals and 950+ donors for smooth end-to-end operations.`,
 
-  `Leadership: NSS Special Rural Camps across 4 villages (7 days each, 400+ volunteers, 2022–2025). Progressed through roles: Volunteer → Coordinator → Organizer → Advisory. Managed logistics, team coordination, and field operations across 4 rural camps. Designed and executed community development programs with measurable social impact.`,
+  `Leadership: Krishna has a distinguished record with NSS Rural Camps across 4 different villages over 4 years: (1) NSS Rural Camp Volunteer in Thiruvalam (2023), (2) NSS Rural Camp Coordinator in Vandranthangal (2024), (3) NSS Rural Camp Organizer in Anaicut (2025), and (4) NSS Rural Camp Advisory in Kaniyambadi (2026). He has progressed from field volunteer to strategic advisory, managing logistics, team coordination, and community development programs for 400+ volunteers.`,
 
   `Leadership: Secretary, Board Member at NSS VIT (2024–2025). Led multiple social initiatives, events, and operational programs with measurable community impact at the institutional level.`,
 
@@ -80,6 +80,14 @@ export const knowledgeChunks = [
 
   // --- CONTACT ---
   `Contact: Krishna can be reached at krishnatejareddy2003@gmail.com or +91-93908-50349. His address is 4/335 A, 23 Budur, Gummidipoondi TK, Madharapakkam, Tiruvallur, Tamil Nadu - 601202, India. LinkedIn: linkedin.com/in/gkrishnateja. GitHub: github.com/krishnathejaofficial. Portfolio: gkrishnateja.vercel.app.`,
+
+  // --- FAMILY & PERSONAL ---
+  `Family: Krishna's mother is G. Vanitha, who is a dedicated housewife. His father was G. Vasu, a farmer, who unfortunately passed away on January 8, 2025. He has an elder brother, G. Pavan Krishna (born Dec 31, 1999), who completed his B.Tech in Mechanical Engineering from RMK Engineering College and is currently working in the software industry in Hyderabad.`,
+
+  `Friends: Krishna's best friends include Chetana Aashritha (VIT Hyderabad, born Jan 1, 2004), Lokhitha (VIT, from Madurai, born Nov 24, 2004), Surendra (a close friend from 11th and 12th class), Supraja (from VIT), and school friends Gowtham and Gnanesh.`,
+
+  // --- SOCIAL MEDIA & CONTENT CREATION ---
+  `Social Media: Krishna is involved with a major YouTube channel named "TIRUPATHI UPDATES" (https://youtube.com/@tirupathiupdates) which has over 14 lakh subscribers. The channel was formerly known as "TIRUPATI TREKKING CLUB" (changed due to naming issues) and originally featured trekking videos from the Seshachalam forest, but now focuses on devotional content. He is also active on Instagram (@tirupathiupdates) with 768k followers. The main owner of the channel is his uncle (mother's brother), N. Madhu Kumar.`,
 
   // --- CAREER INTERESTS ---
   `Career Interests: Industrial Biotechnology, Pharmaceutical Operations, Healthcare Systems, Business Development, Operations Management, Industry-Integrated Applied Research.`,
