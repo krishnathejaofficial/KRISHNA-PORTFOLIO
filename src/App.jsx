@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import ThemeToggle from './components/ThemeToggle';
 import BackToTop from './components/BackToTop';
 import Preloader from './components/Preloader';
+import AIChat from './components/AIChat';
 
 // Sections
 import Hero from './sections/Hero';
@@ -101,6 +102,7 @@ function App() {
       </footer>
 
       <BackToTop />
+      <AIChat />
     </div>
   );
 }
