@@ -5,6 +5,7 @@ import ThemeToggle from './components/ThemeToggle';
 import BackToTop from './components/BackToTop';
 import Preloader from './components/Preloader';
 import AIChat from './components/AIChat';
+import VoiceNav from './components/VoiceNav';
 
 // Sections
 import Hero from './sections/Hero';
@@ -103,6 +104,7 @@ function App() {
 
       <BackToTop />
       <AIChat />
+      <VoiceNav />
     </div>
   );
 }
