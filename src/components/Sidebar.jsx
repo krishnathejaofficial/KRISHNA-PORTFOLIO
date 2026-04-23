@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 
 export default function Sidebar({ isOpen, onClose }) {
