@@ -84,7 +84,7 @@ export const knowledgeChunks = [
   // --- FAMILY & PERSONAL ---
   `Family: Krishna's mother is G. Vanitha, who is a dedicated housewife. His father was G. Vasu, a farmer, who unfortunately passed away on January 8, 2025. He has an elder brother, G. Pavan Krishna (born Dec 31, 1999), who completed his B.Tech in Mechanical Engineering from RMK Engineering College and is currently working in the software industry in Hyderabad.`,
 
-  `Friends: Krishna's best friends include Chetana Aashritha (VIT Hyderabad, born Jan 1, 2004), Lokhitha (VIT, from Madurai, born Nov 24, 2004), Surendra (a close friend from 11th and 12th class), Supraja (from VIT), and school friends Gowtham and Gnanesh.`,
+  `Friends: Krishna's best friends include Chetana Aashritha (VIT Hyderabad, born Jan 1, 2004), Lokhitha (VIT, from Madurai, born Nov 24, 2004), Surendra (a close friend from 11th and 12th class), Supraja (from VIT, she is from Vellore, she was born in 6th july 2004), and school friends Gowtham and Gnanesh.`,
 
   // --- SOCIAL MEDIA & CONTENT CREATION ---
   `Social Media: Krishna is involved with a major YouTube channel named "TIRUPATHI UPDATES" (https://youtube.com/@tirupathiupdates) which has over 14 lakh subscribers. The channel was formerly known as "TIRUPATI TREKKING CLUB" (changed due to naming issues) and originally featured trekking videos from the Seshachalam forest, but now focuses on devotional content. He is also active on Instagram (@tirupathiupdates) with 768k followers. The main owner of the channel is his uncle (mother's brother), N. Madhu Kumar.`,
