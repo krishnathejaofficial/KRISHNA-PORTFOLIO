@@ -448,3 +448,70 @@ footer i { color: var(--gold); }
 .voice-powered-by { text-align: center; font-size: 0.68em; color: var(--text); opacity: 0.5; margin-top: 8px; line-height: 1.4; }
 .voice-powered-by strong { color: var(--gold); opacity: 1; }
 
+/* ── Live Time & Weather Widget ── */
+.live-time-weather {
+  position: fixed;
+  top: 24px;
+  right: 80px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--gold-dim);
+  padding: 8px 16px;
+  border-radius: 30px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  font-size: 0.85em;
+  color: var(--text-bright);
+  transition: all 0.3s var(--ease);
+}
+.live-time-weather:hover {
+  border-color: var(--gold);
+  box-shadow: 0 8px 32px rgba(212,175,55,0.15);
+  transform: translateY(-2px);
+}
+.ltw-time {
+  font-family: 'Inter', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ltw-time i { color: var(--gold); }
+.ltw-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--gold-dim);
+  opacity: 0.5;
+}
+.ltw-weather {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.ltw-weather i {
+  color: #60a5fa; /* A nice weather blue, or could be gold */
+}
+.ltw-error i.ltw-slash {
+  color: #ef4444; /* red for error */
+}
+
+@media (max-width: 768px) {
+  .live-time-weather {
+    top: auto;
+    bottom: 24px;
+    right: 50%;
+    transform: translateX(50%);
+    font-size: 0.8em;
+    padding: 6px 12px;
+  }
+  .live-time-weather:hover {
+    transform: translateX(50%) translateY(-2px);
+  }
+}

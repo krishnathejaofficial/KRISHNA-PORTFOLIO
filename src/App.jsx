@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import SplashCursor from './components/SplashCursor';
 import Sidebar from './components/Sidebar';
 import ThemeToggle from './components/ThemeToggle';
+import LiveTimeWeather from './components/LiveTimeWeather';
 import BackToTop from './components/BackToTop';
 import Preloader from './components/Preloader';
 import AIChat from './components/AIChat';
@@ -75,6 +76,7 @@ function App() {
       </button>
 
       <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+      <LiveTimeWeather />
       
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
       
