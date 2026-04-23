@@ -3,7 +3,7 @@
 
 export const knowledgeChunks = [
   // --- BIO & OBJECTIVE ---
-  `G. Krishna Teja is an Integrated M.Sc. Biotechnology student at VIT Vellore with a CGPA of 9.01 (as of 2025). He is passionate about Pharmaceutical Operations, Industrial Biotechnology, Healthcare Systems, and Business Development. He combines deep scientific knowledge with strong leadership, financial management, and automation-driven system-building skills.`,
+  `G. Krishna Teja was born on 23 March 2003. He is an Integrated M.Sc. Biotechnology student at VIT Vellore with a CGPA of 9.01 (as of 2025). He is passionate about Pharmaceutical Operations, Industrial Biotechnology, Healthcare Systems, and Business Development. He combines deep scientific knowledge with strong leadership, financial management, and automation-driven system-building skills.`,
 
   `Career objective: Seeking roles in pharmaceutical operations, industrial biotechnology, healthcare systems, and business development with long-term interest in industry-integrated applied research. He has demonstrated ability to deliver high-impact outcomes including managing Rs. 7 crore finances across 150+ events and executing 952 successful blood donations within approximately 7 hours — a university record.`,
 
@@ -79,7 +79,7 @@ export const knowledgeChunks = [
   `Achievements: 100% Attendance Award from VIT Vellore in 2023 and 2025. EntrepreNATION — 2nd Prize (Entrepreneurship Competition). Water Conservation Ideathon — 3rd Place.`,
 
   // --- CONTACT ---
-  `Contact: Krishna can be reached at krishnatejareddy2003@gmail.com or +91-93908-50349. He is based in Madhrapakkam, Tiruvallur, Tamil Nadu - 601202, India. LinkedIn: linkedin.com/in/gkrishnateja. GitHub: github.com/krishnathejaofficial. Portfolio: gkrishnateja.vercel.app.`,
+  `Contact: Krishna can be reached at krishnatejareddy2003@gmail.com or +91-93908-50349. His address is 4/335 A, 23 Budur, Gummidipoondi TK, Madharapakkam, Tiruvallur, Tamil Nadu - 601202, India. LinkedIn: linkedin.com/in/gkrishnateja. GitHub: github.com/krishnathejaofficial. Portfolio: gkrishnateja.vercel.app.`,
 
   // --- CAREER INTERESTS ---
   `Career Interests: Industrial Biotechnology, Pharmaceutical Operations, Healthcare Systems, Business Development, Operations Management, Industry-Integrated Applied Research.`,
