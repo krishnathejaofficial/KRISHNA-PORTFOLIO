@@ -50,12 +50,12 @@ export default function Hero() {
         />
         <h1 className="hero-name" ref={nameRef}>G. Krishna Teja</h1>
         <p className="hero-tagline">
-          Integrated M.Sc. Biotechnology Student | VIT (CGPA 9.01) | Pharma &amp; Biotech Sales · Clinical Operations · Healthcare Business Development
+          Integrated M.Sc. Biotechnology Student | VIT Vellore (CGPA 9.01) | Pharmaceutical Operations · Industrial Biotechnology · Healthcare Business Development
         </p>
         <a href="#resume" className="btn" onClick={e => { e.preventDefault(); document.querySelector('#resume')?.scrollIntoView({ behavior: 'smooth' }); }}>View Resume</a>
         <div className="hero-contact">
           <p><i className="fas fa-map-marker-alt" style={{ color: 'var(--gold)', marginRight: '8px' }} />Madharapakkam, Tiruvallur, Tamil Nadu - 601202</p>
-          <p><i className="fas fa-envelope" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="mailto:krishnatejareddy2001@gmail.com">krishnatejareddy2001@gmail.com</a></p>
+          <p><i className="fas fa-envelope" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="mailto:krishnatejareddy2003@gmail.com">krishnatejareddy2003@gmail.com</a></p>
           <p><i className="fas fa-phone" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="tel:+919390850349">+91 93908 50349</a></p>
           <div className="hero-social-links">
             {socialLogos.map(s => (

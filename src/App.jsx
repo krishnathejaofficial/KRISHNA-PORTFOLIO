@@ -9,6 +9,7 @@ import Preloader from './components/Preloader';
 import Hero from './sections/Hero';
 import About from './sections/About';
 import Education from './sections/Education';
+import Research from './sections/Research';
 import Experience from './sections/Experience';
 import Internships from './sections/Internships';
 import Projects from './sections/Projects';
@@ -78,15 +79,16 @@ function App() {
       <main>
         <Hero />
         <About />
+        <Career />
         <Education />
-        <Experience />
+        <Research />
         <Internships />
         <Projects />
         <Skills />
+        <Experience />
         <Certifications />
         <Languages />
         <Media />
-        <Career />
         <Resume />
         <Contact />
       </main>

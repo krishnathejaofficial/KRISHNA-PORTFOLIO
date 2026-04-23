@@ -10,30 +10,19 @@ export default function Certifications() {
     return () => obs.disconnect();
   }, []);
 
-  const certs = [
-    { icon: 'fa-trophy', text: '100% Attendance Award, VIT, Jun 2023 (₹1000)' },
-    { icon: 'fa-trophy', text: '100% Attendance Award, VIT, Jun 2025 (₹1000)' },
-    { icon: 'fa-medal', text: 'Water Conservation Ideathon — 3rd Place, VIT, Mar 2023' },
-    { icon: 'fa-briefcase', text: 'Industrial Intern — Glory Pharma Chem India Pvt Ltd, Jun 2025' },
-    { icon: 'fa-briefcase', text: 'Industrial Intern — GSK Technologies Pvt Ltd, Jul 2024' },
-    { icon: 'fa-building', text: 'Industrial Visit — STHREE Chemicals Pvt Ltd, Nov 2024' },
-    { icon: 'fa-heart', text: 'Blood Donation Certificate, NSS VIT, Aug 2024' },
-    { icon: 'fa-heart', text: 'Blood Donation Certificate, NSS VIT, Dec 2024' },
-    { icon: 'fa-chart-line', text: "Finance Manager — Riviera'25 & Riviera'26, VIT" },
-    { icon: 'fa-shopping-cart', text: "Purchase Coordinator — Gravitas'24, VIT, Oct 2024" },
-    { icon: 'fa-users', text: 'NSS Secretary Board Member, VIT, 2025' },
-    { icon: 'fa-microphone', text: 'Student Organizer, VIT Biosummit 2023 & 2024' },
-    { icon: 'fa-campground', text: 'Student Advisory/Organiser/Coordinator/Volunteer — NSS Camps 2023, 2024, 2025, 2026' },
-    { icon: 'fa-dna', text: 'Student Coordinator — DNA Day 2024, VIT' },
+  const achievements = [
+    { icon: 'fa-trophy', text: '100% Attendance Award — VIT Vellore (2023 and 2025)' },
+    { icon: 'fa-medal', text: 'EntrepreNATION — 2nd Prize (Entrepreneurship Competition)' },
+    { icon: 'fa-award', text: 'Water Conservation Ideathon — 3rd Place' },
   ];
 
   return (
     <section id="certifications" ref={ref}>
-      <div className="section-icon"><i className="fas fa-medal" /></div>
-      <h2>Certifications &amp; Awards</h2>
+      <div className="section-icon"><i className="fas fa-trophy" /></div>
+      <h2>Achievements</h2>
       <div className="section-divider" />
-      <div className="cert-grid">
-        {certs.map((c, i) => (
+      <div className="cert-grid" style={{ maxWidth: '800px', margin: '0 auto' }}>
+        {achievements.map((c, i) => (
           <div className="cert-card" data-animate key={i}>
             <i className={`fas ${c.icon}`} />
             <p>{c.text}</p>

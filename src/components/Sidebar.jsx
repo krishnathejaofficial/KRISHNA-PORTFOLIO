@@ -1,18 +1,20 @@
-import { useEffect, useRef } from 'react';
-import LogoLoop from './LogoLoop';
+import { useEffect } from 'react';
 import { socialLogos } from '../data/socialLogos';
 
 export default function Sidebar({ isOpen, onClose }) {
   const navLinks = [
     { href: '#home', icon: 'fa-home', label: 'Home' },
     { href: '#about', icon: 'fa-user', label: 'About' },
+    { href: '#career', icon: 'fa-bullseye', label: 'Career Interests' },
     { href: '#education', icon: 'fa-graduation-cap', label: 'Education' },
-    { href: '#experience', icon: 'fa-briefcase', label: 'Experience' },
+    { href: '#research', icon: 'fa-microscope', label: 'Research' },
     { href: '#internships', icon: 'fa-industry', label: 'Internships' },
     { href: '#projects', icon: 'fa-project-diagram', label: 'Projects' },
-    { href: '#skills', icon: 'fa-chart-line', label: 'Skills' },
-    { href: '#certifications', icon: 'fa-award', label: 'Certifications' },
+    { href: '#skills', icon: 'fa-chart-bar', label: 'Skills' },
+    { href: '#experience', icon: 'fa-briefcase', label: 'Leadership' },
+    { href: '#certifications', icon: 'fa-trophy', label: 'Achievements' },
     { href: '#languages', icon: 'fa-globe', label: 'Languages' },
+    { href: '#media', icon: 'fa-photo-video', label: 'Media' },
     { href: '#resume', icon: 'fa-file-pdf', label: 'Resume' },
     { href: '#contact', icon: 'fa-envelope', label: 'Contact' },
   ];
@@ -61,19 +63,12 @@ export default function Sidebar({ isOpen, onClose }) {
             </li>
           ))}
         </ul>
-        <div className="sidebar-footer" style={{ overflow: 'hidden', padding: '20px 0', borderTop: '1px solid var(--gold-dim)' }}>
-          <LogoLoop
-            logos={socialLogos}
-            speed={50}
-            direction="left"
-            logoHeight={28}
-            gap={24}
-            hoverSpeed={0}
-            scaleOnHover={true}
-            fadeOut={true}
-            fadeOutColor="rgba(10,10,10,0.97)"
-            ariaLabel="Social Links"
-          />
+        <div className="sidebar-footer">
+          {socialLogos.map(s => (
+            <a key={s.title} href={s.href} target="_blank" rel="noreferrer" title={s.title} className="social-icon-link" style={{ fontSize: '1.3em' }}>
+              {s.node}
+            </a>
+          ))}
         </div>
       </aside>
     </>

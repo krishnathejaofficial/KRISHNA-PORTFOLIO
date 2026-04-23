@@ -31,7 +31,7 @@ export default function Education() {
         <div className="card" data-animate>
           <i className="fas fa-school edu-icon" />
           <h3>Intermediate – BiPC</h3>
-          <p><strong>Sri Chaitanya Junior College, Vijayawada</strong> | 2018 – 2020</p>
+          <p><strong>Sri Chaitanya Junior College, Vijayawada</strong> | 2019 – 2021</p>
           <p style={{ color: 'var(--gold)', margin: '6px 0', fontWeight: 600 }}>Score: 954 / 1000 (96%)</p>
           <ul>
             <li>Studied Sanskrit, English, Botany, Zoology, Physics, and Chemistry.</li>
@@ -42,7 +42,7 @@ export default function Education() {
         <div className="card" data-animate>
           <i className="fas fa-home edu-icon" />
           <h3>SSC – 10th Standard</h3>
-          <p><strong>Masters EM High School, Sathyavedu</strong> | 2017 – 2018</p>
+          <p><strong>Masters EM High School</strong> | 2018 – 2019</p>
           <p style={{ color: 'var(--gold)', margin: '6px 0', fontWeight: 600 }}>GPA: 10 / 10</p>
           <ul>
             <li>Full marks across all subjects — science, language, and mathematics.</li>

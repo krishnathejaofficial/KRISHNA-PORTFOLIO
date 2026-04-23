@@ -11,11 +11,12 @@ export default function Career() {
   }, []);
 
   const interests = [
-    { icon: 'fa-pills', title: 'Pharma & Biotech\nSales / Marketing' },
-    { icon: 'fa-flask', title: 'Clinical Trials &\nOperations' },
-    { icon: 'fa-handshake', title: 'Life Science Business\nDevelopment' },
-    { icon: 'fa-microscope', title: 'Biotech & Medical\nInstruments' },
-    { icon: 'fa-heartbeat', title: 'Digital Health &\nHealthcare Technology' },
+    { icon: 'fa-industry', title: 'Industrial\nBiotechnology' },
+    { icon: 'fa-pills', title: 'Pharmaceutical\nOperations' },
+    { icon: 'fa-hospital', title: 'Healthcare\nSystems' },
+    { icon: 'fa-handshake', title: 'Business\nDevelopment' },
+    { icon: 'fa-cogs', title: 'Operations\nManagement' },
+    { icon: 'fa-microscope', title: 'Industry-Integrated\nApplied Research' },
   ];
 
   return (
