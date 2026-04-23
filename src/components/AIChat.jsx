@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { knowledgeChunks } from '../data/knowledgeBase';
 import { getRelevantContext } from '../utils/ragUtils';
 
-const NVIDIA_API_KEY = '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';
-const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
+// All API calls go through /api/chat proxy (avoids CORS).
+// For local dev: Vite proxies /api/chat → NVIDIA NIM.
+// For production: Vercel serverless function api/chat.js handles it.
 const MODEL = 'meta/llama-3.1-70b-instruct';
+const NVIDIA_API_KEY = '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';
 
 const SYSTEM_PROMPT = (context) => `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01). You speak in first person as Krishna, answering visitor questions about his skills, research, projects, internships, leadership, and career interests.
 
@@ -62,8 +64,11 @@ export default function AIChat() {
       content: m.content,
     }));
 
+    // Show typing placeholder
+    setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
     try {
-      const response = await fetch(NVIDIA_API_URL, {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${NVIDIA_API_KEY}`,
@@ -77,58 +82,33 @@ export default function AIChat() {
           ],
           temperature: 0.7,
           max_tokens: 400,
-          stream: true,
+          stream: false,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.detail || `HTTP ${response.status}`);
       }
 
-      // Start streaming response
-      const assistantMsg = { role: 'assistant', content: '' };
-      setMessages(prev => [...prev, assistantMsg]);
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content || "I couldn't generate a response. Please try again!";
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep incomplete line in buffer
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(data);
-            const delta = parsed.choices?.[0]?.delta?.content || '';
-            if (delta) {
-              setMessages(prev => {
-                const updated = [...prev];
-                updated[updated.length - 1] = {
-                  ...updated[updated.length - 1],
-                  content: updated[updated.length - 1].content + delta,
-                };
-                return updated;
-              });
-            }
-          } catch { /* skip malformed JSON */ }
-        }
-      }
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: 'assistant', content: reply };
+        return updated;
+      });
     } catch (err) {
-      setMessages(prev => [
-        ...prev,
-        {
+      console.error('AIChat error:', err);
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
           role: 'assistant',
-          content: "Sorry, I'm having trouble connecting right now. Please try again in a moment!",
-        },
-      ]);
+          content: `Sorry, I ran into an issue: ${err.message}. Please try again!`,
+        };
+        return updated;
+      });
     } finally {
       setIsStreaming(false);
     }
