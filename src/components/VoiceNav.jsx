@@ -1,58 +1,111 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { parseCommand, navigateTo } from '../utils/voiceCommands';
+import { parseCommand, navigateTo, classifyIntent } from '../utils/voiceCommands';
+import { knowledgeChunks } from '../data/knowledgeBase';
+import { getRelevantContext } from '../utils/ragUtils';
 
-// Browser-native speech recognition — completely free
+// ── Browser Speech API ──────────────────────────────────────────────────────
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const supported = !!SpeechRecognition;
 
-// Speak a reply using browser TTS (also free)
-function speak(text) {
+const MODEL = 'meta/llama-3.1-70b-instruct';
+const NVIDIA_API_KEY = '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';
+
+const VOICE_SYSTEM_PROMPT = (context) =>
+  `You are Krishna's AI voice assistant speaking on his behalf. Answer in first person, concisely (2–3 sentences max) in a warm, confident, conversational tone. Avoid markdown — use plain text only since your answer will be spoken aloud.
+
+CONTEXT ABOUT KRISHNA:
+${context}`;
+
+// ── TTS Helper ───────────────────────────────────────────────────────────────
+let currentUtterance = null;
+function speak(text, onEnd) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1.05;
-  utterance.pitch = 1;
+  utterance.rate = 1.0;
+  utterance.pitch = 1.05;
   utterance.volume = 1;
-  // Prefer a natural English voice if available
-  const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v =>
-    v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha'))
-  ) || voices.find(v => v.lang.startsWith('en'));
-  if (preferred) utterance.voice = preferred;
+  const loadVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    const preferred =
+      voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('natural')) ||
+      voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('google')) ||
+      voices.find(v => v.lang === 'en-US' && !v.localService) ||
+      voices.find(v => v.lang.startsWith('en'));
+    if (preferred) utterance.voice = preferred;
+  };
+  if (window.speechSynthesis.getVoices().length > 0) loadVoice();
+  else window.speechSynthesis.onvoiceschanged = loadVoice;
+  utterance.onend = () => { currentUtterance = null; onEnd?.(); };
+  utterance.onerror = () => { currentUtterance = null; onEnd?.(); };
+  currentUtterance = utterance;
   window.speechSynthesis.speak(utterance);
 }
+function stopSpeaking() {
+  window.speechSynthesis?.cancel();
+  currentUtterance = null;
+}
 
-const STATUS = {
-  IDLE: 'idle',
-  LISTENING: 'listening',
-  PROCESSING: 'processing',
-  SPEAKING: 'speaking',
-  UNSUPPORTED: 'unsupported',
-};
+// ── AI Q&A call ──────────────────────────────────────────────────────────────
+async function askAI(question) {
+  const context = getRelevantContext(question, knowledgeChunks, 5);
+  const response = await fetch('/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [
+        { role: 'system', content: VOICE_SYSTEM_PROMPT(context) },
+        { role: 'user', content: question },
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+      stream: false,
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.detail || `HTTP ${response.status}`);
+  }
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content?.trim() || "I couldn't generate a response right now.";
+}
 
-const HELP_TEXT = `Say commands like:
-• "Go to projects"
-• "Show me research"
-• "Contact" / "Resume"
-• "About you"
-• "Education"`;
+// ── Status enum ───────────────────────────────────────────────────────────────
+const S = { IDLE: 'idle', LISTENING: 'listening', THINKING: 'thinking', SPEAKING: 'speaking', UNSUPPORTED: 'unsupported' };
+
+const HELP_LINES = [
+  '🧭 Navigation: "Go to projects"',
+  '❓ Questions: "What is your CGPA?"',
+  '💬 "Tell me about your research"',
+  '🔬 "What skills do you have?"',
+  '📞 "How can I contact you?"',
+];
+
+const QUICK_NAV = ['Projects', 'Research', 'Skills', 'Resume', 'Contact'];
 
 export default function VoiceNav() {
-  const [status, setStatus] = useState(supported ? STATUS.IDLE : STATUS.UNSUPPORTED);
+  const [status, setStatus] = useState(supported ? S.IDLE : S.UNSUPPORTED);
   const [transcript, setTranscript] = useState('');
+  const [aiAnswer, setAiAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
   const [showPanel, setShowPanel] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const recognizerRef = useRef(null);
-  const feedbackTimerRef = useRef(null);
+  const [mode, setMode] = useState('nav'); // 'nav' | 'ai'
 
-  const setFeedbackMsg = useCallback((msg, duration = 3500) => {
+  const recognizerRef = useRef(null);
+  const feedbackTimer = useRef(null);
+
+  const setMsg = useCallback((msg, ms = 4000) => {
     setFeedback(msg);
-    clearTimeout(feedbackTimerRef.current);
-    feedbackTimerRef.current = setTimeout(() => setFeedback(''), duration);
+    clearTimeout(feedbackTimer.current);
+    feedbackTimer.current = setTimeout(() => setFeedback(''), ms);
   }, []);
 
-  // Initialize speech recognizer
+  // Init recognizer
   useEffect(() => {
     if (!supported) return;
     const recog = new SpeechRecognition();
@@ -61,178 +114,217 @@ export default function VoiceNav() {
     recog.interimResults = true;
     recog.maxAlternatives = 3;
 
-    recog.onstart = () => setStatus(STATUS.LISTENING);
+    recog.onstart = () => setStatus(S.LISTENING);
 
     recog.onresult = (e) => {
-      const interim = Array.from(e.results)
-        .map(r => r[0].transcript)
-        .join(' ');
+      const interim = Array.from(e.results).map(r => r[0].transcript).join(' ');
       setTranscript(interim);
-
-      // Final result
       if (e.results[e.results.length - 1].isFinal) {
         const final = e.results[e.results.length - 1][0].transcript;
         setTranscript(final);
-        processCommand(final);
+        handleFinalTranscript(final);
       }
     };
 
     recog.onerror = (e) => {
-      setStatus(STATUS.IDLE);
-      if (e.error === 'no-speech') {
-        setFeedbackMsg("I didn't catch that. Try again!");
-      } else if (e.error === 'not-allowed') {
-        setFeedbackMsg("Microphone access denied. Please allow mic in browser settings.");
-      } else {
-        setFeedbackMsg(`Error: ${e.error}`);
-      }
+      setStatus(S.IDLE);
+      if (e.error === 'no-speech') setMsg("Didn't catch that — try again.");
+      else if (e.error === 'not-allowed') setMsg("Microphone access denied.");
+      else setMsg(`Error: ${e.error}`);
       setTranscript('');
     };
 
-    recog.onend = () => {
-      if (status === STATUS.LISTENING) setStatus(STATUS.IDLE);
-    };
+    recog.onend = () => setStatus(prev => prev === S.LISTENING ? S.IDLE : prev);
 
     recognizerRef.current = recog;
-    return () => { recog.abort(); };
+    return () => recog.abort();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function processCommand(text) {
-    setStatus(STATUS.PROCESSING);
-    const match = parseCommand(text);
+  async function handleFinalTranscript(text) {
+    const lower = text.toLowerCase().trim();
 
-    if (!match) {
-      setStatus(STATUS.SPEAKING);
-      const reply = `I heard "${text}" but I'm not sure where to navigate. Try saying a section name like "projects", "research", or "contact".`;
-      setFeedbackMsg(reply, 5000);
-      speak(reply);
-      setTimeout(() => setStatus(STATUS.IDLE), 500);
+    // Stop command
+    if (['stop', 'cancel', 'close', 'quiet', 'never mind'].some(w => lower.includes(w))) {
+      stopSpeaking();
+      setStatus(S.IDLE);
+      setTranscript('');
       return;
     }
 
-    const { id, reply } = match;
-    setStatus(STATUS.SPEAKING);
-    setFeedbackMsg(reply, 4000);
-    speak(reply);
+    const intent = classifyIntent(text);
+    const navMatch = parseCommand(text);
 
-    if (id) {
-      // Small delay so the speech starts before scroll
-      setTimeout(() => navigateTo(id), 600);
+    // NAVIGATION: strong nav intent AND section matched
+    if (intent === 'navigate' && navMatch?.id) {
+      setMode('nav');
+      setStatus(S.SPEAKING);
+      setMsg(navMatch.reply, 3000);
+      setAiAnswer('');
+      speak(navMatch.reply, () => setStatus(S.IDLE));
+      setTimeout(() => navigateTo(navMatch.id), 600);
+      setTranscript('');
+      return;
     }
-    setTimeout(() => setStatus(STATUS.IDLE), 1000);
+
+    // QUESTION → AI answer + TTS
+    setMode('ai');
+    setStatus(S.THINKING);
+    setAiAnswer('');
+    setMsg('Thinking…', 30000);
+
+    try {
+      const answer = await askAI(text);
+      setAiAnswer(answer);
+      setMsg('');
+      setStatus(S.SPEAKING);
+
+      // If nav match also found, navigate after speaking
+      if (navMatch?.id) setTimeout(() => navigateTo(navMatch.id), 800);
+
+      speak(answer, () => setStatus(S.IDLE));
+    } catch (err) {
+      const fallback = `Sorry, I had trouble connecting. ${err.message}`;
+      setAiAnswer(fallback);
+      setMsg('');
+      setStatus(S.SPEAKING);
+      speak(fallback, () => setStatus(S.IDLE));
+    }
     setTranscript('');
   }
 
   function toggleListening() {
     if (!supported) return;
     const recog = recognizerRef.current;
-    if (status === STATUS.LISTENING) {
+    if (status === S.LISTENING) {
       recog.stop();
-      setStatus(STATUS.IDLE);
+      setStatus(S.IDLE);
       setTranscript('');
-    } else if (status === STATUS.IDLE) {
+    } else if (status === S.IDLE) {
+      stopSpeaking();
       setTranscript('');
       setFeedback('');
+      setAiAnswer('');
       try { recog.start(); } catch { /* already started */ }
     }
   }
 
-  const isActive = status === STATUS.LISTENING;
-  const isProcessing = status === STATUS.PROCESSING || status === STATUS.SPEAKING;
+  function handleQuickNav(cmd) {
+    setTranscript(cmd);
+    handleFinalTranscript(cmd);
+  }
+
+  const isListening  = status === S.LISTENING;
+  const isThinking   = status === S.THINKING;
+  const isSpeaking   = status === S.SPEAKING;
+  const isBusy       = isThinking || isSpeaking;
 
   const statusLabel = {
-    [STATUS.IDLE]: 'Voice Nav',
-    [STATUS.LISTENING]: 'Listening…',
-    [STATUS.PROCESSING]: 'Processing…',
-    [STATUS.SPEAKING]: 'Navigating…',
-    [STATUS.UNSUPPORTED]: 'Not Supported',
+    [S.IDLE]:        'Voice Assistant',
+    [S.LISTENING]:   'Listening…',
+    [S.THINKING]:    'Thinking…',
+    [S.SPEAKING]:    'Speaking…',
+    [S.UNSUPPORTED]: 'Not Supported',
   }[status];
 
-  if (!supported) return null; // Hide entirely on unsupported browsers
+  const micIcon = isListening ? 'fa-stop' : isBusy ? 'fa-circle-notch fa-spin' : 'fa-microphone';
+
+  if (!supported) return null;
 
   return (
     <>
-      {/* Floating mic button */}
+      {/* ── Floating mic button ─────────────────────────── */}
       <button
         id="voice-nav-btn"
-        className={`voice-nav-trigger ${isActive ? 'listening' : ''} ${isProcessing ? 'processing' : ''}`}
+        className={`voice-nav-trigger ${isListening ? 'listening' : ''} ${isBusy ? 'processing' : ''}`}
         onClick={toggleListening}
         onMouseEnter={() => setShowPanel(true)}
-        onMouseLeave={() => { if (!isActive) setShowPanel(false); }}
+        onMouseLeave={() => { if (!isListening && !isBusy) setShowPanel(false); }}
         title={statusLabel}
-        aria-label="Voice Navigation"
+        aria-label="Voice Assistant"
       >
-        <i className={`fas ${isActive ? 'fa-stop' : 'fa-microphone'}`} />
-        {isActive && <span className="voice-ring" />}
+        <i className={`fas ${micIcon}`} />
+        {isListening && <span className="voice-ring" />}
       </button>
 
-      {/* Floating panel */}
+      {/* ── Panel ─────────────────────────────────────────── */}
       <div
-        className={`voice-nav-panel ${(showPanel || isActive || feedback) ? 'visible' : ''}`}
+        className={`voice-nav-panel ${(showPanel || isListening || isBusy || aiAnswer) ? 'visible' : ''}`}
         onMouseEnter={() => setShowPanel(true)}
-        onMouseLeave={() => { if (!isActive) setShowPanel(false); }}
+        onMouseLeave={() => { if (!isListening && !isBusy) setShowPanel(false); }}
       >
+        {/* Header */}
         <div className="voice-nav-panel-header">
           <i className="fas fa-microphone-alt" style={{ color: 'var(--gold)', marginRight: 8 }} />
-          <strong>Voice Navigation</strong>
-          <span className="voice-badge">FREE</span>
-          <button
-            className="voice-help-btn"
-            onClick={() => setShowHelp(p => !p)}
-            title="Show commands"
-          >
+          <strong>Voice Assistant</strong>
+          <span className="voice-badge voice-badge-ai">AI + NAV</span>
+          <button className="voice-help-btn" onClick={() => setShowHelp(p => !p)} title="Commands">
             <i className="fas fa-question-circle" />
           </button>
         </div>
 
+        {/* Help */}
         {showHelp && (
           <div className="voice-help-box">
-            <pre>{HELP_TEXT}</pre>
+            {HELP_LINES.map((l, i) => <div key={i} style={{ fontSize: '0.78em', padding: '2px 0', color: 'var(--text)' }}>{l}</div>)}
           </div>
         )}
 
-        {/* Transcript / feedback */}
+        {/* Status row */}
         <div className="voice-status-row">
-          <span className={`voice-dot ${isActive ? 'active' : ''}`} />
+          <span className={`voice-dot ${isListening ? 'active' : ''} ${isThinking ? 'thinking' : ''} ${isSpeaking ? 'speaking' : ''}`} />
           <span className="voice-status-text">
             {transcript
-              ? <em>"{transcript}"</em>
+              ? <><em>"{transcript}"</em></>
               : feedback
                 ? feedback
-                : isActive
-                  ? 'Speak now…'
-                  : 'Click mic to start'
-            }
+                : isListening
+                  ? 'Speak now — navigate or ask anything…'
+                  : isThinking
+                    ? <span style={{ color: 'var(--gold)' }}>Asking AI…</span>
+                    : isSpeaking
+                      ? <span style={{ color: '#22c55e' }}>Speaking response…</span>
+                      : 'Click mic — I navigate and answer questions!'}
           </span>
         </div>
 
-        {/* Quick command chips */}
-        {!isActive && (
+        {/* AI Answer display */}
+        {aiAnswer && (
+          <div className="voice-ai-answer">
+            <i className="fas fa-brain" style={{ color: 'var(--gold)', marginRight: 6, fontSize: '0.8em' }} />
+            <span>{aiAnswer}</span>
+            {isSpeaking && (
+              <button className="voice-stop-speak-btn" onClick={stopSpeaking} title="Stop speaking">
+                <i className="fas fa-volume-mute" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Quick nav chips */}
+        {!isListening && !isThinking && (
           <div className="voice-chips">
-            {['Projects', 'Research', 'Skills', 'Contact', 'Resume'].map(cmd => (
-              <button
-                key={cmd}
-                className="voice-chip"
-                onClick={() => {
-                  setTranscript(cmd);
-                  processCommand(cmd);
-                }}
-              >
+            {QUICK_NAV.map(cmd => (
+              <button key={cmd} className="voice-chip" onClick={() => handleQuickNav(cmd)} disabled={isBusy}>
                 {cmd}
               </button>
             ))}
           </div>
         )}
 
+        {/* Main button */}
         <button
-          className={`voice-main-btn ${isActive ? 'stop' : ''}`}
+          className={`voice-main-btn ${isListening ? 'stop' : ''}`}
           onClick={toggleListening}
-          disabled={isProcessing}
+          disabled={isThinking}
         >
-          <i className={`fas ${isActive ? 'fa-stop-circle' : 'fa-microphone'}`} />
-          {isActive ? ' Stop Listening' : ' Start Listening'}
+          <i className={`fas ${isListening ? 'fa-stop-circle' : isSpeaking ? 'fa-microphone' : 'fa-microphone'}`} />
+          {isListening ? ' Stop Listening' : isSpeaking ? ' Interrupt & Listen Again' : ' Start Listening'}
         </button>
+
+        <div className="voice-powered-by">
+          Powered by <strong>NVIDIA NIM</strong> &amp; <strong>Web Speech API</strong> · Free navigation + AI answers
+        </div>
       </div>
     </>
   );

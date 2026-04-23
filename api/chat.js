@@ -1,7 +1,7 @@
 // Vercel serverless function — proxies requests to NVIDIA NIM API
-// This avoids CORS issues when calling from the browser
+// This avoids CORS issues when calling from the browser in production
 
-const NVIDIA_API_KEY = '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';
+const NVIDIA_API_KEY = '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';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -21,11 +21,13 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('NVIDIA API error:', data);
       return res.status(response.status).json(data);
     }
 
     return res.status(200).json(data);
   } catch (err) {
+    console.error('Proxy error:', err);
     return res.status(500).json({ error: err.message });
   }
 }
