@@ -7,10 +7,6 @@ export default defineConfig(({ mode }) => {
 
   const NVIDIA_API_KEY = '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';
 
-  // ⬇️ Fill these in .env.local (see instructions below)
-  const ELEVENLABS_API_KEY = env.ELEVENLABS_API_KEY || '';
-  const ELEVENLABS_VOICE_ID = env.ELEVENLABS_VOICE_ID || '';
-
   return {
     plugins: [react()],
     server: {
@@ -27,35 +23,7 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
-
-        // ElevenLabs TTS proxy (voice cloning)
-        '/api/tts': {
-          target: `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`,
-          changeOrigin: true,
-          rewrite: () => '', // strip /api/tts — the full path is baked in target
-          configure: (proxy) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.setHeader('xi-api-key', ELEVENLABS_API_KEY);
-              proxyReq.setHeader('Content-Type', 'application/json');
-              proxyReq.setHeader('Accept', 'audio/mpeg');
-            });
-          },
-        },
       },
     },
   };
 });
-
-/*
-  ── Local Dev Setup ──────────────────────────────────────────
-  Create a file called .env.local in the project root (next to package.json).
-  This file is gitignored by default, so your keys stay private.
-
-  Paste this into .env.local (replace with your real values):
-
-    ELEVENLABS_API_KEY=your_api_key_here
-    ELEVENLABS_VOICE_ID=your_voice_id_here
-
-  Then restart npm run dev.
-  ─────────────────────────────────────────────────────────────
-*/
