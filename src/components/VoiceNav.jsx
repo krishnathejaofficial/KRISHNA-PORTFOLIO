@@ -111,18 +111,20 @@ async function askAI(question, onSentence, onFullText) {
   const decoder = new TextDecoder('utf-8');
   let fullText = '';
   let sentenceBuffer = '';
+  let lineBuffer = '';
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     
-    const chunk = decoder.decode(value, { stream: true });
-    const lines = chunk.split('\n');
+    lineBuffer += decoder.decode(value, { stream: true });
+    const lines = lineBuffer.split('\n');
+    lineBuffer = lines.pop() || ''; // Keep incomplete line in buffer
     
     for (const line of lines) {
-      if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+      if (line.trim().startsWith('data: ') && line.trim() !== 'data: [DONE]') {
         try {
-          const data = JSON.parse(line.slice(6));
+          const data = JSON.parse(line.trim().slice(6));
           const token = data.choices?.[0]?.delta?.content || '';
           if (token) {
             fullText += token;
@@ -138,7 +140,7 @@ async function askAI(question, onSentence, onFullText) {
             }
           }
         } catch (e) {
-          // ignore partial JSON chunks
+          // ignore partial JSON chunks if they somehow slip through
         }
       }
     }
