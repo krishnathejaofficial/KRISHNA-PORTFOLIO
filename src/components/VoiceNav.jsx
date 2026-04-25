@@ -16,31 +16,57 @@ const VOICE_SYSTEM_PROMPT = (context) =>
 CONTEXT ABOUT KRISHNA:
 ${context}`;
 
-// ── TTS Helper ───────────────────────────────────────────────────────────────
+// ── TTS Helper (Indian Male Voice) ───────────────────────────────────────────
 let currentUtterance = null;
+
+// Strip markdown to make speech flow naturally
+function cleanTextForSpeech(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/`(.*?)`/g, '$1')
+    .replace(/#+\s/g, '')
+    .replace(/!?\[.*?\]\(.*?\)/g, '')
+    .replace(/\n{2,}/g, '. ')
+    .replace(/\n/g, ' ')
+    .trim();
+}
+
 function speak(text, onEnd) {
-  if (!window.speechSynthesis) return;
+  if (!window.speechSynthesis) { onEnd?.(); return; }
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
+  
+  const clean = cleanTextForSpeech(text);
+  const utterance = new SpeechSynthesisUtterance(clean);
+  
   utterance.rate = 1.0;
-  utterance.pitch = 1.05;
+  utterance.pitch = 1.0;
   utterance.volume = 1;
+  
   const loadVoice = () => {
     const voices = window.speechSynthesis.getVoices();
+    // Hunt for an Indian Male Voice (Ravi, Prabhat, Rishi, or en-IN Male)
     const preferred =
+      voices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('natural') && !v.name.toLowerCase().includes('neerja')) ||
+      voices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('online') && !v.name.toLowerCase().includes('neerja')) ||
+      voices.find(v => v.lang === 'en-IN' && (v.name.toLowerCase().includes('rishi') || v.name.toLowerCase().includes('ravi') || v.name.toLowerCase().includes('prabhat'))) ||
+      voices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('male')) ||
+      voices.find(v => v.lang === 'en-IN') ||
       voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('natural')) ||
-      voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('google')) ||
-      voices.find(v => v.lang === 'en-US' && !v.localService) ||
       voices.find(v => v.lang.startsWith('en'));
+      
     if (preferred) utterance.voice = preferred;
   };
+  
   if (window.speechSynthesis.getVoices().length > 0) loadVoice();
   else window.speechSynthesis.onvoiceschanged = loadVoice;
+  
   utterance.onend = () => { currentUtterance = null; onEnd?.(); };
   utterance.onerror = () => { currentUtterance = null; onEnd?.(); };
   currentUtterance = utterance;
   window.speechSynthesis.speak(utterance);
 }
+
 function stopSpeaking() {
   window.speechSynthesis?.cancel();
   currentUtterance = null;
