@@ -16,26 +16,10 @@ const VOICE_SYSTEM_PROMPT = (context) =>
 CONTEXT ABOUT KRISHNA:
 ${context}`;
 
-// ── TTS — ElevenLabs (cloned voice) with Web Speech API fallback ─────────────
-let currentAudio = null; // HTML Audio element for ElevenLabs
-let currentUtterance = null; // SpeechSynthesisUtterance for fallback
-
-// Strip any markdown/symbols so ElevenLabs TTS sounds natural
-function cleanTextForSpeech(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '$1')  // bold
-    .replace(/\*(.*?)\*/g, '$1')      // italic
-    .replace(/`(.*?)`/g, '$1')        // inline code
-    .replace(/#+\s/g, '')             // headings
-    .replace(/!?\[.*?\]\(.*?\)/g, '') // links/images
-    .replace(/\n{2,}/g, '. ')         // double newlines → pause
-    .replace(/\n/g, ' ')
-    .trim();
-}
-
-// Web Speech API fallback
-function speakFallback(text, onEnd) {
-  if (!window.speechSynthesis) { onEnd?.(); return; }
+// ── TTS Helper ───────────────────────────────────────────────────────────────
+let currentUtterance = null;
+function speak(text, onEnd) {
+  if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = 1.0;
@@ -57,60 +41,7 @@ function speakFallback(text, onEnd) {
   currentUtterance = utterance;
   window.speechSynthesis.speak(utterance);
 }
-
-// Primary TTS: ElevenLabs cloned voice via /api/tts proxy
-async function speak(text, onEnd) {
-  // Stop anything currently playing
-  stopSpeaking();
-
-  const clean = cleanTextForSpeech(text);
-
-  try {
-    const response = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: clean }),
-    });
-
-    if (!response.ok) {
-      // ElevenLabs not configured yet — fall back silently
-      console.warn('ElevenLabs TTS unavailable, falling back to Web Speech API');
-      speakFallback(clean, onEnd);
-      return;
-    }
-
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    currentAudio = audio;
-
-    audio.onended = () => {
-      URL.revokeObjectURL(audioUrl);
-      currentAudio = null;
-      onEnd?.();
-    };
-    audio.onerror = () => {
-      URL.revokeObjectURL(audioUrl);
-      currentAudio = null;
-      console.warn('Audio playback failed, falling back to Web Speech API');
-      speakFallback(clean, onEnd);
-    };
-
-    await audio.play();
-  } catch (err) {
-    console.warn('ElevenLabs TTS error, falling back:', err.message);
-    speakFallback(clean, onEnd);
-  }
-}
-
 function stopSpeaking() {
-  // Stop ElevenLabs audio
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.src = '';
-    currentAudio = null;
-  }
-  // Stop Web Speech fallback
   window.speechSynthesis?.cancel();
   currentUtterance = null;
 }
@@ -207,7 +138,7 @@ export default function VoiceNav() {
 
     recognizerRef.current = recog;
     return () => recog.abort();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleFinalTranscript(text) {
@@ -283,16 +214,16 @@ export default function VoiceNav() {
     handleFinalTranscript(cmd);
   }
 
-  const isListening  = status === S.LISTENING;
-  const isThinking   = status === S.THINKING;
-  const isSpeaking   = status === S.SPEAKING;
-  const isBusy       = isThinking || isSpeaking;
+  const isListening = status === S.LISTENING;
+  const isThinking = status === S.THINKING;
+  const isSpeaking = status === S.SPEAKING;
+  const isBusy = isThinking || isSpeaking;
 
   const statusLabel = {
-    [S.IDLE]:        'Voice Assistant',
-    [S.LISTENING]:   'Listening…',
-    [S.THINKING]:    'Thinking…',
-    [S.SPEAKING]:    'Speaking…',
+    [S.IDLE]: 'Voice Assistant',
+    [S.LISTENING]: 'Listening…',
+    [S.THINKING]: 'Thinking…',
+    [S.SPEAKING]: 'Speaking…',
     [S.UNSUPPORTED]: 'Not Supported',
   }[status];
 
@@ -392,7 +323,7 @@ export default function VoiceNav() {
         </button>
 
         <div className="voice-powered-by">
-          Powered by <strong>NVIDIA NIM</strong> + <strong>ElevenLabs</strong> (cloned voice) · <span style={{color:'#22c55e'}}>100% free tier</span>
+          Powered by <strong>NVIDIA NIM</strong> &amp; <strong>Web Speech API</strong> · Free navigation + AI answers
         </div>
       </div>
     </>
