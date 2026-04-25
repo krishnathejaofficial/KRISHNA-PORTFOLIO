@@ -16,8 +16,9 @@ const VOICE_SYSTEM_PROMPT = (context) =>
 CONTEXT ABOUT KRISHNA:
 ${context}`;
 
-// ── TTS Helper (Indian Male Voice) ───────────────────────────────────────────
+// ── TTS Helper (Indian Male Voice + Streaming Enqueue) ─────────────────────────
 let currentUtterance = null;
+let isSpeakingAborted = false;
 
 // Strip markdown to make speech flow naturally
 function cleanTextForSpeech(text) {
@@ -32,13 +33,20 @@ function cleanTextForSpeech(text) {
     .trim();
 }
 
-function speak(text, onEnd) {
+function speak(text, enqueue = false, onEnd = null) {
   if (!window.speechSynthesis) { onEnd?.(); return; }
-  window.speechSynthesis.cancel();
+  
+  if (!enqueue) {
+    window.speechSynthesis.cancel();
+    isSpeakingAborted = false;
+  }
+  
+  if (isSpeakingAborted) return;
   
   const clean = cleanTextForSpeech(text);
-  const utterance = new SpeechSynthesisUtterance(clean);
+  if (!clean) { onEnd?.(); return; }
   
+  const utterance = new SpeechSynthesisUtterance(clean);
   utterance.rate = 1.0;
   utterance.pitch = 1.0;
   utterance.volume = 1;
@@ -62,18 +70,19 @@ function speak(text, onEnd) {
   else window.speechSynthesis.onvoiceschanged = loadVoice;
   
   utterance.onend = () => { currentUtterance = null; onEnd?.(); };
-  utterance.onerror = () => { currentUtterance = null; onEnd?.(); };
+  utterance.onerror = (e) => { console.warn("TTS error:", e); currentUtterance = null; onEnd?.(); };
   currentUtterance = utterance;
   window.speechSynthesis.speak(utterance);
 }
 
 function stopSpeaking() {
+  isSpeakingAborted = true;
   window.speechSynthesis?.cancel();
   currentUtterance = null;
 }
 
-// ── AI Q&A call ──────────────────────────────────────────────────────────────
-async function askAI(question) {
+// ── AI Q&A call (Sentence-by-Sentence Streaming) ───────────────────────────────
+async function askAI(question, onSentence, onFullText) {
   const context = getRelevantContext(question, knowledgeChunks, 5);
   const response = await fetch('/api/chat', {
     method: 'POST',
@@ -88,16 +97,56 @@ async function askAI(question) {
         { role: 'user', content: question },
       ],
       temperature: 0.7,
-      max_tokens: 100,
-      stream: false,
+      max_tokens: 150,
+      stream: true,
     }),
   });
+
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err?.detail || `HTTP ${response.status}`);
   }
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() || "I couldn't generate a response right now.";
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let fullText = '';
+  let sentenceBuffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n');
+    
+    for (const line of lines) {
+      if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+        try {
+          const data = JSON.parse(line.slice(6));
+          const token = data.choices?.[0]?.delta?.content || '';
+          if (token) {
+            fullText += token;
+            sentenceBuffer += token;
+            onFullText(fullText); // update UI text instantly
+            
+            // Chunk by sentence ending punctuation
+            const splitIndex = sentenceBuffer.search(/[.?!](\s|$)/);
+            if (splitIndex !== -1 && splitIndex > 5) {
+              const sentence = sentenceBuffer.substring(0, splitIndex + 1).trim();
+              if (sentence) onSentence(sentence);
+              sentenceBuffer = sentenceBuffer.substring(splitIndex + 1).trimStart();
+            }
+          }
+        } catch (e) {
+          // ignore partial JSON chunks
+        }
+      }
+    }
+  }
+  
+  if (sentenceBuffer.trim()) {
+    onSentence(sentenceBuffer.trim());
+  }
 }
 
 // ── Status enum ───────────────────────────────────────────────────────────────
@@ -200,21 +249,46 @@ export default function VoiceNav() {
     setMsg('Thinking…', 30000);
 
     try {
-      const answer = await askAI(text);
-      setAiAnswer(answer);
-      setMsg('');
-      setStatus(S.SPEAKING);
+      let isFirstSentence = true;
+      let sentencesSpoken = 0;
+      let sentencesCompleted = 0;
 
-      // If nav match also found, navigate after speaking
+      const checkEnd = () => {
+        sentencesCompleted++;
+        // If all sentences spoken and AI done generating, return to IDLE
+        // For simplicity, we just keep it SPEAKING until they hit stop or we wait a few secs.
+        // Web Speech onend is sometimes unreliable on mobile, so we use a fallback timeout.
+        if (sentencesCompleted >= sentencesSpoken) {
+           setTimeout(() => { if (sentencesCompleted >= sentencesSpoken) setStatus(S.IDLE); }, 1500);
+        }
+      };
+
+      await askAI(text, 
+        (sentence) => {
+          sentencesSpoken++;
+          if (isFirstSentence) {
+            isFirstSentence = false;
+            setMsg('');
+            setStatus(S.SPEAKING);
+            speak(sentence, false, checkEnd);
+          } else {
+            speak(sentence, true, checkEnd);
+          }
+        },
+        (fullText) => {
+          setAiAnswer(fullText);
+        }
+      );
+
+      // If nav match also found, navigate after API stream completes
       if (navMatch?.id) setTimeout(() => navigateTo(navMatch.id), 800);
 
-      speak(answer, () => setStatus(S.IDLE));
     } catch (err) {
       const fallback = `Sorry, I had trouble connecting. ${err.message}`;
       setAiAnswer(fallback);
       setMsg('');
       setStatus(S.SPEAKING);
-      speak(fallback, () => setStatus(S.IDLE));
+      speak(fallback, false, () => setStatus(S.IDLE));
     }
     setTranscript('');
   }
