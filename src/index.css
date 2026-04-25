@@ -419,9 +419,43 @@ footer i { color: var(--gold); }
 .voice-main-btn.stop { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.35); color: #f87171; }
 .voice-main-btn:disabled { opacity: 0.5; cursor: default; }
 
-@media (max-width: 480px) {
-  .voice-nav-trigger { bottom: 80px; left: 16px; }
-  .voice-nav-panel { left: 12px; width: calc(100vw - 24px); bottom: 145px; }
+@media (max-width: 768px) {
+  .voice-nav-trigger { 
+    bottom: 24px; 
+    left: 24px; 
+    width: 50px; 
+    height: 50px; 
+    font-size: 1.1em;
+  }
+  .voice-nav-panel { 
+    left: 0; 
+    bottom: 0; 
+    width: 100vw; 
+    border-radius: 24px 24px 0 0; 
+    padding: 20px; 
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+  }
+  .voice-nav-panel.visible { 
+    transform: translateY(0); 
+  }
+  .ai-chat-panel {
+    left: 0; 
+    bottom: 0; 
+    width: 100vw; 
+    height: 85vh;
+    border-radius: 24px 24px 0 0; 
+    transform: translateY(100%);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+  }
+  .ai-chat-panel.visible {
+    transform: translateY(0);
+  }
 }
 
 /* ── Voice AI upgrades ── */

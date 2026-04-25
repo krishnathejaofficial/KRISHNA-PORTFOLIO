@@ -88,7 +88,7 @@ async function askAI(question) {
         { role: 'user', content: question },
       ],
       temperature: 0.7,
-      max_tokens: 200,
+      max_tokens: 100,
       stream: false,
     }),
   });
@@ -338,15 +338,32 @@ export default function VoiceNav() {
           </div>
         )}
 
-        {/* Main button */}
-        <button
-          className={`voice-main-btn ${isListening ? 'stop' : ''}`}
-          onClick={toggleListening}
-          disabled={isThinking}
-        >
-          <i className={`fas ${isListening ? 'fa-stop-circle' : isSpeaking ? 'fa-microphone' : 'fa-microphone'}`} />
-          {isListening ? ' Stop Listening' : isSpeaking ? ' Interrupt & Listen Again' : ' Start Listening'}
-        </button>
+        {/* Controls */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {isSpeaking ? (
+            <>
+              <button
+                className="voice-main-btn stop"
+                onClick={() => { stopSpeaking(); setStatus(S.IDLE); }}
+                style={{ backgroundColor: 'rgba(239,68,68,0.2)', borderColor: 'rgba(239,68,68,0.4)', color: '#f87171' }}
+              >
+                <i className="fas fa-volume-mute" /> Stop Audio / Mute
+              </button>
+              <button className="voice-main-btn" onClick={toggleListening}>
+                <i className="fas fa-microphone" /> Ask Another Question
+              </button>
+            </>
+          ) : (
+            <button
+              className={`voice-main-btn ${isListening ? 'stop' : ''}`}
+              onClick={toggleListening}
+              disabled={isThinking}
+            >
+              <i className={`fas ${isListening ? 'fa-stop-circle' : 'fa-microphone'}`} />
+              {isListening ? ' Stop Listening' : ' Start Listening'}
+            </button>
+          )}
+        </div>
 
         <div className="voice-powered-by">
           Powered by <strong>NVIDIA NIM</strong> &amp; <strong>Web Speech API</strong> · Free navigation + AI answers
