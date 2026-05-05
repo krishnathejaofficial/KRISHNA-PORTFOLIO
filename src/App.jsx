@@ -71,10 +71,18 @@ function App() {
         <span className="bar"></span>
       </button>
 
-      <LanguageSwitcher lang={lang} setLang={setLang} />
-      <ThemeSelector currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />
-      <LiveTimeWeather />
-      <HireMeButton />
+      <div className="top-right-dock">
+        <LanguageSwitcher lang={lang} setLang={setLang} />
+        <ThemeSelector currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />
+        <LiveTimeWeather />
+      </div>
+      
+      <div className="bottom-right-dock">
+        <HireMeButton />
+        <VoiceNav />
+        <AIChat />
+        <BackToTop />
+      </div>
       
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} />
       
