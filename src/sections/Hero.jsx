@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 
-export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe }) {
+export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenResumeAI }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
   const { t } = useTranslation();
@@ -52,8 +52,11 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
             onClick={e => { e.preventDefault(); document.querySelector('#resume')?.scrollIntoView({ behavior: 'smooth' }); }}>
             <i className="fas fa-file-alt" /> View Resume
           </a>
+          <button className="btn hero-btn-outline" onClick={onOpenResumeAI}>
+            <i className="fas fa-robot" /> AI Resume Tailor
+          </button>
           <button className="btn hero-btn-outline" onClick={onOpenCoverLetter}>
-            <i className="fas fa-magic" /> Smart Cover Letter
+            <i className="fas fa-magic" /> Cover Letter
           </button>
           <button className="btn hero-btn-outline" onClick={onOpenMeeting}>
             <i className="fas fa-calendar-alt" /> Book Meeting

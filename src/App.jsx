@@ -9,6 +9,7 @@ import QRBusinessCard from './components/QRBusinessCard';
 import CollaborationForm from './components/CollaborationForm';
 import MeetingScheduler from './components/MeetingScheduler';
 import HireMeButton from './components/HireMeButton';
+import AIResumeBuilder from './components/AIResumeBuilder';
 
 import Hero from './sections/Hero';
 import About from './sections/About';
@@ -27,7 +28,7 @@ import Contact from './sections/Contact';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false });
+  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, resumeAI: false });
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => {
@@ -69,6 +70,7 @@ function App() {
           onOpenQR={() => openModal('qr')}
           onOpenCollab={() => openModal('collab')}
           onOpenHireMe={() => openModal('hire')}
+          onOpenResumeAI={() => openModal('resumeAI')}
         />
         <About />
         <Career />
@@ -98,6 +100,7 @@ function App() {
       <CollaborationForm isOpen={modals.collab} onClose={() => closeModal('collab')} />
       <MeetingScheduler isOpen={modals.meeting} onClose={() => closeModal('meeting')} />
       {modals.hire && <HireMeButton initialOpen onClose={() => closeModal('hire')} />}
+      <AIResumeBuilder isOpen={modals.resumeAI} onClose={() => closeModal('resumeAI')} />
     </div>
   );
 }
