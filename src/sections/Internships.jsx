@@ -19,18 +19,32 @@ export default function Internships() {
         <div className="card" data-animate>
           <i className="fas fa-pills proj-icon" />
           <h3>Industrial Intern — Glory Pharma Chem India Pvt Ltd</h3>
-          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Pharmaceutical Manufacturing | 2025</p>
+          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Pharmaceutical Manufacturing | Jun–Jul 2025</p>
           <ul>
-            <li>Gained hands-on exposure to GMP manufacturing workflows, quality control (QC) procedures, and regulatory documentation standards in an active pharmaceutical facility.</li>
+            <li>Assisted in GMP-based API intermediate manufacturing (reactor processing, filtration, centrifugation, drying).</li>
+            <li>Performed QC analyses (moisture, pH, carbon testing; exposure to GC).</li>
+            <li>Followed SOPs for equipment cleaning and batch documentation.</li>
+            <li>Gained experience in QA, EHS, and pharmaceutical compliance systems.</li>
           </ul>
+          <div style={{ marginTop: '10px', display: 'flex', gap: '15px' }}>
+            <a href="https://drive.google.com/file/d/1_mGYxm8XGHMKVEL42TdYm6siZdXtcj2E/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-file-alt" style={{ marginRight: '5px' }} />Internship Report</a>
+            <a href="https://drive.google.com/file/d/1N4Q_junv58srhy40vKJRibICiJUsM_0E/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Certificate</a>
+          </div>
         </div>
         <div className="card" data-animate>
           <i className="fas fa-paper-plane proj-icon" />
           <h3>Industrial Intern — GSK Technologies Pvt Ltd</h3>
-          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Industrial Biotech | 2024</p>
+          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Industrial Biotech | May–Jun 2024</p>
           <ul>
-            <li>Observed industrial biotech process optimization and scale-up strategies, gaining insight into plant operations and production system efficiency.</li>
+            <li>Studied full-scale paper manufacturing (pulping → drying → rolling → packaging).</li>
+            <li>Observed industrial equipment (pulper, boiler, heat exchanger, paper machine).</li>
+            <li>Performed QC analysis (GSM, burst factor, pulp quality).</li>
+            <li>Analyzed recycling and water reuse systems for sustainable production.</li>
           </ul>
+          <div style={{ marginTop: '10px', display: 'flex', gap: '15px' }}>
+            <a href="https://drive.google.com/file/d/1drIGDmz9P0_0Jr45Ti9BIvV-h2sytori/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-file-alt" style={{ marginRight: '5px' }} />Internship Report</a>
+            <a href="https://drive.google.com/file/d/13HT-oCZhkRE40P0Xaie-KjWmlaepJYsK/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Certificate</a>
+          </div>
         </div>
       </div>
 
@@ -48,6 +62,7 @@ export default function Internships() {
           <ul>
             <li>Completed structured training in clinical data management principles, data handling workflows, and regulatory compliance frameworks (GCP, ICH guidelines).</li>
           </ul>
+          <a href="https://drive.google.com/file/d/12W7ApoVJokFollVTmRmrdwrAF2WVF23x/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', display: 'inline-block', marginTop: '10px', textDecoration: 'none' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />View Certificate</a>
         </div>
         <div className="card" data-animate>
           <i className="fas fa-flask proj-icon" />
@@ -56,6 +71,7 @@ export default function Internships() {
           <ul>
             <li>Acquired practical understanding of chemical manufacturing operations, warehouse management, and quality assurance protocols.</li>
           </ul>
+          <a href="https://drive.google.com/file/d/14GNM2mWTy7VgPcyfnQZb3BGmjEtPb0mK/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', display: 'inline-block', marginTop: '10px', textDecoration: 'none' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />View Certificate</a>
         </div>
       </div>
     </section>

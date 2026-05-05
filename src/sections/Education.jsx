@@ -20,6 +20,7 @@ export default function Education() {
           <i className="fas fa-university edu-icon" />
           <h3>Integrated M.Sc. Biotechnology</h3>
           <p><strong>Vellore Institute of Technology (VIT)</strong> | 2022 – 2027</p>
+          <a href="https://drive.google.com/file/d/1MURK8z4sF1ZxJLiPiarqxK-zR6nW8Rob/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', display: 'inline-block', marginBottom: '8px', textDecoration: 'none' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />View Grade History</a>
           <p style={{ color: 'var(--gold)', margin: '6px 0', fontWeight: 600 }}>CGPA: 9.01</p>
           <ul>
             <li>100% Attendance Awards for 2022–23 and 2024–25.</li>
@@ -32,6 +33,7 @@ export default function Education() {
           <i className="fas fa-school edu-icon" />
           <h3>Intermediate – BiPC</h3>
           <p><strong>Sri Chaitanya Junior College, Vijayawada</strong> | 2019 – 2021</p>
+          <a href="https://drive.google.com/file/d/13R-O5OhHZeRIpjm2o4nyuUF3UBJJaFrc/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', display: 'inline-block', marginBottom: '8px', textDecoration: 'none' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />View Certificate</a>
           <p style={{ color: 'var(--gold)', margin: '6px 0', fontWeight: 600 }}>Score: 954 / 1000 (96%)</p>
           <ul>
             <li>Studied Sanskrit, English, Botany, Zoology, Physics, and Chemistry.</li>
@@ -43,6 +45,7 @@ export default function Education() {
           <i className="fas fa-home edu-icon" />
           <h3>SSC – 10th Standard</h3>
           <p><strong>Masters EM High School</strong> | 2018 – 2019</p>
+          <a href="https://drive.google.com/file/d/13KkqJNk7TV_GUvXSlcIHSze3GFGcqrEO/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', display: 'inline-block', marginBottom: '8px', textDecoration: 'none' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />View Certificate</a>
           <p style={{ color: 'var(--gold)', margin: '6px 0', fontWeight: 600 }}>GPA: 10 / 10</p>
           <ul>
             <li>Full marks across all subjects — science, language, and mathematics.</li>

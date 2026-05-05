@@ -25,6 +25,10 @@ export default function Experience() {
             <li>Handled vendor and artist payments; performed <strong>GST, TDS, and profit/loss analysis</strong> using structured Google Sheets financial systems.</li>
             <li>Ensured transparency, cost control, and efficient resource allocation across all fest operations.</li>
           </ul>
+          <div style={{ marginTop: '10px', display: 'flex', gap: '15px' }}>
+            <a href="https://drive.google.com/file/d/105dvzQLrqjc5R0gqat4RoE0UaWKLDS8_/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Riviera&apos;25 Cert</a>
+            <a href="https://drive.google.com/file/d/159EJQLYjJXA7spIEIw-ZPYe1tM9Xellc/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Riviera&apos;26 Cert</a>
+          </div>
         </div>
         <div className="card" data-animate>
           <i className="fas fa-heartbeat proj-icon" />
@@ -44,6 +48,11 @@ export default function Experience() {
             <li>Managed logistics, team coordination, and field operations across 4 rural camps, overseeing <strong>400+ volunteers per camp</strong>.</li>
             <li>Designed and executed community development programs with measurable social impact across all village sites.</li>
           </ul>
+          <div style={{ marginTop: '10px', display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+            <a href="https://drive.google.com/file/d/13_4x3JMNtPtUulgp1ZAJB5clVbOgFmPs/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Volunteer (Thiruvallam)</a>
+            <a href="https://drive.google.com/file/d/13VtTA_-B_5-ayLEPOsn2vwrATXAS3lrH/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Coordinator (Vandranthangal)</a>
+            <a href="https://drive.google.com/file/d/13RI6Hox2c5HpU-Qo5WOvDUNUdHpwx-6F/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Organizer (Anaicut)</a>
+          </div>
         </div>
         <div className="card" data-animate>
           <i className="fas fa-users proj-icon" />
@@ -55,19 +64,28 @@ export default function Experience() {
         </div>
         <div className="card" data-animate>
           <i className="fas fa-shopping-cart proj-icon" />
-          <h3>Purchase Coordinator — Gravitas&apos;24</h3>
+          <h3>Purchase Coordinator &amp; Broadcasting Volunteer — Gravitas&apos;24</h3>
           <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>VIT, Vellore | 2024</p>
           <ul>
             <li>Handled procurement, vendor negotiations, and logistics for the university&apos;s annual technical fest.</li>
+            <li>Assisted in broadcasting operations to ensure seamless event coverage.</li>
           </ul>
+          <div style={{ marginTop: '10px', display: 'flex', gap: '15px' }}>
+            <a href="https://drive.google.com/file/d/14N6cQ_Awc2vVhdgSZfxe_yM3ejStLzao/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Purchase Cert</a>
+            <a href="https://drive.google.com/file/d/14WswTjmyprX1QEedfTjmGNNkH2UIwvdk/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Broadcasting Cert</a>
+          </div>
         </div>
         <div className="card" data-animate>
           <i className="fas fa-microphone proj-icon" />
           <h3>Student Organiser — VIT Biosummit</h3>
-          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>SBST Flagship Event | 2023 – 2024</p>
+          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>SBST Flagship Event | 2023 &amp; 2024</p>
           <ul>
             <li>Led cross-functional execution across outreach, documentation, design, technical, and social media teams, ensuring coordinated and efficient event operations.</li>
           </ul>
+          <div style={{ marginTop: '10px', display: 'flex', gap: '15px' }}>
+            <a href="https://drive.google.com/file/d/13f9gM8je48poaUKMgv3KCLjKEBbdi4SH/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />2023 Cert</a>
+            <a href="https://drive.google.com/file/d/13hO9CsMEPwr-KmgqKWvAfaNxqzz5rEro/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />2024 Cert</a>
+          </div>
         </div>
       </div>
     </section>

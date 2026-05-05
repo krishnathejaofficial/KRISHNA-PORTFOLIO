@@ -15,16 +15,16 @@ export const knowledgeChunks = [
   `Education: He completed his 10th class/Secondary School Certificate (SSC) from Masters EM High School, Sathyavedu, Tirupati district, Andhra Pradesh in 2018-2019, achieving a perfect GPA of 10.0. For this achievement, he was selected for the prestigious Prathiba Award from the Andhra Pradesh Government.`,
 
   // --- RESEARCH ---
-  `Research: Krishna worked on Aquaculture Feed Formulation Research at VIT Vellore (SBST) from June 2025 to May 2026 under Dr. R. Sudhakaran, Department of Integrative Biology. He developed sustainable, antioxidant-rich aquafeed formulations using agro-industrial fruit peel waste, reducing reliance on commercial feed inputs. He conducted proximate analysis and biochemical assays including protein estimation (Bradford, BCA, Lowry), lipid, carbohydrate, and antioxidant evaluation (DPPH, ABTS) for nutritional profiling.`,
+  `Research: Krishna worked on Aquaculture Feed Formulation Research at VIT Vellore (SBST) from June 2025 to May 2026 under Dr. R. Sudhakaran. He developed antioxidant-rich aquafeed using orange & pomegranate peel waste. He conducted biochemical assays (Bradford, BCA, Lowry, Anthrone, DPPH, lipid extraction), identified Bradford assay interference due to polyphenols, evaluated feed stability, palatability, and floatability, and demonstrated scalable, eco-friendly alternative to fishmeal-based feed.`,
 
-  `Research: Krishna worked on Biotechnological E-Waste Leaching Strategies at VIT Vellore in September 2025 under Dr. Anand Prem Rajan. He designed a microbial bioleaching approach for heavy metal recovery from electronic waste streams and applied biotechnology principles to industrial sustainability and circular economy frameworks.`,
+  `Research: Krishna worked on Biotechnological E-Waste Leaching Strategies at VIT Vellore in September 2025. He designed a microbial bioleaching system for metal recovery from e-waste, integrated bioreactor processing, electrolysis, and material recovery workflows, proposed real-time monitoring and plastic upcycling for circular economy applications, and presented at National Entrepreneurship Day (EntreprenaTION).`,
 
   `Manuscripts: Krishna has two manuscripts under preparation (2026): (1) Transcriptomic & Immunological Impact of Synthetic Food Colorants and Additives on the Human Gut. (2) Organic, Innovative, and Eco-friendly Feeds for Aquaculture.`,
 
   // --- INTERNSHIPS ---
-  `Internship: Krishna interned at Glory Pharma Chem India Pvt Ltd in 2025 as an Industrial Intern in pharmaceutical manufacturing. He gained hands-on exposure to GMP manufacturing workflows, quality control (QC) procedures, and regulatory documentation standards in an active pharmaceutical facility.`,
+  `Internship: Krishna interned at Glory Pharma Chem India Pvt Ltd in Jun-Jul 2025. He assisted in GMP-based API intermediate manufacturing (reactor processing, filtration, centrifugation, drying), performed QC analyses (moisture, pH, carbon testing; exposure to GC), followed SOPs for equipment cleaning and batch documentation, and gained experience in QA, EHS, and pharmaceutical compliance systems.`,
 
-  `Internship: Krishna interned at GSK Technologies Pvt Ltd in 2024 as an Industrial Intern. He observed industrial biotech process optimization and scale-up strategies, gaining insight into plant operations and production system efficiency.`,
+  `Internship: Krishna interned at GSK Technologies Pvt Ltd in May-Jun 2024. He studied full-scale paper manufacturing (pulping to drying to rolling to packaging), observed industrial equipment (pulper, boiler, heat exchanger, paper machine), performed QC analysis (GSM, burst factor, pulp quality), and analyzed recycling and water reuse systems for sustainable production.`,
 
   `Additional Exposure: Krishna completed a Clinical Data Management Program at VIT Vellore by BCRI, covering GCP, ICH guidelines, data handling workflows, and regulatory compliance frameworks. He also visited STHREE Chemicals Pvt Ltd in 2024 and acquired practical understanding of chemical manufacturing operations, warehouse management, and QA protocols.`,
 
@@ -38,6 +38,10 @@ export const knowledgeChunks = [
   `Technical Project: Token Generation System (Automation). Built a customizable QR/barcode-based token generation platform supporting bulk automated operations for institutional events.`,
 
   `Technical Project: Cake Ordering Platform (Full-Stack Development). Developed an end-to-end e-commerce platform featuring automated pricing, payment integration, and an admin management dashboard.`,
+  
+  `Technical Project: Secret Chatting "dev-vault" (Full-Stack App). Developed a secure, real-time messaging platform enabling confidential communication and secret chatting features.`,
+  
+  `Technical Project: Budget Tracker App (Finance App). Built a personal finance application to effectively track expenses, manage budgets, and visualize financial data.`,
 
   `Technical Project: Personal Portfolio Website built with React and Vite, deployed on Vercel. Features elegant UI, sidebar navigation, resume integration, SplashCursor fluid animation, dark/light mode toggle. Live at gkrishnateja.vercel.app.`,
 
@@ -56,9 +60,9 @@ export const knowledgeChunks = [
 
   `Clinical & Data Analysis Skills: MS Excel (Advanced — pivot tables, financial tracking, dashboards), Google Sheets Automation, Real-time Data Visualization, Clinical Data Handling, GCP, ICH Guidelines, Documentation Systems.`,
 
-  `Web & Full-Stack Development Skills: Supabase (Auth, DB, Storage), Vercel, REST APIs, QR Code Generation, Payment Gateway Integration (GPay, QR).`,
+  `Web & App Development Skills: App Development, Supabase (Auth, DB, Storage), Vercel, REST APIs, QR Code Generation, Payment Gateway Integration (GPay, QR).`,
 
-  `Programming & Tools: R, HTML (Basic), VS Code, Figma, MS Office Suite, Google Workspace, Canva, PowerPoint, Google Apps Script, Video Editing.`,
+  `Programming & Tools: Android Studio, R, HTML (Basic), VS Code, Figma, MS Office Suite, Google Workspace, Canva, PowerPoint, Google Apps Script, Video Editing.`,
 
   `Languages: English (Fluent), Telugu (Native), Tamil (Conversational), Hindi (Basic).`,
 
@@ -71,9 +75,9 @@ export const knowledgeChunks = [
 
   `Leadership: Secretary, Board Member at NSS VIT (2024–2025). Led multiple social initiatives, events, and operational programs with measurable community impact at the institutional level.`,
 
-  `Leadership: Purchase Coordinator for Gravitas'24 (VIT's annual technical fest, 2024). Handled procurement, vendor negotiations, and logistics.`,
+  `Leadership: Purchase Coordinator and Broadcasting Volunteer for Gravitas'24 (VIT's annual technical fest, 2024). Handled procurement, vendor negotiations, and logistics, and assisted in broadcasting operations.`,
 
-  `Leadership: Student Organiser for VIT Biosummit (SBST Flagship Event, 2023–2024). Led cross-functional execution across outreach, documentation, design, technical, and social media teams.`,
+  `Leadership: Student Organiser for VIT Biosummit (SBST Flagship Event, 2023 & 2024). Led cross-functional execution across outreach, documentation, design, technical, and social media teams.`,
 
   // --- ACHIEVEMENTS ---
   `Achievements: 100% Attendance Award from VIT Vellore in 2023 and 2025. EntrepreNATION — 2nd Prize (Entrepreneurship Competition). Water Conservation Ideathon — 3rd Place.`,

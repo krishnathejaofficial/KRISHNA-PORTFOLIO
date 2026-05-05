@@ -11,9 +11,10 @@ export default function Certifications() {
   }, []);
 
   const achievements = [
-    { icon: 'fa-trophy', text: '100% Attendance Award — VIT Vellore (2023 and 2025)' },
-    { icon: 'fa-medal', text: 'EntrepreNATION — 2nd Prize (Entrepreneurship Competition)' },
-    { icon: 'fa-award', text: 'Water Conservation Ideathon — 3rd Place' },
+    { icon: 'fa-trophy', text: '100% Attendance Award — VIT Vellore (2023)', link: 'https://drive.google.com/file/d/13hdaMD5yXOPebf-0RGLRmaXKOJ-66eTz/view?usp=sharing' },
+    { icon: 'fa-trophy', text: '100% Attendance Award — VIT Vellore (2025)', link: 'https://drive.google.com/file/d/13ksrArjo8xcIlWzYurlscTiYHj1Xx6FB/view?usp=sharing' },
+    { icon: 'fa-medal', text: 'EntrepreNATION — 2nd Prize (Entrepreneurship Competition)', link: 'https://drive.google.com/file/d/1YpBVuZJjBDPGJlKpa15bsX9v6fv0g9cG/view?usp=drivesdk' },
+    { icon: 'fa-award', text: 'Water Conservation Ideathon — 3rd Place', link: 'https://drive.google.com/file/d/13tSKgQVm_-2kLm6Hb_Zvaamy0gZKc6Gx/view?usp=sharing' },
   ];
 
   return (
@@ -23,10 +24,11 @@ export default function Certifications() {
       <div className="section-divider" />
       <div className="cert-grid" style={{ maxWidth: '800px', margin: '0 auto' }}>
         {achievements.map((c, i) => (
-          <div className="cert-card" data-animate key={i}>
+          <a className="cert-card" data-animate key={i} href={c.link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'block', transition: 'all 0.3s ease' }}>
             <i className={`fas ${c.icon}`} />
             <p>{c.text}</p>
-          </div>
+            <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginTop: '12px' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} /> View Certificate</p>
+          </a>
         ))}
       </div>
     </section>
