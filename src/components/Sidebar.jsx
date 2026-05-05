@@ -1,22 +1,25 @@
 import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
+import { useTranslation } from '../components/LanguageSwitcher';
 
 export default function Sidebar({ isOpen, onClose, onOpenQR }) {
+  const { t } = useTranslation();
+  
   const navLinks = [
-    { href: '#home', icon: 'fa-home', label: 'Home' },
-    { href: '#about', icon: 'fa-user', label: 'About' },
+    { href: '#home', icon: 'fa-home', label: t('nav_home') },
+    { href: '#about', icon: 'fa-user', label: t('nav_about') },
     { href: '#career', icon: 'fa-bullseye', label: 'Career Interests' },
     { href: '#education', icon: 'fa-graduation-cap', label: 'Education' },
-    { href: '#research', icon: 'fa-microscope', label: 'Research' },
+    { href: '#research', icon: 'fa-microscope', label: t('nav_research') },
     { href: '#internships', icon: 'fa-industry', label: 'Internships' },
-    { href: '#projects', icon: 'fa-project-diagram', label: 'Projects' },
+    { href: '#projects', icon: 'fa-project-diagram', label: t('nav_projects') },
     { href: '#skills', icon: 'fa-chart-bar', label: 'Skills' },
     { href: '#experience', icon: 'fa-briefcase', label: 'Leadership' },
     { href: '#certifications', icon: 'fa-trophy', label: 'Achievements' },
     { href: '#languages', icon: 'fa-globe', label: 'Languages' },
     { href: '#media', icon: 'fa-photo-video', label: 'Media' },
     { href: '#resume', icon: 'fa-file-pdf', label: 'Resume' },
-    { href: '#contact', icon: 'fa-envelope', label: 'Contact' },
+    { href: '#contact', icon: 'fa-envelope', label: t('nav_contact') },
   ];
 
   const activeLinkRef = useRef(null);

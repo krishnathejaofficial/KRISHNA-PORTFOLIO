@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
+import { useTranslation } from '../components/LanguageSwitcher';
 
 export default function Hero({ onOpenCoverLetter, onOpenMeeting }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Typing effect
@@ -51,7 +53,7 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting }) {
         />
         <h1 className="hero-name" ref={nameRef}>G. Krishna Teja</h1>
         <p className="hero-tagline">
-          Integrated M.Sc. Biotechnology Student | VIT Vellore (CGPA 9.01) | Pharmaceutical Operations · Industrial Biotechnology · Healthcare Business Development
+          {t('hero_tagline')}
         </p>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '16px' }}>
           <a href="#resume" className="btn" onClick={e => { e.preventDefault(); document.querySelector('#resume')?.scrollIntoView({ behavior: 'smooth' }); }}>View Resume</a>

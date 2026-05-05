@@ -92,7 +92,7 @@ function App() {
         <Languages />
         <Media />
         <Resume />
-        <Contact onOpenCollab={() => openModal('collab')} />
+        <Contact onOpenCollab={() => openModal('collab')} onOpenQR={() => openModal('qr')} />
       </main>
 
       <footer>

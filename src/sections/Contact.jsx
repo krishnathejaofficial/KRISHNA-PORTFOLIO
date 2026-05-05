@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import LogoLoop from '../components/LogoLoop';
 import { socialLogos } from '../data/socialLogos';
+import { useTranslation } from '../components/LanguageSwitcher';
 
-export default function Contact({ onOpenCollab }) {
+export default function Contact({ onOpenCollab, onOpenQR }) {
   const ref = useRef(null);
+  const { t } = useTranslation();
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
   const [btnText, setBtnText] = useState(<><i className="fas fa-paper-plane" style={{ marginRight: '8px' }} />Send Message</>);
 
@@ -48,7 +50,7 @@ export default function Contact({ onOpenCollab }) {
   return (
     <section id="contact" ref={ref}>
       <div className="section-icon"><i className="fas fa-address-book" /></div>
-      <h2>Contact Me</h2>
+      <h2>{t('contact_title')}</h2>
       <div className="section-divider" />
       <form onSubmit={handleSubmit}>
         <input type="hidden" name="access_key" value="4e9cf101-22a3-4552-9b1f-dc1f86224eaa" />
@@ -59,9 +61,14 @@ export default function Contact({ onOpenCollab }) {
         <button type="submit" className="btn" style={{ alignSelf: 'center', ...btnStyle }} disabled={status === 'sending'}>
           {btnText}
         </button>
-        <button type="button" className="btn" onClick={onOpenCollab} style={{ alignSelf: 'center', background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)', marginTop: '-8px' }}>
-          <i className="fas fa-users" style={{ marginRight: '8px' }} /> Propose Collaboration
-        </button>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '-8px', flexWrap: 'wrap' }}>
+          <button type="button" className="btn" onClick={onOpenCollab} style={{ background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)' }}>
+            <i className="fas fa-users" style={{ marginRight: '8px' }} /> Propose Collaboration
+          </button>
+          <button type="button" className="btn" onClick={onOpenQR} style={{ background: 'var(--surface-2)', color: 'var(--gold)', border: '1px solid var(--gold)' }}>
+            <i className="fas fa-qrcode" style={{ marginRight: '8px' }} /> Digital Card
+          </button>
+        </div>
       </form>
       <div className="contact-info" data-animate>
         <p><i className="fas fa-map-marker-alt" style={{ color: 'var(--gold)', marginRight: '8px' }} />Madharapakkam, Tiruvallur, Tamil Nadu - 601202</p>

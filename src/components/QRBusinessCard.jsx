@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
 
 /* QR code via qrserver.com CDN — no dependency needed */
 const QR_BASE = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=';
@@ -7,6 +8,7 @@ const PORTFOLIO_URL = 'https://gkrishnateja.vercel.app';
 export default function QRBusinessCard({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('card');
   const [copied, setCopied] = useState('');
+  const cardRef = useRef(null);
 
   const contactInfo = {
     name: 'G. Krishna Teja',
@@ -33,6 +35,20 @@ export default function QRBusinessCard({ isOpen, onClose }) {
     a.href = url + '&format=png&size=400x400';
     a.download = filename;
     a.click();
+  }
+
+  async function downloadCardImage() {
+    if (!cardRef.current) return;
+    try {
+      const canvas = await html2canvas(cardRef.current, { backgroundColor: '#111', scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = imgData;
+      a.download = 'Krishna_Digital_Card.png';
+      a.click();
+    } catch (err) {
+      console.error('Failed to download card:', err);
+    }
   }
 
   if (!isOpen) return null;
@@ -64,38 +80,43 @@ export default function QRBusinessCard({ isOpen, onClose }) {
 
         <div className="modal-body">
           {activeTab === 'card' && (
-            <div className="biz-card">
-              <div className="biz-card-front">
-                <div className="biz-card-top">
-                  <img src="/images/krishna teja profile.jpg" alt="Krishna" className="biz-card-photo" />
-                  <div>
-                    <h3 style={{ color: 'var(--gold)', fontFamily: 'Cormorant Garamond,serif', fontSize: '1.4em', marginBottom: '4px' }}>
-                      G. Krishna Teja
-                    </h3>
-                    <p style={{ fontSize: '0.75em', opacity: 0.75, lineHeight: 1.5 }}>
-                      Integrated M.Sc. Biotechnology<br />VIT Vellore · CGPA 9.01
-                    </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+              <div className="biz-card" ref={cardRef}>
+                <div className="biz-card-front">
+                  <div className="biz-card-top">
+                    <img src="/images/krishna teja profile.jpg" alt="Krishna" className="biz-card-photo" />
+                    <div>
+                      <h3 style={{ color: 'var(--gold)', fontFamily: 'Cormorant Garamond,serif', fontSize: '1.4em', margin: '0 0 4px 0' }}>
+                        G. Krishna Teja
+                      </h3>
+                      <p style={{ fontSize: '0.75em', opacity: 0.75, lineHeight: 1.5, margin: 0 }}>
+                        Integrated M.Sc. Biotechnology<br />VIT Vellore · CGPA 9.01
+                      </p>
+                    </div>
+                  </div>
+                  <div className="biz-card-divider" />
+                  <div className="biz-card-info">
+                    <a href={`mailto:${contactInfo.email}`} className="biz-contact-row">
+                      <i className="fas fa-envelope" /> {contactInfo.email}
+                    </a>
+                    <a href={`tel:${contactInfo.phone}`} className="biz-contact-row">
+                      <i className="fas fa-phone" /> {contactInfo.phone}
+                    </a>
+                    <a href={`https://${contactInfo.portfolio}`} target="_blank" rel="noreferrer" className="biz-contact-row">
+                      <i className="fas fa-globe" /> {contactInfo.portfolio}
+                    </a>
+                    <a href={`https://${contactInfo.linkedin}`} target="_blank" rel="noreferrer" className="biz-contact-row">
+                      <i className="fab fa-linkedin" /> {contactInfo.linkedin}
+                    </a>
+                  </div>
+                  <div className="biz-card-footer">
+                    <span>Industrial Biotech · Pharma · Research</span>
                   </div>
                 </div>
-                <div className="biz-card-divider" />
-                <div className="biz-card-info">
-                  <a href={`mailto:${contactInfo.email}`} className="biz-contact-row">
-                    <i className="fas fa-envelope" /> {contactInfo.email}
-                  </a>
-                  <a href={`tel:${contactInfo.phone}`} className="biz-contact-row">
-                    <i className="fas fa-phone" /> {contactInfo.phone}
-                  </a>
-                  <a href={`https://${contactInfo.portfolio}`} target="_blank" rel="noreferrer" className="biz-contact-row">
-                    <i className="fas fa-globe" /> {contactInfo.portfolio}
-                  </a>
-                  <a href={`https://${contactInfo.linkedin}`} target="_blank" rel="noreferrer" className="biz-contact-row">
-                    <i className="fab fa-linkedin" /> {contactInfo.linkedin}
-                  </a>
-                </div>
-                <div className="biz-card-footer">
-                  <span>Industrial Biotech · Pharma · Research · Business Dev</span>
-                </div>
               </div>
+              <button className="clg-action-btn" onClick={downloadCardImage} style={{ width: '100%', maxWidth: '300px' }}>
+                <i className="fas fa-download" /> Download Card as PNG
+              </button>
             </div>
           )}
 

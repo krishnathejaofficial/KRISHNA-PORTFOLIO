@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from '../components/LanguageSwitcher';
 
 export default function About() {
   const ref = useRef(null);
+  const { t } = useTranslation();
   useEffect(() => {
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
@@ -12,8 +14,8 @@ export default function About() {
 
   return (
     <section id="about" ref={ref}>
-      <div className="section-icon"><i className="fas fa-user-tie" /></div>
-      <h2>About Me</h2>
+      <div className="section-icon"><i className="fas fa-user-astronaut" /></div>
+      <h2>{t('about_title')}</h2>
       <div className="section-divider" />
       <div className="about-content card" data-animate>
         <p>I am an <strong style={{ color: 'var(--gold)' }}>Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01)</strong> with a strong foundation in applied biotechnology, pharmaceutical operations, and system-driven execution. Demonstrated ability to deliver high-impact outcomes, including managing <strong style={{ color: 'var(--gold)' }}>Rs. 7 crore finances across 150+ events</strong> as Finance Manager for Riviera'25 &amp; '26, and executing <strong style={{ color: 'var(--gold)' }}>952 successful blood donations within ~7 hours</strong> — a university record.</p>

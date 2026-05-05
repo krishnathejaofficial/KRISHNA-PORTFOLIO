@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /* Multi-Language Support — i18n for key portfolio text */
 export const LANGUAGES = {
@@ -74,12 +74,17 @@ export const TRANSLATIONS = {
 };
 
 export function useTranslation() {
-  const stored = localStorage.getItem('portfolio-lang') || 'en';
-  const [lang, setLangState] = useState(stored);
+  const [lang, setLangState] = useState(localStorage.getItem('portfolio-lang') || 'en');
+
+  useEffect(() => {
+    const handleLangChange = () => setLangState(localStorage.getItem('portfolio-lang') || 'en');
+    window.addEventListener('languagechange', handleLangChange);
+    return () => window.removeEventListener('languagechange', handleLangChange);
+  }, []);
 
   function setLang(l) {
     localStorage.setItem('portfolio-lang', l);
-    setLangState(l);
+    window.dispatchEvent(new Event('languagechange'));
   }
 
   function t(key) {
