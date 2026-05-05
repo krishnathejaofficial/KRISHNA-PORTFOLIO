@@ -23,5 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 
+# Backup and stale files
 *.bak
+old_index.css
 .env.local
+
+# Vercel internals (not needed in git)
+.vercel
+
+# Root-level legacy folders (duplicates of public/)
+/assets/
+/images/
