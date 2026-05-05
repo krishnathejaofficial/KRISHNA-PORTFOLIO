@@ -282,7 +282,7 @@ function VoiceFloating() {
 
 
 /* ─── AI CHAT — BOTTOM RIGHT FLOATING ─── */
-const MODEL = 'meta/llama-3.1-70b-instruct';
+const MODEL = 'meta/llama-3.3-70b-instruct';
 const SYSTEM_PROMPT = (ctx) => `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01). Speak in first person as Krishna. Be warm, confident, concise (2-4 sentences). Base answers on context below. If unknown, say to email krishnatejareddy2003@gmail.com.\n\nCONTEXT:\n${ctx}`;
 const SUGGESTIONS = ['Tell me about your research 🔬', 'What are your top skills?', 'What projects have you built?', 'How can I contact you?'];
 

@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { knowledgeChunks } from '../data/knowledgeBase';
 import { getRelevantContext } from '../utils/ragUtils';
 
-const NVIDIA_API_KEY = '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';
-const MODEL = 'meta/llama-3.1-70b-instruct';
+const MODEL = 'meta/llama-3.3-70b-instruct';
 
 export default function CoverLetterGenerator({ isOpen, onClose }) {
   const [step, setStep] = useState(1);
@@ -44,7 +43,7 @@ Rules:
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${NVIDIA_API_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: MODEL,
           messages: [
