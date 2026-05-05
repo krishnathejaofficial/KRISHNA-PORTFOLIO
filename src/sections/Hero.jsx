@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
-export default function Hero() {
+
+export default function Hero({ onOpenCoverLetter, onOpenMeeting }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
 
@@ -52,7 +53,15 @@ export default function Hero() {
         <p className="hero-tagline">
           Integrated M.Sc. Biotechnology Student | VIT Vellore (CGPA 9.01) | Pharmaceutical Operations · Industrial Biotechnology · Healthcare Business Development
         </p>
-        <a href="#resume" className="btn" onClick={e => { e.preventDefault(); document.querySelector('#resume')?.scrollIntoView({ behavior: 'smooth' }); }}>View Resume</a>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '16px' }}>
+          <a href="#resume" className="btn" onClick={e => { e.preventDefault(); document.querySelector('#resume')?.scrollIntoView({ behavior: 'smooth' }); }}>View Resume</a>
+          <button className="btn" onClick={onOpenCoverLetter} style={{ background: 'var(--surface-2)', color: 'var(--gold)', border: '1px solid var(--gold)' }}>
+            <i className="fas fa-magic" style={{ marginRight: '8px' }} /> Smart Cover Letter
+          </button>
+          <button className="btn" onClick={onOpenMeeting} style={{ background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)' }}>
+            <i className="fas fa-calendar-alt" style={{ marginRight: '8px' }} /> Book Meeting
+          </button>
+        </div>
         <div className="hero-contact">
           <p><i className="fas fa-map-marker-alt" style={{ color: 'var(--gold)', marginRight: '8px' }} />Madharapakkam, Tiruvallur, Tamil Nadu - 601202</p>
           <p><i className="fas fa-envelope" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="mailto:krishnatejareddy2003@gmail.com">krishnatejareddy2003@gmail.com</a></p>

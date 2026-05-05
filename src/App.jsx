@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
 import SplashCursor from './components/SplashCursor';
 import Sidebar from './components/Sidebar';
-import ThemeToggle from './components/ThemeToggle';
 import LiveTimeWeather from './components/LiveTimeWeather';
 import BackToTop from './components/BackToTop';
 import Preloader from './components/Preloader';
 import AIChat from './components/AIChat';
 import VoiceNav from './components/VoiceNav';
+
+// New Features
+import ThemeSelector, { initTheme } from './components/ThemeSelector';
+import LanguageSwitcher, { useTranslation } from './components/LanguageSwitcher';
+import HireMeButton from './components/HireMeButton';
+import CoverLetterGenerator from './components/CoverLetterGenerator';
+import QRBusinessCard from './components/QRBusinessCard';
+import CollaborationForm from './components/CollaborationForm';
+import MeetingScheduler from './components/MeetingScheduler';
 
 // Sections
 import Hero from './sections/Hero';
@@ -25,31 +33,16 @@ import Resume from './sections/Resume';
 import Contact from './sections/Contact';
 
 function App() {
-  const [isDark, setIsDark] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Feature states
+  const [currentTheme, setCurrentTheme] = useState('dark');
+  const { lang, setLang } = useTranslation();
+  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false });
 
   useEffect(() => {
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-      setIsDark(false);
-      document.body.classList.add('light');
-    }
+    setCurrentTheme(initTheme());
   }, []);
-
-  const toggleTheme = () => {
-    setIsDark(prev => {
-      const next = !prev;
-      if (next) {
-        document.body.classList.remove('light');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.body.classList.add('light');
-        localStorage.setItem('theme', 'light');
-      }
-      return next;
-    });
-  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => {
@@ -64,6 +57,9 @@ function App() {
     document.body.classList.remove('sidebar-open');
   };
 
+  const openModal = (key) => setModals(prev => ({ ...prev, [key]: true }));
+  const closeModal = (key) => setModals(prev => ({ ...prev, [key]: false }));
+
   return (
     <div className="app-container">
       <Preloader />
@@ -75,13 +71,15 @@ function App() {
         <span className="bar"></span>
       </button>
 
-      <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+      <LanguageSwitcher lang={lang} setLang={setLang} />
+      <ThemeSelector currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />
       <LiveTimeWeather />
+      <HireMeButton />
       
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} />
       
       <main>
-        <Hero />
+        <Hero onOpenCoverLetter={() => openModal('clg')} onOpenMeeting={() => openModal('meeting')} />
         <About />
         <Career />
         <Education />
@@ -94,7 +92,7 @@ function App() {
         <Languages />
         <Media />
         <Resume />
-        <Contact />
+        <Contact onOpenCollab={() => openModal('collab')} />
       </main>
 
       <footer>
@@ -107,6 +105,12 @@ function App() {
       <BackToTop />
       <AIChat />
       <VoiceNav />
+
+      {/* Feature Modals */}
+      <CoverLetterGenerator isOpen={modals.clg} onClose={() => closeModal('clg')} />
+      <QRBusinessCard isOpen={modals.qr} onClose={() => closeModal('qr')} />
+      <CollaborationForm isOpen={modals.collab} onClose={() => closeModal('collab')} />
+      <MeetingScheduler isOpen={modals.meeting} onClose={() => closeModal('meeting')} />
     </div>
   );
 }

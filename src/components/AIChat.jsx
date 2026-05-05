@@ -154,12 +154,18 @@ export default function AIChat() {
             <span className="ai-online-dot" />
           </div>
           <div className="ai-chat-header-info">
-            <strong>Ask Krishna</strong>
-            <span>AI Persona · Powered by NVIDIA NIM</span>
+            <strong>Ask My Resume</strong>
+            <span>AI Assistant · Powered by NVIDIA NIM</span>
           </div>
           <button className="ai-chat-close" onClick={() => setIsOpen(false)} aria-label="Close chat">
             <i className="fas fa-chevron-down" />
           </button>
+        </div>
+        
+        {/* Visitor Insight */}
+        <div style={{ padding: '10px 16px', background: 'var(--surface-2)', borderBottom: '1px solid var(--gold-dim)', fontSize: '0.8em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <i className="fas fa-magic" style={{ color: 'var(--gold)' }} />
+          <span style={{ color: 'var(--text-bright)', opacity: 0.9 }}><strong>AI Insight:</strong> Krishna's profile strongly matches Biotech Research & Pharma QC roles.</span>
         </div>
 
         {/* Messages */}

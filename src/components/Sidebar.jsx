@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, onClose, onOpenQR }) {
   const navLinks = [
     { href: '#home', icon: 'fa-home', label: 'Home' },
     { href: '#about', icon: 'fa-user', label: 'About' },
@@ -63,6 +63,11 @@ export default function Sidebar({ isOpen, onClose }) {
             </li>
           ))}
         </ul>
+        <div style={{ padding: '0 24px 16px' }}>
+          <button className="btn" onClick={() => { onClose(); onOpenQR(); }} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)', fontSize: '0.85em', padding: '10px' }}>
+            <i className="fas fa-qrcode" style={{ marginRight: '8px' }} /> QR Business Card
+          </button>
+        </div>
         <div className="sidebar-footer">
           {socialLogos.map(s => (
             <a key={s.title} href={s.href} target="_blank" rel="noreferrer" title={s.title} className="social-icon-link" style={{ fontSize: '1.3em' }}>

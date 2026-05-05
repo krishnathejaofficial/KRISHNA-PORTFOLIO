@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import LogoLoop from '../components/LogoLoop';
 import { socialLogos } from '../data/socialLogos';
 
-export default function Contact() {
+export default function Contact({ onOpenCollab }) {
   const ref = useRef(null);
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
   const [btnText, setBtnText] = useState(<><i className="fas fa-paper-plane" style={{ marginRight: '8px' }} />Send Message</>);
@@ -58,6 +58,9 @@ export default function Contact() {
         <textarea name="message" placeholder="Your Message" required />
         <button type="submit" className="btn" style={{ alignSelf: 'center', ...btnStyle }} disabled={status === 'sending'}>
           {btnText}
+        </button>
+        <button type="button" className="btn" onClick={onOpenCollab} style={{ alignSelf: 'center', background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)', marginTop: '-8px' }}>
+          <i className="fas fa-users" style={{ marginRight: '8px' }} /> Propose Collaboration
         </button>
       </form>
       <div className="contact-info" data-animate>

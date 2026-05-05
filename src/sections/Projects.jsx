@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import GitHubHeatmap from '../components/GitHubHeatmap';
 
 export default function Projects() {
   const ref = useRef(null);
@@ -91,6 +92,9 @@ export default function Projects() {
             <li>Live at: <a href="https://gkrishnateja.vercel.app" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)' }}>gkrishnateja.vercel.app</a></li>
           </ul>
         </div>
+      </div>
+      <div data-animate style={{ marginTop: '20px' }}>
+        <GitHubHeatmap />
       </div>
     </section>
   );
