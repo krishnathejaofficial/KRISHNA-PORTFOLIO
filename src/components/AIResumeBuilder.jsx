@@ -117,6 +117,7 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
           fullContent += delta;
           onProgress?.(fullContent);
         } catch { /* ignore malformed SSE frames */ }
+      }
     }
     let out = fullContent.replace(/^```(?:text|latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
     return out;
