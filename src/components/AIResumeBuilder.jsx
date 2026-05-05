@@ -52,71 +52,78 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
     }
   }
 
-  /* ── NVIDIA SSE Stream Reader ──
-     Sends stream:true, reads Server-Sent Events chunk by chunk,
-     reconstructs the full LaTeX content. Works in both local dev
-     (via Vite proxy piping SSE) and production (via Edge function).
+  /* ── NVIDIA AI call ──
+     Dev:  stream:false → Vite proxy returns plain JSON (simple, reliable)
+     Prod: stream:true  → Edge function pipes SSE (avoids Vercel 10s timeout)
   */
   async function callNVIDIA(systemPrompt, userMessage, onProgress) {
+    const isProduction = import.meta.env.PROD;
+
+    const payload = {
+      model: 'meta/llama-3.3-70b-instruct',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
+      max_tokens: 3000,
+      temperature: 0.2,
+      stream: isProduction, // stream only in prod (Edge fn); plain JSON in dev (Vite proxy)
+    };
+
     const res = await fetch('/api/tailor-resume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'meta/llama-3.3-70b-instruct',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        max_tokens: 3500,
-        temperature: 0.2,
-        stream: true,
-      }),
+      body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
+    // ── Dev mode: plain JSON response ──
+    if (!isProduction) {
       const rawText = await res.text();
-      try {
-        const errData = JSON.parse(rawText);
-        throw new Error(errData.error?.message || errData.error || `API Error ${res.status}`);
-      } catch (e) {
-        if (!e.message.startsWith('JSON')) throw e;
-        throw new Error(`API Error ${res.status}: ${rawText.slice(0, 200) || 'Empty response'}`);
+      if (!res.ok || !rawText.trim()) {
+        let msg = `API Error ${res.status}`;
+        try { msg = JSON.parse(rawText)?.error?.message || JSON.parse(rawText)?.error || msg; } catch {}
+        throw new Error(msg);
       }
+      let data;
+      try { data = JSON.parse(rawText); } catch { throw new Error('Server returned invalid JSON. Check the console.'); }
+      let out = (data.choices?.[0]?.message?.content || '')
+        .replace(/^```(?:latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
+      if (!out.includes('\\documentclass') && !out.includes('\\begin{document}'))
+        throw new Error(`AI returned invalid LaTeX (${out.slice(0,80)})`);
+      return out;
     }
 
-    // Read SSE stream and assemble full LaTeX content
+    // ── Production mode: SSE stream from Edge function ──
+    if (!res.ok) {
+      const rawText = await res.text();
+      let msg = `API Error ${res.status}`;
+      try { msg = JSON.parse(rawText)?.error?.message || JSON.parse(rawText)?.error || msg; } catch {}
+      throw new Error(msg);
+    }
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let fullContent = '';
     let sseBuffer = '';
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
       sseBuffer += decoder.decode(value, { stream: true });
       const lines = sseBuffer.split('\n');
-      sseBuffer = lines.pop(); // keep incomplete line for next chunk
-
+      sseBuffer = lines.pop();
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
         const data = line.slice(6).trim();
         if (data === '[DONE]') continue;
         try {
-          const parsed = JSON.parse(data);
-          const delta = parsed.choices?.[0]?.delta?.content || '';
+          const delta = JSON.parse(data).choices?.[0]?.delta?.content || '';
           fullContent += delta;
-          onProgress?.(fullContent); // live progress callback
-        } catch { /* ignore non-JSON SSE frames */ }
+          onProgress?.(fullContent);
+        } catch { /* ignore malformed SSE frames */ }
       }
     }
-
-    // Strip any accidental markdown fences
     let out = fullContent.replace(/^```(?:latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
-
-    if (!out.includes('\\documentclass') && !out.includes('\\begin{document}')) {
+    if (!out.includes('\\documentclass') && !out.includes('\\begin{document}'))
       throw new Error('AI returned invalid LaTeX. Please try again.');
-    }
     return out;
   }
 
