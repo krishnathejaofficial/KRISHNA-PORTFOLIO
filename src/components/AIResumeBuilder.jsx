@@ -52,8 +52,12 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
     }
   }
 
-  /* Helper: Call NVIDIA API through proxy with robust error handling */
-  async function callNVIDIA(systemPrompt, userMessage) {
+  /* ── NVIDIA SSE Stream Reader ──
+     Sends stream:true, reads Server-Sent Events chunk by chunk,
+     reconstructs the full LaTeX content. Works in both local dev
+     (via Vite proxy piping SSE) and production (via Edge function).
+  */
+  async function callNVIDIA(systemPrompt, userMessage, onProgress) {
     const res = await fetch('/api/tailor-resume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -61,43 +65,57 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
         model: 'meta/llama-3.3-70b-instruct',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage }
+          { role: 'user', content: userMessage },
         ],
-        max_tokens: 4096,
-        temperature: 0.2
+        max_tokens: 3500,
+        temperature: 0.2,
+        stream: true,
       }),
     });
 
-    // Always read as text first — never call res.json() directly.
-    // This prevents "Unexpected end of JSON" errors when NVIDIA returns empty/plain-text errors.
-    const rawText = await res.text();
-
-    if (!res.ok || !rawText.trim()) {
-      // Try to parse error JSON, fall back to raw text
+    if (!res.ok) {
+      const rawText = await res.text();
       try {
         const errData = JSON.parse(rawText);
-        const msg = errData?.detail || errData?.error?.message || errData?.error || `API Error ${res.status}`;
-        throw new Error(msg);
-      } catch (parseErr) {
-        if (parseErr.message.startsWith('API Error') || parseErr.message.startsWith('NVIDIA')) throw parseErr;
-        throw new Error(`API Error ${res.status}: ${rawText.slice(0, 200) || 'Empty response. Check API key or try again.'}`);
+        throw new Error(errData.error?.message || errData.error || `API Error ${res.status}`);
+      } catch (e) {
+        if (!e.message.startsWith('JSON')) throw e;
+        throw new Error(`API Error ${res.status}: ${rawText.slice(0, 200) || 'Empty response'}`);
       }
     }
 
-    // Parse successful response
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch {
-      throw new Error('AI server returned invalid JSON. Please try again.');
+    // Read SSE stream and assemble full LaTeX content
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+    let sseBuffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      sseBuffer += decoder.decode(value, { stream: true });
+      const lines = sseBuffer.split('\n');
+      sseBuffer = lines.pop(); // keep incomplete line for next chunk
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          const delta = parsed.choices?.[0]?.delta?.content || '';
+          fullContent += delta;
+          onProgress?.(fullContent); // live progress callback
+        } catch { /* ignore non-JSON SSE frames */ }
+      }
     }
 
-    let out = data.choices?.[0]?.message?.content || '';
-    // Strip markdown fences the model might wrap code in
-    out = out.replace(/^```(?:latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
+    // Strip any accidental markdown fences
+    let out = fullContent.replace(/^```(?:latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
 
     if (!out.includes('\\documentclass') && !out.includes('\\begin{document}')) {
-      throw new Error(`AI returned invalid LaTeX. Raw output: "${out.slice(0, 150)}"`);
+      throw new Error('AI returned invalid LaTeX. Please try again.');
     }
     return out;
   }
@@ -120,7 +138,13 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
       const sys = `You are an expert ATS resume optimizer. Tailor the candidate's LaTeX resume for the job below. RULES: (1) Return ONLY valid compilable LaTeX — no markdown, no explanation. (2) Keep the exact same document structure and packages. (3) Reorder/expand skills to match JD keywords. (4) Rephrase bullets to mirror JD language naturally. (5) Do NOT invent new experience. (6) Output must compile with pdflatex.`;
       const msg = `COMPANY: ${company}\nJOB TITLE: ${jobTitle}\nJOB DESCRIPTION:\n${jobDesc}\n\n---\nBASE RESUME:\n${baseTex}\n\n---\nReturn ONLY the tailored LaTeX code.`;
       
-      const newLatex = await callNVIDIA(sys, msg);
+      const newLatex = await callNVIDIA(sys, msg, (partial) => {
+        // Live preview: show streaming LaTeX in editor as it arrives
+        setLatex(partial);
+        setActiveTab('latex');
+        const lines = partial.split('\n').length;
+        setGenMsg(`Streaming… ${lines} lines generated`);
+      });
       
       setLatex(newLatex);
       setGenStatus('done');
@@ -142,7 +166,11 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
       const sys = `You are a professional LaTeX resume editor. Return ONLY complete compilable LaTeX code — no explanation, no markdown fences. Preserve all LaTeX formatting.`;
       const msg = `Current LaTeX resume:\n\n${latex}\n\n---\nEdit request: "${editPrompt}"\n\nReturn the complete updated LaTeX code.`;
       
-      const newLatex = await callNVIDIA(sys, msg);
+      const newLatex = await callNVIDIA(sys, msg, (partial) => {
+        setLatex(partial);
+        const lines = partial.split('\n').length;
+        setEditMsg(`Streaming edits… ${lines} lines`);
+      });
       
       setLatex(newLatex);
       setEditPrompt('');
