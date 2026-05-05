@@ -17,10 +17,13 @@ async function compile() {
   const payload = {
     compiler: "pdflatex",
     resources: [
-      { main: true, content: texContent },
-      { path: "krishnateja.jpg", content: imageBase64, encoding: "base64" }
+      { main: true, content: texContent }
     ]
   };
+
+  if (imageBase64) {
+    payload.resources.push({ path: "krishnateja.jpg", file: imageBase64 });
+  }
 
   console.log("[PDF] Sending to LaTeX API...");
   const response = await fetch('https://latex.ytotech.com/builds/sync', {
