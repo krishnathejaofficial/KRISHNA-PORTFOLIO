@@ -87,9 +87,7 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
       let data;
       try { data = JSON.parse(rawText); } catch { throw new Error('Server returned invalid JSON. Check the console.'); }
       let out = (data.choices?.[0]?.message?.content || '')
-        .replace(/^```(?:latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
-      if (!out.includes('\\documentclass') && !out.includes('\\begin{document}'))
-        throw new Error(`AI returned invalid LaTeX (${out.slice(0,80)})`);
+        .replace(/^```(?:text|latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
       return out;
     }
 
@@ -119,11 +117,8 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
           fullContent += delta;
           onProgress?.(fullContent);
         } catch { /* ignore malformed SSE frames */ }
-      }
     }
-    let out = fullContent.replace(/^```(?:latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
-    if (!out.includes('\\documentclass') && !out.includes('\\begin{document}'))
-      throw new Error('AI returned invalid LaTeX. Please try again.');
+    let out = fullContent.replace(/^```(?:text|latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
     return out;
   }
 
