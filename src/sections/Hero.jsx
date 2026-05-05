@@ -2,28 +2,23 @@ import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 
-export default function Hero({ onOpenCoverLetter, onOpenMeeting }) {
+export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
   const { t } = useTranslation();
 
   useEffect(() => {
-    // Typing effect
     const el = nameRef.current;
     let typeInterval;
     if (el) {
       const text = 'G. Krishna Teja';
       el.textContent = '';
       let i = 0;
-      typeInterval = setInterval(() => { 
-        if (i < text.length) {
-          el.textContent += text[i++]; 
-        } else {
-          clearInterval(typeInterval); 
-        }
+      typeInterval = setInterval(() => {
+        if (i < text.length) { el.textContent += text[i++]; }
+        else { clearInterval(typeInterval); }
       }, 120);
     }
-    // Particles
     const container = particlesRef.current;
     if (container) {
       for (let i = 0; i < 18; i++) {
@@ -34,10 +29,7 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting }) {
         container.appendChild(p);
       }
     }
-    
-    return () => {
-      if (typeInterval) clearInterval(typeInterval);
-    };
+    return () => { if (typeInterval) clearInterval(typeInterval); };
   }, []);
 
   return (
@@ -52,18 +44,36 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting }) {
           onError={e => { e.target.onerror = null; e.target.src = '/images/krishna teja profile.jpg'; }}
         />
         <h1 className="hero-name" ref={nameRef}>G. Krishna Teja</h1>
-        <p className="hero-tagline">
-          {t('hero_tagline')}
-        </p>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '16px' }}>
-          <a href="#resume" className="btn" onClick={e => { e.preventDefault(); document.querySelector('#resume')?.scrollIntoView({ behavior: 'smooth' }); }}>View Resume</a>
-          <button className="btn" onClick={onOpenCoverLetter} style={{ background: 'var(--surface-2)', color: 'var(--gold)', border: '1px solid var(--gold)' }}>
-            <i className="fas fa-magic" style={{ marginRight: '8px' }} /> Smart Cover Letter
+        <p className="hero-tagline">{t('hero_tagline')}</p>
+
+        {/* ── Primary Action Buttons ── */}
+        <div className="hero-btns">
+          <a href="#resume" className="btn hero-btn-primary"
+            onClick={e => { e.preventDefault(); document.querySelector('#resume')?.scrollIntoView({ behavior: 'smooth' }); }}>
+            <i className="fas fa-file-alt" /> View Resume
+          </a>
+          <button className="btn hero-btn-outline" onClick={onOpenCoverLetter}>
+            <i className="fas fa-magic" /> Smart Cover Letter
           </button>
-          <button className="btn" onClick={onOpenMeeting} style={{ background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)' }}>
-            <i className="fas fa-calendar-alt" style={{ marginRight: '8px' }} /> Book Meeting
+          <button className="btn hero-btn-outline" onClick={onOpenMeeting}>
+            <i className="fas fa-calendar-alt" /> Book Meeting
           </button>
         </div>
+
+        {/* ── Secondary Action Row ── */}
+        <div className="hero-actions-row">
+          <button className="hero-action-chip hero-hire" onClick={onOpenHireMe}>
+            <i className="fas fa-briefcase" /> Hire Me
+          </button>
+          <button className="hero-action-chip" onClick={onOpenQR}>
+            <i className="fas fa-id-card" /> Digital Card
+          </button>
+          <button className="hero-action-chip" onClick={onOpenCollab}>
+            <i className="fas fa-handshake" /> Collaborate
+          </button>
+        </div>
+
+        {/* ── Contact Info ── */}
         <div className="hero-contact">
           <p><i className="fas fa-map-marker-alt" style={{ color: 'var(--gold)', marginRight: '8px' }} />Madharapakkam, Tiruvallur, Tamil Nadu - 601202</p>
           <p><i className="fas fa-envelope" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="mailto:krishnatejareddy2003@gmail.com">krishnatejareddy2003@gmail.com</a></p>

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
 /* Hire Me — one-click email with pre-filled mailto + optional message */
-export default function HireMeButton() {
-  const [showPanel, setShowPanel] = useState(false);
+export default function HireMeButton({ initialOpen = false, onClose }) {
+  const [showPanel, setShowPanel] = useState(initialOpen);
   const [context, setContext] = useState('');
   const [role, setRole] = useState('');
 

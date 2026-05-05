@@ -2,17 +2,14 @@ import { useState } from 'react';
 import SplashCursor from './components/SplashCursor';
 import Sidebar from './components/Sidebar';
 import Preloader from './components/Preloader';
-
-// Single unified dock (replaces ThemeSelector, LanguageSwitcher, LiveTimeWeather, HireMeButton, VoiceNav, AIChat, BackToTop)
 import RightDock from './components/RightDock';
 
-// Feature Modals
 import CoverLetterGenerator from './components/CoverLetterGenerator';
 import QRBusinessCard from './components/QRBusinessCard';
 import CollaborationForm from './components/CollaborationForm';
 import MeetingScheduler from './components/MeetingScheduler';
+import HireMeButton from './components/HireMeButton';
 
-// Sections
 import Hero from './sections/Hero';
 import About from './sections/About';
 import Education from './sections/Education';
@@ -30,7 +27,7 @@ import Contact from './sections/Contact';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false });
+  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false });
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => {
@@ -53,20 +50,26 @@ function App() {
       <Preloader />
       <SplashCursor />
 
-      {/* Left: Hamburger Menu */}
+      {/* Left: Hamburger */}
       <button id="sidebar-toggle" onClick={toggleSidebar} aria-label="Toggle Navigation">
         <span className="bar" />
         <span className="bar" />
         <span className="bar" />
       </button>
 
-      {/* Right: Unified Professional Dock */}
+      {/* Right Dock: Theme + Language + Back-to-top + Voice (left) + AI Chat (bottom-right) */}
       <RightDock />
 
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} />
 
       <main>
-        <Hero onOpenCoverLetter={() => openModal('clg')} onOpenMeeting={() => openModal('meeting')} />
+        <Hero
+          onOpenCoverLetter={() => openModal('clg')}
+          onOpenMeeting={() => openModal('meeting')}
+          onOpenQR={() => openModal('qr')}
+          onOpenCollab={() => openModal('collab')}
+          onOpenHireMe={() => openModal('hire')}
+        />
         <About />
         <Career />
         <Education />
@@ -89,11 +92,12 @@ function App() {
         </p>
       </footer>
 
-      {/* Feature Modals */}
+      {/* Modals */}
       <CoverLetterGenerator isOpen={modals.clg} onClose={() => closeModal('clg')} />
       <QRBusinessCard isOpen={modals.qr} onClose={() => closeModal('qr')} />
       <CollaborationForm isOpen={modals.collab} onClose={() => closeModal('collab')} />
       <MeetingScheduler isOpen={modals.meeting} onClose={() => closeModal('meeting')} />
+      {modals.hire && <HireMeButton initialOpen onClose={() => closeModal('hire')} />}
     </div>
   );
 }

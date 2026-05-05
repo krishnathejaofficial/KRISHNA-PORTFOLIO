@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { THEMES, initTheme } from './ThemeSelector';
+import { THEMES, initTheme, applyTheme } from './ThemeSelector';
 import { knowledgeChunks } from '../data/knowledgeBase';
 import { getRelevantContext } from '../utils/ragUtils';
 import '../right-dock.css';
@@ -30,90 +30,22 @@ function setGoogleTranslateLang(code) {
   document.cookie = `googtrans=${val}; ${expire}path=/; domain=${location.hostname}`;
 }
 
-/* ─── DOCK ITEM TOOLTIP ─── */
-function DockItem({ id, icon, label, onClick, active, badge, children }) {
-  return (
-    <div className={`rd-item-wrap ${active ? 'rd-active' : ''}`}>
-      <button
-        id={id}
-        className={`rd-btn ${active ? 'rd-btn-active' : ''}`}
-        onClick={onClick}
-        title={label}
-        aria-label={label}
-      >
-        <i className={icon} />
-        {badge && <span className="rd-badge">{badge}</span>}
-      </button>
-      {children}
-    </div>
-  );
-}
-
-/* ─── MAIN RIGHT DOCK ─── */
-export default function RightDock({ onOpenHireMe }) {
-  const [panel, setPanel] = useState(null); // 'theme' | 'lang' | 'hireme' | null
+/* ─── RIGHT DOCK (Theme + Language) ─── */
+export default function RightDock() {
+  const [panel, setPanel] = useState(null);
   const [currentTheme, setCurrentTheme] = useState('dark');
   const [selectedLang, setSelectedLang] = useState(LANGS[0]);
   const [showTop, setShowTop] = useState(false);
-  const [time, setTime] = useState('');
-  const [weather, setWeather] = useState(null);
+  const dockRef = useRef(null);
 
-  /* Scroll for back-to-top */
+  useEffect(() => { const k = initTheme(); setCurrentTheme(k); }, []);
+
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 400);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  /* Init theme */
-  useEffect(() => { setCurrentTheme(initTheme()); }, []);
-
-  /* Live clock */
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      setTime(now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  /* Weather */
-  useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(async ({ coords }) => {
-      try {
-        const r = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current_weather=true`
-        );
-        const d = await r.json();
-        if (d.current_weather) {
-          setWeather({ temp: Math.round(d.current_weather.temperature) });
-        }
-      } catch { /* silent */ }
-    });
-  }, []);
-
-  /* Inject Google Translate Script Silently */
-  useEffect(() => {
-    if (!document.querySelector('#google-translate-script')) {
-      const script = document.createElement('script');
-      script.id = 'google-translate-script';
-      script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-      script.async = true;
-      document.body.appendChild(script);
-      
-      window.googleTranslateElementInit = () => {
-        new window.google.translate.TranslateElement({
-          pageLanguage: 'en',
-          autoDisplay: false
-        }, 'google_translate_element');
-      };
-    }
-  }, []);
-
-  /* Close panel on outside click */
-  const dockRef = useRef(null);
   useEffect(() => {
     const handler = (e) => {
       if (dockRef.current && !dockRef.current.contains(e.target)) setPanel(null);
@@ -122,17 +54,8 @@ export default function RightDock({ onOpenHireMe }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  function togglePanel(name) { setPanel(p => p === name ? null : name); }
-
   function selectTheme(key) {
-    const theme = THEMES[key];
-    if (!theme) return;
-    const root = document.documentElement;
-    Object.entries(theme.vars).forEach(([k, v]) => root.style.setProperty(k, v));
-    document.body.classList.remove('light', 'biotech');
-    if (key === 'light') document.body.classList.add('light');
-    if (key === 'biotech') document.body.classList.add('biotech');
-    localStorage.setItem('portfolio-theme', key);
+    applyTheme(key);
     setCurrentTheme(key);
     setPanel(null);
   }
@@ -142,198 +65,178 @@ export default function RightDock({ onOpenHireMe }) {
     setPanel(null);
     const gtCode = GTRANS_MAP[lang.code];
     setGoogleTranslateLang(gtCode);
-    if (gtCode) {
-      setTimeout(() => window.location.reload(), 50);
-    } else {
-      window.location.reload();
-    }
+    setTimeout(() => window.location.reload(), 50);
   }
 
   const themeIcon = THEMES[currentTheme]?.icon || 'fa-moon';
 
   return (
-    <div className="right-dock" id="right-dock" ref={dockRef}>
-      <div id="google_translate_element" style={{ display: 'none' }}></div>
+    <>
+      {/* ── RIGHT DOCK: Theme + Language + Back-to-top ── */}
+      <div className="right-dock" id="right-dock" ref={dockRef}>
+        <div id="google_translate_element" style={{ display: 'none' }} />
 
-      {/* ── THEME ── */}
-      <DockItem id="dock-theme-btn" icon={`fas ${themeIcon}`} label="Theme" onClick={() => togglePanel('theme')} active={panel === 'theme'}>
-        {panel === 'theme' && (
-          <div className="rd-flyout rd-flyout-theme">
+        {/* THEME */}
+        <div className={`rd-item-wrap ${panel === 'theme' ? 'rd-active' : ''}`}>
+          <button id="dock-theme-btn" className={`rd-btn ${panel === 'theme' ? 'rd-btn-active' : ''}`}
+            onClick={() => setPanel(p => p === 'theme' ? null : 'theme')}
+            title="Change Theme" aria-label="Change Theme">
+            <i className={`fas ${themeIcon}`} />
+          </button>
+          <div className="rd-flyout">
             <div className="rd-flyout-title"><i className="fas fa-palette" /> Theme</div>
             {Object.entries(THEMES).map(([key, t]) => (
-              <button key={key} className={`rd-flyout-item ${currentTheme === key ? 'rd-flyout-item-active' : ''}`} onClick={() => selectTheme(key)}>
+              <button key={key}
+                className={`rd-flyout-item ${currentTheme === key ? 'rd-flyout-item-active' : ''}`}
+                onClick={() => selectTheme(key)}>
                 <i className={`fas ${t.icon}`} />
-                <div>
-                  <span>{t.label}</span>
-                  <small>{t.desc}</small>
-                </div>
+                <div><span>{t.label}</span><small>{t.desc}</small></div>
                 {currentTheme === key && <i className="fas fa-check rd-check" />}
               </button>
             ))}
           </div>
-        )}
-      </DockItem>
+        </div>
 
-      {/* ── LANGUAGE ── */}
-      <DockItem id="dock-lang-btn" icon="fas fa-globe" label="Language" onClick={() => togglePanel('lang')} active={panel === 'lang'}>
-        <span className="rd-lang-code">{selectedLang.code.toUpperCase()}</span>
-        {panel === 'lang' && (
+        {/* LANGUAGE */}
+        <div className={`rd-item-wrap ${panel === 'lang' ? 'rd-active' : ''}`}>
+          <button id="dock-lang-btn" className={`rd-btn ${panel === 'lang' ? 'rd-btn-active' : ''}`}
+            onClick={() => setPanel(p => p === 'lang' ? null : 'lang')}
+            title="Language" aria-label="Language">
+            <span style={{ fontSize: '1.3em', lineHeight: 1 }}>{selectedLang.flag}</span>
+          </button>
           <div className="rd-flyout rd-flyout-lang">
             <div className="rd-flyout-title"><i className="fas fa-language" /> Language</div>
             {LANGS.map(l => (
-              <button key={l.code} className={`rd-flyout-item ${selectedLang.code === l.code ? 'rd-flyout-item-active' : ''}`} onClick={() => selectLang(l)}>
+              <button key={l.code}
+                className={`rd-flyout-item ${selectedLang.code === l.code ? 'rd-flyout-item-active' : ''}`}
+                onClick={() => selectLang(l)}>
                 <span className="rd-lang-flag">{l.flag}</span>
                 <span>{l.name}</span>
                 {selectedLang.code === l.code && <i className="fas fa-check rd-check" />}
               </button>
             ))}
           </div>
-        )}
-      </DockItem>
+        </div>
 
-      {/* ── TIME / WEATHER ── */}
-      <div className="rd-info-pill" title="Local Time &amp; Weather">
-        <span className="rd-time"><i className="far fa-clock" /> {time}</span>
-        {weather && <><span className="rd-divider" /><span className="rd-temp"><i className="fas fa-cloud-sun" /> {weather.temp}°C</span></>}
-      </div>
+        {/* SPACER */}
+        <div className="rd-spacer" />
 
-      {/* ── SPACER ── */}
-      <div className="rd-spacer" />
-
-      {/* ── HIRE ME ── */}
-      <DockItem id="dock-hire-btn" icon="fas fa-briefcase" label="Hire Me" onClick={() => togglePanel('hireme')} active={panel === 'hireme'}>
-        <span className="rd-hire-label">Hire Me</span>
-        {panel === 'hireme' && <HireMePanel onClose={() => setPanel(null)} />}
-      </DockItem>
-
-      {/* ── VOICE ── */}
-      <VoiceDockItem />
-
-      {/* ── AI CHAT ── */}
-      <AIChatDockItem />
-
-      {/* ── BACK TO TOP ── */}
-      {showTop && (
-        <button className="rd-btn rd-top-btn" id="dock-top-btn" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} title="Back to top" aria-label="Back to top">
+        {/* BACK TO TOP */}
+        <button
+          className={`rd-btn rd-top-btn ${showTop ? 'rd-top-visible' : ''}`}
+          id="dock-top-btn"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          title="Back to top" aria-label="Back to top">
           <i className="fas fa-arrow-up" />
         </button>
+      </div>
+
+      {/* ── LEFT FLOATING: Voice Mic ── */}
+      <VoiceFloating />
+
+      {/* ── BOTTOM RIGHT FLOATING: AI Chat ── */}
+      <AIChatFloating />
+    </>
+  );
+}
+
+/* ─── VOICE — LEFT SIDE FLOATING ─── */
+function VoiceFloating() {
+  const [listening, setListening] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState('Say a section name…');
+  const recRef = useRef(null);
+  const supported = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  function startListening() {
+    if (!supported) { alert('Voice not supported in this browser. Try Chrome.'); return; }
+    if (listening) { recRef.current?.stop(); setListening(false); setStatus('Say a section name…'); return; }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const r = new SR();
+    r.lang = 'en-IN';
+    r.continuous = false;
+    r.interimResults = false;
+    r.onstart = () => { setListening(true); setStatus('Listening…'); };
+    r.onresult = (e) => {
+      const cmd = e.results[0][0].transcript.toLowerCase();
+      setStatus(`"${cmd}"`);
+      const sections = {
+        home: 'home', about: 'about', research: 'research', project: 'projects',
+        skill: 'skills', contact: 'contact', certificate: 'certifications',
+        education: 'education', experience: 'experience', internship: 'internships',
+        career: 'career', resume: 'resume', language: 'languages', media: 'media',
+      };
+      for (const [key, id] of Object.entries(sections)) {
+        if (cmd.includes(key)) {
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+          setStatus(`↗ Navigating to ${id}…`);
+          break;
+        }
+      }
+    };
+    r.onerror = () => { setListening(false); setStatus('Error. Try again.'); };
+    r.onend = () => { setListening(false); };
+    r.start();
+    recRef.current = r;
+  }
+
+  return (
+    <div className="voice-float-wrap" id="voice-float-wrap">
+      <button
+        id="voice-float-btn"
+        className={`voice-float-btn ${listening ? 'voice-float-listening' : ''}`}
+        onClick={() => { setOpen(p => !p); if (!open) startListening(); else { recRef.current?.stop(); setListening(false); } }}
+        title="Voice Navigation"
+        aria-label="Voice Navigation">
+        <i className={`fas fa-microphone${listening ? '-slash' : ''}`} />
+        {listening && <span className="voice-float-ring" />}
+      </button>
+      {open && (
+        <div className="voice-float-panel">
+          <div className="voice-float-head">
+            <span><i className="fas fa-microphone" style={{ color: 'var(--gold)', marginRight: 6 }} /> Voice Navigation</span>
+            <button className="rd-close-btn" onClick={() => { setOpen(false); recRef.current?.stop(); setListening(false); }}>
+              <i className="fas fa-times" />
+            </button>
+          </div>
+          <div className={`voice-float-status ${listening ? 'active' : ''}`}>
+            <span className="voice-float-dot" />
+            <span>{status}</span>
+          </div>
+          <div className="voice-float-chips">
+            {['Home', 'About', 'Research', 'Projects', 'Skills', 'Contact'].map(s => (
+              <button key={s} className="voice-chip"
+                onClick={() => { document.getElementById(s.toLowerCase())?.scrollIntoView({ behavior: 'smooth' }); setStatus(`↗ ${s}`); }}>
+                {s}
+              </button>
+            ))}
+          </div>
+          <button className={`voice-float-main-btn ${listening ? 'stop' : ''}`} onClick={startListening}>
+            <i className={`fas fa-${listening ? 'stop' : 'microphone'}`} />
+            {listening ? 'Stop Listening' : 'Start Listening'}
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
-/* ─── HIRE ME PANEL ─── */
-function HireMePanel({ onClose }) {
-  const [role, setRole] = useState('');
-  const [context, setContext] = useState('');
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle');
-  const quickRoles = ['Research Intern', 'Biotech Analyst', 'Pharmaceutical QC', 'Business Development', 'Project Collaboration', 'Full-Stack Developer'];
-
-  async function send() {
-    if (!email) return alert('Please enter your email address.');
-    setStatus('sending');
-    try {
-      const r = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_key: '4e9cf101-22a3-4552-9b1f-dc1f86224eaa', subject: `Hire Me: ${role || 'Inquiry'}`, email, message: `Role: ${role}\n\nContext: ${context}` }),
-      });
-      const d = await r.json();
-      if (d.success) { setStatus('success'); setTimeout(() => { onClose(); setStatus('idle'); }, 2500); }
-      else setStatus('error');
-    } catch { setStatus('error'); }
-  }
-
-  return (
-    <div className="rd-hire-panel">
-      <div className="rd-hire-head">
-        <strong><i className="fas fa-paper-plane" /> Quick Hire</strong>
-        <button className="rd-close-btn" onClick={onClose}><i className="fas fa-times" /></button>
-      </div>
-      <div className="clg-field">
-        <label>Role / Opportunity</label>
-        <input type="text" placeholder="e.g. Research Intern at Biocon..." value={role} onChange={e => setRole(e.target.value)} />
-      </div>
-      <div className="rd-quick-roles">
-        {quickRoles.map(r => (
-          <button key={r} className={`voice-chip ${role === r ? 'active' : ''}`} onClick={() => setRole(r)}>{r}</button>
-        ))}
-      </div>
-      <div className="clg-field" style={{ marginTop: '8px' }}>
-        <label>Your Email</label>
-        <input type="email" placeholder="recruiter@company.com" value={email} onChange={e => setEmail(e.target.value)} />
-      </div>
-      <div className="clg-field">
-        <label>Context <span style={{ opacity: 0.5 }}>(optional)</span></label>
-        <textarea rows={2} placeholder="Brief details..." value={context} onChange={e => setContext(e.target.value)} />
-      </div>
-      <button className="btn" onClick={send} disabled={status === 'sending'} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none', cursor: 'pointer', padding: '11px', fontSize: '0.9em', borderRadius: '10px', marginTop: '4px' }}>
-        {status === 'idle' && <><i className="fas fa-paper-plane" /> Send Inquiry</>}
-        {status === 'sending' && <><i className="fas fa-spinner fa-spin" /> Sending…</>}
-        {status === 'success' && <><i className="fas fa-check" /> Sent!</>}
-        {status === 'error' && <><i className="fas fa-exclamation-triangle" /> Error — retry</>}
-      </button>
-      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-        <a href="/resume.pdf" target="_blank" rel="noreferrer" className="clg-action-btn" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}><i className="fas fa-file-pdf" /> Resume</a>
-        <a href="https://linkedin.com/in/gkrishnateja" target="_blank" rel="noreferrer" className="clg-action-btn" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}><i className="fab fa-linkedin" /> LinkedIn</a>
-      </div>
-    </div>
-  );
-}
-
-/* ─── VOICE DOCK ITEM ─── */
-function VoiceDockItem() {
-  const [listening, setListening] = useState(false);
-  const [supported] = useState(() => 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
-  const recognitionRef = useRef(null);
-
-  function toggle() {
-    if (!supported) return alert('Voice not supported in this browser.');
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const r = new SR();
-    r.lang = 'en-IN';
-    r.onresult = (e) => {
-      const cmd = e.results[0][0].transcript.toLowerCase();
-      const sections = { home: 'hero', about: 'about', research: 'research', project: 'projects', skill: 'skills', contact: 'contact', certificate: 'certifications', education: 'education' };
-      for (const [key, id] of Object.entries(sections)) {
-        if (cmd.includes(key)) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); break; }
-      }
-    };
-    r.onend = () => setListening(false);
-    r.start();
-    recognitionRef.current = r;
-    setListening(true);
-  }
-
-  return (
-    <button id="dock-voice-btn" className={`rd-btn ${listening ? 'rd-btn-listening' : ''}`} onClick={toggle} title="Voice Navigation" aria-label="Voice Navigation">
-      <i className={`fas fa-microphone${listening ? '-slash' : ''}`} />
-      {listening && <span className="rd-voice-ring" />}
-    </button>
-  );
-}
-
-/* ─── AI CHAT DOCK ITEM ─── */
+/* ─── AI CHAT — BOTTOM RIGHT FLOATING ─── */
 const MODEL = 'meta/llama-3.1-70b-instruct';
-const SYSTEM_PROMPT = (ctx) => `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01). You speak in first person as Krishna. Be warm, confident, concise (2–4 sentences). Base answers on context. If unknown, say to email krishnatejareddy2003@gmail.com.\n\nCONTEXT:\n${ctx}`;
+const SYSTEM_PROMPT = (ctx) => `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01). Speak in first person as Krishna. Be warm, confident, concise (2-4 sentences). Base answers on context below. If unknown, say to email krishnatejareddy2003@gmail.com.\n\nCONTEXT:\n${ctx}`;
 const SUGGESTIONS = ['Tell me about your research 🔬', 'What are your top skills?', 'What projects have you built?', 'How can I contact you?'];
 
-function AIChatDockItem() {
+export function AIChatFloating() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([{ role: 'assistant', content: "Hi! I'm Krishna's AI assistant. Ask me anything about his research, skills, or projects 🧬" }]);
+  const [messages, setMessages] = useState([{ role: 'assistant', content: "Hi! I'm Krishna's AI assistant 🧬 Ask me anything about his research, skills, or projects!" }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const endRef = useRef(null);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   async function send(text) {
-    const msg = text || input.trim();
+    const msg = (text || input).trim();
     if (!msg || loading) return;
     setInput('');
     const newMsgs = [...messages, { role: 'user', content: msg }];
@@ -341,44 +244,50 @@ function AIChatDockItem() {
     setLoading(true);
     try {
       const ctx = getRelevantContext(msg, knowledgeChunks);
-      const r = await fetch('/api/chat', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: MODEL, messages: [{ role: 'system', content: SYSTEM_PROMPT(ctx) }, ...newMsgs.slice(-8)], max_tokens: 300 }),
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [{ role: 'system', content: SYSTEM_PROMPT(ctx) }, ...newMsgs.slice(-8)],
+          max_tokens: 300,
+        }),
       });
-      const d = await r.json();
+      const d = await res.json();
       const reply = d.choices?.[0]?.message?.content || "I'm not sure — please email krishnatejareddy2003@gmail.com!";
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-    } catch { setMessages(prev => [...prev, { role: 'assistant', content: "Connection error. Try again!" }]); }
-    finally { setLoading(false); }
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Please try again!' }]);
+    } finally { setLoading(false); }
   }
 
   return (
-    <div className="rd-item-wrap">
-      <button id="dock-ai-btn" className={`rd-btn ${open ? 'rd-btn-active' : ''}`} onClick={() => setOpen(p => !p)} title="Chat with AI" aria-label="AI Chat">
-        <i className="fas fa-brain" />
-        {!open && <span className="rd-ai-pulse" />}
-      </button>
-
+    <div className="ai-float-wrap" id="ai-float-wrap">
+      {/* Chat Window */}
       {open && (
-        <div className="rd-chat-window">
-          <div className="rd-chat-head">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="ai-float-window">
+          <div className="ai-float-head">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ position: 'relative' }}>
-                <img src="/profile.jpg" alt="Krishna" style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid var(--gold)', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
-                <span style={{ position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, background: '#22c55e', borderRadius: '50%', border: '2px solid var(--surface)' }} />
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,var(--gold),#b8932a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1em', color: '#000' }}>
+                  <i className="fas fa-dna" />
+                </div>
+                <span style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, background: '#22c55e', borderRadius: '50%', border: '2px solid var(--surface)' }} />
               </div>
               <div>
                 <strong style={{ display: 'block', color: 'var(--text-bright)', fontFamily: "'Cormorant Garamond',serif", fontSize: '1.05em' }}>Chat with Krishna</strong>
-                <span style={{ fontSize: '0.72em', color: 'var(--gold)', opacity: 0.85 }}>AI · Always online</span>
+                <span style={{ fontSize: '0.72em', color: 'var(--gold)' }}>AI Assistant · Always online</span>
               </div>
             </div>
             <button className="rd-close-btn" onClick={() => setOpen(false)}><i className="fas fa-times" /></button>
           </div>
 
-          <div className="rd-chat-messages">
+          <div className="ai-float-messages">
             {messages.map((m, i) => (
               <div key={i} className={`rd-msg ${m.role}`}>
-                {m.role === 'assistant' && <div className="rd-msg-avatar"><i className="fas fa-dna" /></div>}
+                {m.role === 'assistant' && (
+                  <div className="rd-msg-avatar"><i className="fas fa-dna" /></div>
+                )}
                 <div className="rd-msg-bubble">{m.content}</div>
               </div>
             ))}
@@ -388,21 +297,43 @@ function AIChatDockItem() {
                 <div className="rd-msg-bubble"><span className="ai-typing-dots"><span /><span /><span /></span></div>
               </div>
             )}
-            <div ref={messagesEndRef} />
+            <div ref={endRef} />
           </div>
 
           {messages.length <= 2 && (
-            <div className="rd-chat-chips">
-              {SUGGESTIONS.map(s => <button key={s} className="ai-suggestion-chip" onClick={() => send(s)}>{s}</button>)}
+            <div className="ai-float-chips">
+              {SUGGESTIONS.map(s => (
+                <button key={s} className="ai-suggestion-chip" onClick={() => send(s)}>{s}</button>
+              ))}
             </div>
           )}
 
-          <div className="rd-chat-input-row">
-            <input className="ai-chat-input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder="Ask about Krishna…" disabled={loading} />
-            <button className="ai-chat-send" onClick={() => send()} disabled={loading || !input.trim()}><i className="fas fa-paper-plane" /></button>
+          <div className="ai-float-input-row">
+            <input
+              className="ai-chat-input"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
+              placeholder="Ask about Krishna…"
+              disabled={loading}
+            />
+            <button className="ai-chat-send" onClick={() => send()} disabled={loading || !input.trim()}>
+              <i className="fas fa-paper-plane" />
+            </button>
           </div>
         </div>
       )}
+
+      {/* Trigger Button */}
+      <button
+        id="ai-float-btn"
+        className={`ai-float-btn ${open ? 'ai-float-open' : ''}`}
+        onClick={() => setOpen(p => !p)}
+        title="Chat with AI"
+        aria-label="AI Assistant">
+        <i className={`fas fa-${open ? 'times' : 'brain'}`} />
+        {!open && <span className="ai-float-pulse" />}
+      </button>
     </div>
   );
 }
