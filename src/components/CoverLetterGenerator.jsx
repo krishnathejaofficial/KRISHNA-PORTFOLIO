@@ -112,7 +112,7 @@ Rules:
             <div className="clg-field">
               <label>Key Job Description Points <span style={{ opacity: 0.5 }}>(optional)</span></label>
               <textarea placeholder="Paste keywords or requirements from the job posting..." value={form.jd}
-                onChange={e => setForm(p => ({ ...p, jd: e.target.value })} rows={3} />
+                onChange={e => setForm(p => ({ ...p, jd: e.target.value }))} rows={3} />
             </div>
             <div className="clg-field">
               <label>Tone</label>
