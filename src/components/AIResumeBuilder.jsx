@@ -52,7 +52,7 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
     }
   }
 
-  /* Helper: Call NVIDIA API directly through simple proxy */
+  /* Helper: Call NVIDIA API through proxy with robust error handling */
   async function callNVIDIA(systemPrompt, userMessage) {
     const res = await fetch('/api/tailor-resume', {
       method: 'POST',
@@ -67,13 +67,41 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
         temperature: 0.2
       }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'NVIDIA API Error');
+
+    // Always read as text first — never call res.json() directly.
+    // This prevents "Unexpected end of JSON" errors when NVIDIA returns empty/plain-text errors.
+    const rawText = await res.text();
+
+    if (!res.ok || !rawText.trim()) {
+      // Try to parse error JSON, fall back to raw text
+      try {
+        const errData = JSON.parse(rawText);
+        const msg = errData?.detail || errData?.error?.message || errData?.error || `API Error ${res.status}`;
+        throw new Error(msg);
+      } catch (parseErr) {
+        if (parseErr.message.startsWith('API Error') || parseErr.message.startsWith('NVIDIA')) throw parseErr;
+        throw new Error(`API Error ${res.status}: ${rawText.slice(0, 200) || 'Empty response. Check API key or try again.'}`);
+      }
+    }
+
+    // Parse successful response
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      throw new Error('AI server returned invalid JSON. Please try again.');
+    }
+
     let out = data.choices?.[0]?.message?.content || '';
+    // Strip markdown fences the model might wrap code in
     out = out.replace(/^```(?:latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
-    if (!out.includes('\\documentclass')) throw new Error('AI returned invalid LaTeX.');
+
+    if (!out.includes('\\documentclass') && !out.includes('\\begin{document}')) {
+      throw new Error(`AI returned invalid LaTeX. Raw output: "${out.slice(0, 150)}"`);
+    }
     return out;
   }
+
 
   /* ── Generate Tailored Resume ── */
   const generate = useCallback(async () => {

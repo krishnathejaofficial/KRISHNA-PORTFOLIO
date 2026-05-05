@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const NVIDIA_KEY = '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';
+const NVIDIA_KEY = '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';
 
 export default defineConfig({
   plugins: [react()],
@@ -20,15 +20,21 @@ export default defineConfig({
         },
       },
 
-      /* AI Resume Tailor — same pattern, just proxies to NVIDIA */
+      /* AI Resume Tailor — same proven pattern as /api/chat */
       '/api/tailor-resume': {
         target: 'https://integrate.api.nvidia.com/v1',
         changeOrigin: true,
         rewrite: () => '/chat/completions',
+        proxyTimeout: 120000,
+        timeout: 120000,
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq) => {
             proxyReq.setHeader('Authorization', `Bearer ${NVIDIA_KEY}`);
             proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('Accept-Encoding', 'identity');
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('[proxy/tailor-resume] error:', err.message);
           });
         },
       },
