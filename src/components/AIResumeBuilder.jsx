@@ -41,6 +41,40 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
 
   const textareaRef = useRef(null);
 
+  /* Helper to fetch the base resume.tex */
+  async function fetchBaseResume() {
+    try {
+      const r = await fetch('/resume.tex');
+      if (!r.ok) return '% Failed to load base resume';
+      return await r.text();
+    } catch {
+      return '% Error loading base resume';
+    }
+  }
+
+  /* Helper: Call NVIDIA API directly through simple proxy */
+  async function callNVIDIA(systemPrompt, userMessage) {
+    const res = await fetch('/api/tailor-resume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'meta/llama-3.3-70b-instruct',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
+        ],
+        max_tokens: 4096,
+        temperature: 0.2
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'NVIDIA API Error');
+    let out = data.choices?.[0]?.message?.content || '';
+    out = out.replace(/^```(?:latex)?\s*/im, '').replace(/```\s*$/im, '').trim();
+    if (!out.includes('\\documentclass')) throw new Error('AI returned invalid LaTeX.');
+    return out;
+  }
+
   /* ── Generate Tailored Resume ── */
   const generate = useCallback(async () => {
     if (!company.trim() || !jobTitle.trim() || !jobDesc.trim()) {
@@ -52,15 +86,15 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
     setPdfUrl('');
     setCompileStatus('idle');
     setCompileMsg('');
+
     try {
-      const res = await fetch('/api/tailor-resume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company, jobTitle, jobDescription: jobDesc }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Generation failed');
-      setLatex(data.latex);
+      const baseTex = await fetchBaseResume();
+      const sys = `You are an expert ATS resume optimizer. Tailor the candidate's LaTeX resume for the job below. RULES: (1) Return ONLY valid compilable LaTeX — no markdown, no explanation. (2) Keep the exact same document structure and packages. (3) Reorder/expand skills to match JD keywords. (4) Rephrase bullets to mirror JD language naturally. (5) Do NOT invent new experience. (6) Output must compile with pdflatex.`;
+      const msg = `COMPANY: ${company}\nJOB TITLE: ${jobTitle}\nJOB DESCRIPTION:\n${jobDesc}\n\n---\nBASE RESUME:\n${baseTex}\n\n---\nReturn ONLY the tailored LaTeX code.`;
+      
+      const newLatex = await callNVIDIA(sys, msg);
+      
+      setLatex(newLatex);
       setGenStatus('done');
       setGenMsg('Resume tailored! Review the LaTeX below, then compile to PDF.');
       setActiveTab('latex');
@@ -72,19 +106,17 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
 
   /* ── Apply Edit Prompt ── */
   const applyEdit = useCallback(async () => {
-    if (!editPrompt.trim()) return;
-    if (!latex) { alert('Generate a resume first, then apply edits.'); return; }
+    if (!editPrompt.trim() || !latex) return;
     setEditStatus('generating');
     setEditMsg('Applying your changes…');
+
     try {
-      const res = await fetch('/api/tailor-resume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ editPrompt, currentLatex: latex }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Edit failed');
-      setLatex(data.latex);
+      const sys = `You are a professional LaTeX resume editor. Return ONLY complete compilable LaTeX code — no explanation, no markdown fences. Preserve all LaTeX formatting.`;
+      const msg = `Current LaTeX resume:\n\n${latex}\n\n---\nEdit request: "${editPrompt}"\n\nReturn the complete updated LaTeX code.`;
+      
+      const newLatex = await callNVIDIA(sys, msg);
+      
+      setLatex(newLatex);
       setEditPrompt('');
       setPdfUrl('');
       setEditStatus('done');
@@ -97,22 +129,31 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
 
   /* ── Compile to PDF ── */
   const compilePDF = useCallback(async () => {
-    if (!latex) { alert('Generate a resume first.'); return; }
+    if (!latex) return;
     setCompileStatus('compiling');
     setCompileMsg('Compiling LaTeX to PDF…');
-    if (pdfUrl) { URL.revokeObjectURL(pdfUrl); setPdfUrl(''); }
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+
     try {
       const res = await fetch('/api/compile-pdf-api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latex }),
+        body: JSON.stringify({ compiler: 'pdflatex', resources: [{ main: true, content: latex }] }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Compilation failed');
-      // Decode base64 → Blob URL for iframe
-      const bytes = Uint8Array.from(atob(data.pdf), c => c.charCodeAt(0));
-      const blob = new Blob([bytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
+      
+      if (!res.ok) {
+        const errText = await res.text();
+        // If it's JSON error payload, try to parse it
+        try {
+          const js = JSON.parse(errText);
+          throw new Error(js.error || 'Compile failed');
+        } catch {
+          throw new Error(`Compile failed: ${errText.slice(0, 100)}`);
+        }
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
       setPdfUrl(url);
       setCompileStatus('done');
       setCompileMsg('PDF compiled! Switch to Preview tab.');
