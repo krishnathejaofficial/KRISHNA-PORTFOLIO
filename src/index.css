@@ -328,8 +328,8 @@ footer i { color: var(--gold); }
 /* ── Voice Navigation Widget ── */
 .voice-nav-trigger {
   position: fixed;
-  bottom: 90px;
-  left: 24px;
+  bottom: 166px;
+  right: 24px; left: auto;
   z-index: 1100;
   width: 52px; height: 52px;
   border-radius: 50%; border: 2px solid var(--gold-dim);
@@ -352,8 +352,8 @@ footer i { color: var(--gold); }
 
 .voice-nav-panel {
   position: fixed;
-  bottom: 155px;
-  left: 24px;
+  bottom: 166px;
+  right: 84px; left: auto;
   z-index: 1099;
   width: 290px;
   background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -421,8 +421,7 @@ footer i { color: var(--gold); }
 
 @media (max-width: 768px) {
   .voice-nav-trigger { 
-    bottom: 24px; 
-    left: 24px; 
+    bottom: 136px; right: 24px; left: auto; 
     width: 50px; 
     height: 50px; 
     font-size: 1.1em;
@@ -485,8 +484,8 @@ footer i { color: var(--gold); }
 /* ── Live Time & Weather Widget ── */
 .live-time-weather {
   position: fixed;
-  top: 24px;
-  right: 80px;
+  top: 128px;
+  right: 24px;
   z-index: 1000;
   display: flex;
   align-items: center;
