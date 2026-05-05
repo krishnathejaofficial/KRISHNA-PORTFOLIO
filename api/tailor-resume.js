@@ -6,8 +6,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const NVIDIA_API_KEY = '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';
-const MODEL = 'meta/llama-3.1-70b-instruct';
+const NVIDIA_API_KEY   = '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';
+const NVIDIA_KEY_BKP   = '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';
+const MODEL = 'meta/llama-3.3-70b-instruct'; // 128k context window — handles full resume + JD
 
 // Load the base resume at cold-start
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -85,27 +86,30 @@ Generate the complete tailored LaTeX resume for this specific role. Return ONLY 
   }
 
   try {
-    const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        max_tokens: 4096,
-        temperature: 0.3,
-      }),
-    });
+    // Try primary key, then backup key on 429/401
+    let response;
+    for (const key of [NVIDIA_API_KEY, NVIDIA_KEY_BKP]) {
+      response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage },
+          ],
+          max_tokens: 4096,
+          temperature: 0.2,
+        }),
+      });
+      if (response.status !== 429 && response.status !== 401) break;
+      console.warn(`Key failed with ${response.status}, trying backup...`);
+    }
 
     if (!response.ok) {
       const err = await response.text();
       console.error('NVIDIA API error:', err);
-      return res.status(response.status).json({ error: err });
+      return res.status(response.status).json({ error: `NVIDIA API error ${response.status}: ${err.slice(0, 300)}` });
     }
 
     const data = await response.json();

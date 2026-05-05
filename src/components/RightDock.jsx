@@ -144,75 +144,134 @@ export default function RightDock() {
 function VoiceFloating() {
   const [listening, setListening] = useState(false);
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState('Say a section name…');
+  const [status, setStatus] = useState('Click "Start Listening" and say a section name.');
+  const [errorMsg, setErrorMsg] = useState('');
   const recRef = useRef(null);
-  const supported = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  const isSupported = typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  function stopListening() {
+    recRef.current?.stop();
+    recRef.current = null;
+    setListening(false);
+  }
 
   function startListening() {
-    if (!supported) { alert('Voice not supported in this browser. Try Chrome.'); return; }
-    if (listening) { recRef.current?.stop(); setListening(false); setStatus('Say a section name…'); return; }
+    if (!isSupported) {
+      setErrorMsg('Your browser does not support voice recognition. Please use Chrome or Edge.');
+      return;
+    }
+    setErrorMsg('');
+    setStatus('Listening…');
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const r = new SR();
     r.lang = 'en-IN';
     r.continuous = false;
     r.interimResults = false;
-    r.onstart = () => { setListening(true); setStatus('Listening…'); };
+
+    r.onstart = () => setListening(true);
+
     r.onresult = (e) => {
       const cmd = e.results[0][0].transcript.toLowerCase();
-      setStatus(`"${cmd}"`);
+      setStatus(`Heard: "${cmd}"`);
       const sections = {
-        home: 'home', about: 'about', research: 'research', project: 'projects',
-        skill: 'skills', contact: 'contact', certificate: 'certifications',
-        education: 'education', experience: 'experience', internship: 'internships',
-        career: 'career', resume: 'resume', language: 'languages', media: 'media',
+        home: 'home', about: 'about', research: 'research',
+        project: 'projects', skill: 'skills', contact: 'contact',
+        certificate: 'certifications', education: 'education',
+        experience: 'experience', internship: 'internships',
+        career: 'career', resume: 'resume', language: 'languages',
+        media: 'media',
       };
+      let navigated = false;
       for (const [key, id] of Object.entries(sections)) {
         if (cmd.includes(key)) {
-          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-          setStatus(`↗ Navigating to ${id}…`);
+          const el = document.getElementById(id);
+          if (el) { el.scrollIntoView({ behavior: 'smooth' }); setStatus(`↗ Navigating to "${id}"…`); }
+          else { setStatus(`Section "${id}" not found on page.`); }
+          navigated = true;
           break;
         }
       }
+      if (!navigated) setStatus(`No match for "${cmd}". Try: home, about, skills, contact…`);
     };
-    r.onerror = () => { setListening(false); setStatus('Error. Try again.'); };
-    r.onend = () => { setListening(false); };
+
+    r.onerror = (e) => {
+      setListening(false);
+      const msgs = {
+        'not-allowed': 'Microphone access denied. Please allow mic in browser settings.',
+        'no-speech': 'No speech detected. Please speak clearly.',
+        'network': 'Network error. Check your connection.',
+        'aborted': 'Listening stopped.',
+      };
+      setErrorMsg(msgs[e.error] || `Error: ${e.error}`);
+      setStatus('Click "Start Listening" to try again.');
+    };
+
+    r.onend = () => setListening(false);
     r.start();
     recRef.current = r;
   }
 
+  /* When closing the panel, always stop listening */
+  function closePanel() {
+    stopListening();
+    setOpen(false);
+    setStatus('Click "Start Listening" and say a section name.');
+    setErrorMsg('');
+  }
+
   return (
     <div className="voice-float-wrap" id="voice-float-wrap">
+      {/* Main toggle button — ONLY opens/closes panel, never starts listening */}
       <button
         id="voice-float-btn"
         className={`voice-float-btn ${listening ? 'voice-float-listening' : ''}`}
-        onClick={() => { setOpen(p => !p); if (!open) startListening(); else { recRef.current?.stop(); setListening(false); } }}
+        onClick={() => open ? closePanel() : setOpen(true)}
         title="Voice Navigation"
         aria-label="Voice Navigation">
         <i className={`fas fa-microphone${listening ? '-slash' : ''}`} />
         {listening && <span className="voice-float-ring" />}
       </button>
+
       {open && (
         <div className="voice-float-panel">
           <div className="voice-float-head">
             <span><i className="fas fa-microphone" style={{ color: 'var(--gold)', marginRight: 6 }} /> Voice Navigation</span>
-            <button className="rd-close-btn" onClick={() => { setOpen(false); recRef.current?.stop(); setListening(false); }}>
+            <button className="rd-close-btn" onClick={closePanel}>
               <i className="fas fa-times" />
             </button>
           </div>
+
           <div className={`voice-float-status ${listening ? 'active' : ''}`}>
             <span className="voice-float-dot" />
             <span>{status}</span>
           </div>
+
+          {errorMsg && (
+            <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '8px 12px', fontSize: '0.78em', color: '#f87171', marginBottom: 8 }}>
+              <i className="fas fa-exclamation-circle" style={{ marginRight: 6 }} />{errorMsg}
+            </div>
+          )}
+
+          {/* Quick-nav chips */}
           <div className="voice-float-chips">
             {['Home', 'About', 'Research', 'Projects', 'Skills', 'Contact'].map(s => (
               <button key={s} className="voice-chip"
-                onClick={() => { document.getElementById(s.toLowerCase())?.scrollIntoView({ behavior: 'smooth' }); setStatus(`↗ ${s}`); }}>
+                onClick={() => {
+                  document.getElementById(s.toLowerCase())?.scrollIntoView({ behavior: 'smooth' });
+                  setStatus(`↗ Navigated to ${s}`);
+                }}>
                 {s}
               </button>
             ))}
           </div>
-          <button className={`voice-float-main-btn ${listening ? 'stop' : ''}`} onClick={startListening}>
-            <i className={`fas fa-${listening ? 'stop' : 'microphone'}`} />
+
+          {/* Start / Stop listening */}
+          <button
+            className={`voice-float-main-btn ${listening ? 'stop' : ''}`}
+            onClick={listening ? stopListening : startListening}>
+            <i className={`fas fa-${listening ? 'stop-circle' : 'microphone'}`} />
             {listening ? 'Stop Listening' : 'Start Listening'}
           </button>
         </div>
@@ -220,6 +279,7 @@ function VoiceFloating() {
     </div>
   );
 }
+
 
 /* ─── AI CHAT — BOTTOM RIGHT FLOATING ─── */
 const MODEL = 'meta/llama-3.1-70b-instruct';
