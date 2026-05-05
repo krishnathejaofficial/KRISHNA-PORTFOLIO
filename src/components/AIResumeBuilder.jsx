@@ -148,7 +148,7 @@ RULES:
 3. Use this EXACT syntax for each change (you can make multiple changes):
 
 <<<SEARCH>>>
-[Exact text from the original resume, 1-3 lines max]
+[Exact text from the original resume, including all indentation]
 <<<REPLACE>>>
 [New tailored text]
 
@@ -171,18 +171,29 @@ RULES:
       for (const block of blocks) {
         const parts = block.split('<<<REPLACE>>>');
         if (parts.length === 2) {
-          const searchStr = parts[0].trim();
-          const replaceStr = parts[1].trim();
+          let searchStr = parts[0].trim();
+          let replaceStr = parts[1].trim();
+          
           if (searchStr && newLatex.includes(searchStr)) {
             newLatex = newLatex.replace(searchStr, replaceStr);
+          } else if (searchStr) {
+            // Fallback: flexible whitespace matching if exact match fails
+            const flexSearch = searchStr.replace(/\s+/g, '\\s+').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            try {
+              const regex = new RegExp(flexSearch);
+              newLatex = newLatex.replace(regex, replaceStr);
+            } catch (e) {}
           }
         }
       }
       
       setLatex(newLatex);
       setGenStatus('done');
-      setGenMsg(`Resume tailored! Successfully applied ${blocks.length} targeted changes. Compile to PDF below.`);
+      setGenMsg(`Resume tailored! Applied ${blocks.length} changes. Compiling to PDF...`);
       setActiveTab('latex');
+      
+      // Auto-compile after successful generation
+      setTimeout(() => compilePDF(newLatex), 100);
     } catch (err) {
       setGenStatus('error');
       setGenMsg(`Error: ${err.message}`);
@@ -200,9 +211,9 @@ RULES:
 The user wants to edit their current resume. Because the file is large, you MUST ONLY output the specific changes using this strict syntax:
 
 <<<SEARCH>>>
-[Exact text from the current resume]
+[Exact text from the current resume, including exact indentation]
 <<<REPLACE>>>
-[New updated text]
+[New updated text. If removing text entirely, leave this completely blank]
 
 Output NOTHING else. You can provide multiple blocks if needed.`;
       const msg = `Current Resume:\n${latex}\n\n---\nUser Request: "${editPrompt}"`;
@@ -216,10 +227,18 @@ Output NOTHING else. You can provide multiple blocks if needed.`;
       for (const block of blocks) {
         const parts = block.split('<<<REPLACE>>>');
         if (parts.length === 2) {
-          const searchStr = parts[0].trim();
-          const replaceStr = parts[1].trim();
+          let searchStr = parts[0].trim();
+          let replaceStr = parts[1].trim();
+          
           if (searchStr && newLatex.includes(searchStr)) {
             newLatex = newLatex.replace(searchStr, replaceStr);
+          } else if (searchStr) {
+            // Fallback: flexible whitespace matching if exact match fails
+            const flexSearch = searchStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\s\+/g, '\\s+');
+            try {
+              const regex = new RegExp(flexSearch);
+              newLatex = newLatex.replace(regex, replaceStr);
+            } catch (e) {}
           }
         }
       }
@@ -228,7 +247,10 @@ Output NOTHING else. You can provide multiple blocks if needed.`;
       setEditPrompt('');
       setPdfUrl('');
       setEditStatus('done');
-      setEditMsg(`Changes applied! Applied ${blocks.length} edits. Re-compile to see the updated PDF.`);
+      setEditMsg(`Applied ${blocks.length} edits. Re-compiling PDF...`);
+      
+      // Auto-compile after edit
+      setTimeout(() => compilePDF(newLatex), 100);
     } catch (err) {
       setEditStatus('error');
       setEditMsg(`Error: ${err.message}`);
@@ -236,8 +258,8 @@ Output NOTHING else. You can provide multiple blocks if needed.`;
   }, [editPrompt, latex]);
 
   /* ── Compile to PDF ── */
-  const compilePDF = useCallback(async () => {
-    if (!latex) return;
+  const compilePDF = useCallback(async (latexCodeToCompile = latex) => {
+    if (!latexCodeToCompile) return;
     setCompileStatus('compiling');
     setCompileMsg('Compiling LaTeX to PDF…');
     if (pdfUrl) URL.revokeObjectURL(pdfUrl);
@@ -246,7 +268,7 @@ Output NOTHING else. You can provide multiple blocks if needed.`;
       const res = await fetch('/api/compile-pdf-api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ compiler: 'pdflatex', resources: [{ main: true, content: latex }] }),
+        body: JSON.stringify({ compiler: 'pdflatex', resources: [{ main: true, content: latexCodeToCompile }] }),
       });
       
       if (!res.ok) {
