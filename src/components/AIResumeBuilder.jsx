@@ -128,34 +128,64 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
   }
 
 
-  /* ── Generate Tailored Resume ── */
+  /* ── Generate Tailored Resume (Smart Replace) ── */
   const generate = useCallback(async () => {
     if (!company.trim() || !jobTitle.trim() || !jobDesc.trim()) {
       alert('Please fill in Company Name, Job Title, and Job Description.');
       return;
     }
     setGenStatus('generating');
-    setGenMsg('AI is tailoring your resume…');
+    setGenMsg('AI is analyzing and tailoring your resume…');
     setPdfUrl('');
     setCompileStatus('idle');
     setCompileMsg('');
 
     try {
       const baseTex = await fetchBaseResume();
-      const sys = `You are an expert ATS resume optimizer. Tailor the candidate's LaTeX resume for the job below. RULES: (1) Return ONLY valid compilable LaTeX — no markdown, no explanation. (2) Keep the exact same document structure and packages. (3) Reorder/expand skills to match JD keywords. (4) Rephrase bullets to mirror JD language naturally. (5) Do NOT invent new experience. (6) Output must compile with pdflatex.`;
-      const msg = `COMPANY: ${company}\nJOB TITLE: ${jobTitle}\nJOB DESCRIPTION:\n${jobDesc}\n\n---\nBASE RESUME:\n${baseTex}\n\n---\nReturn ONLY the tailored LaTeX code.`;
+      const sys = `You are an expert ATS resume optimizer.
+Your task is to tailor the candidate's LaTeX resume for the target job.
+Because the full resume is too long, you MUST ONLY output the specific sections that need changing using a strict Search/Replace format.
+
+RULES:
+1. Modify the "Career Objective", "Career Interests", "Skills", and bullet points in "Experience"/"Internships" to match JD keywords.
+2. DO NOT invent new experience. Rephrase existing points to highlight relevant overlaps.
+3. Use this EXACT syntax for each change (you can make multiple changes):
+
+<<<SEARCH>>>
+[Exact text from the original resume, 1-3 lines max]
+<<<REPLACE>>>
+[New tailored text]
+
+4. Output NOTHING else. No markdown, no explanations.`;
+
+      const msg = `COMPANY: ${company}\nJOB TITLE: ${jobTitle}\nJOB DESCRIPTION:\n${jobDesc}\n\n---\nBASE RESUME:\n${baseTex}`;
       
-      const newLatex = await callNVIDIA(sys, msg, (partial) => {
-        // Live preview: show streaming LaTeX in editor as it arrives
-        setLatex(partial);
-        setActiveTab('latex');
-        const lines = partial.split('\n').length;
-        setGenMsg(`Streaming… ${lines} lines generated`);
+      const aiOutput = await callNVIDIA(sys, msg, (partial) => {
+        setGenMsg(`Streaming… analyzing JD and writing tailored sections`);
       });
+
+      // Apply the search/replace blocks to the base LaTeX
+      let newLatex = baseTex;
+      const blocks = aiOutput.split('<<<SEARCH>>>').slice(1);
+      
+      if (blocks.length === 0) {
+        throw new Error('AI did not return any changes. Please try again.');
+      }
+
+      for (const block of blocks) {
+        const parts = block.split('<<<REPLACE>>>');
+        if (parts.length === 2) {
+          const searchStr = parts[0].trim();
+          const replaceStr = parts[1].trim();
+          if (searchStr && newLatex.includes(searchStr)) {
+            newLatex = newLatex.replace(searchStr, replaceStr);
+          }
+        }
+      }
       
       setLatex(newLatex);
       setGenStatus('done');
-      setGenMsg('Resume tailored! Review the LaTeX below, then compile to PDF.');
+      setGenMsg(`Resume tailored! Successfully applied ${blocks.length} targeted changes. Compile to PDF below.`);
       setActiveTab('latex');
     } catch (err) {
       setGenStatus('error');
@@ -163,27 +193,46 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
     }
   }, [company, jobTitle, jobDesc]);
 
-  /* ── Apply Edit Prompt ── */
+  /* ── Apply Edit Prompt (Smart Replace) ── */
   const applyEdit = useCallback(async () => {
     if (!editPrompt.trim() || !latex) return;
     setEditStatus('generating');
     setEditMsg('Applying your changes…');
 
     try {
-      const sys = `You are a professional LaTeX resume editor. Return ONLY complete compilable LaTeX code — no explanation, no markdown fences. Preserve all LaTeX formatting.`;
-      const msg = `Current LaTeX resume:\n\n${latex}\n\n---\nEdit request: "${editPrompt}"\n\nReturn the complete updated LaTeX code.`;
+      const sys = `You are a professional LaTeX resume editor.
+The user wants to edit their current resume. Because the file is large, you MUST ONLY output the specific changes using this strict syntax:
+
+<<<SEARCH>>>
+[Exact text from the current resume]
+<<<REPLACE>>>
+[New updated text]
+
+Output NOTHING else. You can provide multiple blocks if needed.`;
+      const msg = `Current Resume:\n${latex}\n\n---\nUser Request: "${editPrompt}"`;
       
-      const newLatex = await callNVIDIA(sys, msg, (partial) => {
-        setLatex(partial);
-        const lines = partial.split('\n').length;
-        setEditMsg(`Streaming edits… ${lines} lines`);
+      const aiOutput = await callNVIDIA(sys, msg, (partial) => {
+        setEditMsg(`Streaming edits… writing replacement blocks`);
       });
+      
+      let newLatex = latex;
+      const blocks = aiOutput.split('<<<SEARCH>>>').slice(1);
+      for (const block of blocks) {
+        const parts = block.split('<<<REPLACE>>>');
+        if (parts.length === 2) {
+          const searchStr = parts[0].trim();
+          const replaceStr = parts[1].trim();
+          if (searchStr && newLatex.includes(searchStr)) {
+            newLatex = newLatex.replace(searchStr, replaceStr);
+          }
+        }
+      }
       
       setLatex(newLatex);
       setEditPrompt('');
       setPdfUrl('');
       setEditStatus('done');
-      setEditMsg('Changes applied! Re-compile to see the updated PDF.');
+      setEditMsg(`Changes applied! Applied ${blocks.length} edits. Re-compile to see the updated PDF.`);
     } catch (err) {
       setEditStatus('error');
       setEditMsg(`Error: ${err.message}`);
