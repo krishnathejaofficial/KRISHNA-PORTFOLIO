@@ -1,3 +1,0 @@
-{
-  "buildCommand": "cp \"public/images/krishna teja profile.jpg\" krishnateja.jpg && curl --proto '=https' --tlsv1.2 -fsSL https://drop-sh.fullyjustified.net | sh && ./tectonic resume.tex -o public/ && vite build"
-}
