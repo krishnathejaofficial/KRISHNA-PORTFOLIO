@@ -1,16 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import SplashCursor from './components/SplashCursor';
 import Sidebar from './components/Sidebar';
-import LiveTimeWeather from './components/LiveTimeWeather';
-import BackToTop from './components/BackToTop';
 import Preloader from './components/Preloader';
-import AIChat from './components/AIChat';
-import VoiceNav from './components/VoiceNav';
 
-// New Features
-import ThemeSelector, { initTheme } from './components/ThemeSelector';
-import LanguageSwitcher, { useTranslation } from './components/LanguageSwitcher';
-import HireMeButton from './components/HireMeButton';
+// Single unified dock (replaces ThemeSelector, LanguageSwitcher, LiveTimeWeather, HireMeButton, VoiceNav, AIChat, BackToTop)
+import RightDock from './components/RightDock';
+
+// Feature Modals
 import CoverLetterGenerator from './components/CoverLetterGenerator';
 import QRBusinessCard from './components/QRBusinessCard';
 import CollaborationForm from './components/CollaborationForm';
@@ -34,15 +30,7 @@ import Contact from './sections/Contact';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  // Feature states
-  const [currentTheme, setCurrentTheme] = useState('dark');
-  const { lang, setLang } = useTranslation();
   const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false });
-
-  useEffect(() => {
-    setCurrentTheme(initTheme());
-  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => {
@@ -64,20 +52,19 @@ function App() {
     <div className="app-container">
       <Preloader />
       <SplashCursor />
-      
+
+      {/* Left: Hamburger Menu */}
       <button id="sidebar-toggle" onClick={toggleSidebar} aria-label="Toggle Navigation">
-        <span className="bar"></span>
-        <span className="bar"></span>
-        <span className="bar"></span>
+        <span className="bar" />
+        <span className="bar" />
+        <span className="bar" />
       </button>
 
-      <LanguageSwitcher lang={lang} setLang={setLang} />
-      <ThemeSelector currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />
-      <LiveTimeWeather />
-      <HireMeButton />
-      
+      {/* Right: Unified Professional Dock */}
+      <RightDock />
+
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} />
-      
+
       <main>
         <Hero onOpenCoverLetter={() => openModal('clg')} onOpenMeeting={() => openModal('meeting')} />
         <About />
@@ -101,10 +88,6 @@ function App() {
           Built with <i className="fas fa-heart" style={{ color: 'var(--gold)' }}></i> using React &amp; Vite.
         </p>
       </footer>
-
-      <BackToTop />
-      <AIChat />
-      <VoiceNav />
 
       {/* Feature Modals */}
       <CoverLetterGenerator isOpen={modals.clg} onClose={() => closeModal('clg')} />
