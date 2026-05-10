@@ -202,7 +202,7 @@ function VoiceFloating() {
             const d = await res.json();
             const replyText = d.choices?.[0]?.message?.content || "I'm sorry, I couldn't process that.";
             
-            setStatus(`AI: ${replyText}`);
+            setStatus(`KRISHNA: ${replyText}`);
             
             if (window.speechSynthesis) {
               const speech = new SpeechSynthesisUtterance(replyText);
