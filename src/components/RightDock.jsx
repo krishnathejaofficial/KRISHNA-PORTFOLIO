@@ -175,25 +175,31 @@ function VoiceFloating() {
     r.onresult = (e) => {
       const cmd = e.results[0][0].transcript.toLowerCase();
       setStatus(`Heard: "${cmd}"`);
-      const sections = {
-        home: 'home', about: 'about', research: 'research',
-        project: 'projects', skill: 'skills', contact: 'contact',
-        certificate: 'certifications', education: 'education',
-        experience: 'experience', internship: 'internships',
-        career: 'career', resume: 'resume', language: 'languages',
-        media: 'media',
-      };
-      let navigated = false;
-      for (const [key, id] of Object.entries(sections)) {
-        if (cmd.includes(key)) {
-          const el = document.getElementById(id);
-          if (el) { el.scrollIntoView({ behavior: 'smooth' }); setStatus(`↗ Navigating to "${id}"…`); }
-          else { setStatus(`Section "${id}" not found on page.`); }
-          navigated = true;
-          break;
+      
+      // Import the helpers dynamically or use the already imported voiceCommands logic
+      import('../utils/voiceCommands.js').then(({ classifyIntent, parseCommand, navigateTo }) => {
+        const intent = classifyIntent(cmd);
+        
+        if (intent === 'question') {
+          setStatus('Asking AI Assistant...');
+          window.dispatchEvent(new CustomEvent('ask-ai', { detail: cmd }));
+          closePanel();
+        } else {
+          const match = parseCommand(cmd);
+          if (match && match.id) {
+            setStatus(`↗ Navigating to ${match.id}...`);
+            navigateTo(match.id);
+            setTimeout(closePanel, 1500);
+          } else if (match && match.reply) {
+            setStatus(match.reply);
+            setTimeout(closePanel, 1500);
+          } else {
+            setStatus(`No match for "${cmd}". Try saying a section name or ask a question.`);
+          }
         }
-      }
-      if (!navigated) setStatus(`No match for "${cmd}". Try: home, about, skills, contact…`);
+      }).catch(() => {
+        setStatus('Error loading voice commands.');
+      });
     };
 
     r.onerror = (e) => {
@@ -293,15 +299,21 @@ export function AIChatFloating() {
   const [loading, setLoading] = useState(false);
   const endRef = useRef(null);
 
+  // Use a ref to always access the latest state in the event listener
+  const stateRef = useRef({ messages, loading });
+  useEffect(() => { stateRef.current = { messages, loading }; }, [messages, loading]);
+
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   async function send(text) {
     const msg = (text || input).trim();
-    if (!msg || loading) return;
+    if (!msg || stateRef.current.loading) return;
+    
     setInput('');
-    const newMsgs = [...messages, { role: 'user', content: msg }];
+    const newMsgs = [...stateRef.current.messages, { role: 'user', content: msg }];
     setMessages(newMsgs);
     setLoading(true);
+    
     try {
       const ctx = getRelevantContext(msg, knowledgeChunks);
       const res = await fetch('/api/chat', {
@@ -320,6 +332,15 @@ export function AIChatFloating() {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Please try again!' }]);
     } finally { setLoading(false); }
   }
+
+  useEffect(() => {
+    const handleVoice = (e) => {
+      setOpen(true);
+      send(e.detail);
+    };
+    window.addEventListener('ask-ai', handleVoice);
+    return () => window.removeEventListener('ask-ai', handleVoice);
+  }, []);
 
   return (
     <div className="ai-float-wrap" id="ai-float-wrap">
