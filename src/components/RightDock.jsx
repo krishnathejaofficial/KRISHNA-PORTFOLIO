@@ -172,18 +172,47 @@ function VoiceFloating() {
 
     r.onstart = () => setListening(true);
 
-    r.onresult = (e) => {
+    r.onresult = async (e) => {
       const cmd = e.results[0][0].transcript.toLowerCase();
       setStatus(`Heard: "${cmd}"`);
       
       // Import the helpers dynamically or use the already imported voiceCommands logic
-      import('../utils/voiceCommands.js').then(({ classifyIntent, parseCommand, navigateTo }) => {
+      import('../utils/voiceCommands.js').then(async ({ classifyIntent, parseCommand, navigateTo }) => {
         const intent = classifyIntent(cmd);
         
         if (intent === 'question') {
-          setStatus('Asking AI Assistant...');
-          window.dispatchEvent(new CustomEvent('ask-ai', { detail: cmd }));
-          closePanel();
+          setStatus('Thinking...');
+          try {
+            const ctx = getRelevantContext(cmd, knowledgeChunks);
+            // Re-use SYSTEM_PROMPT from below
+            const sys = `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore. Speak in first person as Krishna. Be warm, confident, and very concise (1-2 sentences max) because this will be spoken out loud. Base answers on context below. If unknown, say "I'm not sure, please email me."\n\nCONTEXT:\n${ctx}`;
+            
+            const res = await fetch('/api/voice', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: 'meta/llama-3.3-70b-instruct',
+                messages: [
+                  { role: 'system', content: sys },
+                  { role: 'user', content: cmd }
+                ],
+                max_tokens: 150,
+              }),
+            });
+            const d = await res.json();
+            const replyText = d.choices?.[0]?.message?.content || "I'm sorry, I couldn't process that.";
+            
+            setStatus(`AI: ${replyText}`);
+            
+            if (window.speechSynthesis) {
+              const speech = new SpeechSynthesisUtterance(replyText);
+              speech.lang = 'en-US';
+              speech.rate = 1.0;
+              window.speechSynthesis.speak(speech);
+            }
+          } catch (err) {
+            setStatus('Connection error. Please try again.');
+          }
         } else {
           const match = parseCommand(cmd);
           if (match && match.id) {
@@ -192,6 +221,10 @@ function VoiceFloating() {
             setTimeout(closePanel, 1500);
           } else if (match && match.reply) {
             setStatus(match.reply);
+            if (window.speechSynthesis) {
+              const speech = new SpeechSynthesisUtterance(match.reply);
+              window.speechSynthesis.speak(speech);
+            }
             setTimeout(closePanel, 1500);
           } else {
             setStatus(`No match for "${cmd}". Try saying a section name or ask a question.`);
@@ -332,15 +365,6 @@ export function AIChatFloating() {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Please try again!' }]);
     } finally { setLoading(false); }
   }
-
-  useEffect(() => {
-    const handleVoice = (e) => {
-      setOpen(true);
-      send(e.detail);
-    };
-    window.addEventListener('ask-ai', handleVoice);
-    return () => window.removeEventListener('ask-ai', handleVoice);
-  }, []);
 
   return (
     <div className="ai-float-wrap" id="ai-float-wrap">

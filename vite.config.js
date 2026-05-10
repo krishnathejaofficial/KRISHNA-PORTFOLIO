@@ -20,6 +20,19 @@ export default defineConfig({
         },
       },
 
+      /* Voice AI */
+      '/api/voice': {
+        target: 'https://integrate.api.nvidia.com/v1',
+        changeOrigin: true,
+        rewrite: (p) => p.replace('/api/voice', '/chat/completions'),
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.setHeader('Authorization', 'Bearer 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');
+            proxyReq.setHeader('Content-Type', 'application/json');
+          });
+        },
+      },
+
       /* AI Resume Tailor — same proven pattern as /api/chat */
       '/api/tailor-resume': {
         target: 'https://integrate.api.nvidia.com/v1',
