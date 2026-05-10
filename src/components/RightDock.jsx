@@ -191,7 +191,7 @@ function VoiceFloating() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                model: 'meta/llama-3.3-70b-instruct',
+                model: 'meta/llama-3.1-8b-instruct',
                 messages: [
                   { role: 'system', content: sys },
                   { role: 'user', content: cmd }
@@ -207,8 +207,13 @@ function VoiceFloating() {
             if (window.speechSynthesis) {
               const speech = new SpeechSynthesisUtterance(replyText);
               speech.lang = 'en-US';
-              speech.rate = 1.0;
+              speech.rate = 1.05; // Slightly faster to feel more responsive
+              speech.onend = () => {
+                setTimeout(closePanel, 2000);
+              };
               window.speechSynthesis.speak(speech);
+            } else {
+              setTimeout(closePanel, 4000);
             }
           } catch (err) {
             setStatus('Connection error. Please try again.');
@@ -223,9 +228,14 @@ function VoiceFloating() {
             setStatus(match.reply);
             if (window.speechSynthesis) {
               const speech = new SpeechSynthesisUtterance(match.reply);
+              speech.rate = 1.05;
+              speech.onend = () => {
+                setTimeout(closePanel, 1500);
+              };
               window.speechSynthesis.speak(speech);
+            } else {
+              setTimeout(closePanel, 1500);
             }
-            setTimeout(closePanel, 1500);
           } else {
             setStatus(`No match for "${cmd}". Try saying a section name or ask a question.`);
           }

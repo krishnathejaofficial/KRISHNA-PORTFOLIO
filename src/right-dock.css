@@ -153,14 +153,16 @@
 }
 
 .voice-float-status {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: flex-start; gap: 8px;
   background: var(--surface-2); border: 1px solid var(--gold-dim);
-  border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;
-  font-size: 0.82em; color: var(--text);
+  border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;
+  font-size: 0.85em; color: var(--text);
+  line-height: 1.4; word-break: break-word;
 }
 .voice-float-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--gold-dim); flex-shrink: 0;
+  margin-top: 4px;
 }
 .voice-float-status.active .voice-float-dot { background: var(--gold); animation: blink 0.8s ease-in-out infinite; }
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
