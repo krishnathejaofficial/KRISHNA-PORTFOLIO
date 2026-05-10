@@ -141,12 +141,36 @@ export default function RightDock() {
 }
 
 /* ─── VOICE — LEFT SIDE FLOATING ─── */
+
+function getBestIndianMaleVoice() {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  
+  // Try to find premium Indian Male voices first
+  return voices.find(v => v.name.includes('Prabhat') || v.name.includes('Ravi')) // Windows Indian Male
+      || voices.find(v => v.lang === 'en-IN' && (v.name.includes('Male') || v.name.includes('male'))) // Generic Indian Male
+      || voices.find(v => v.lang === 'en-IN') // Any Indian voice (often default is female though)
+      || voices.find(v => v.name.includes('UK English Male') || v.name.includes('Great Britain')) // Fallback to British Male
+      || voices.find(v => v.lang.startsWith('en') && v.name.includes('Male')) // Any English Male
+      || voices[0]; // Absolute fallback
+}
+
 function VoiceFloating() {
   const [listening, setListening] = useState(false);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState('Click "Start Listening" and say a section name.');
   const [errorMsg, setErrorMsg] = useState('');
   const recRef = useRef(null);
+
+  // Pre-load voices on mount so they are ready when getBestIndianMaleVoice is called
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+  }, []);
 
   const isSupported = typeof window !== 'undefined' &&
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
@@ -206,7 +230,14 @@ function VoiceFloating() {
             
             if (window.speechSynthesis) {
               const speech = new SpeechSynthesisUtterance(replyText);
-              speech.lang = 'en-US';
+              
+              const bestVoice = getBestIndianMaleVoice();
+              if (bestVoice) {
+                speech.voice = bestVoice;
+              } else {
+                speech.lang = 'en-IN';
+              }
+              
               speech.rate = 1.05; // Slightly faster to feel more responsive
               speech.onend = () => {
                 setTimeout(closePanel, 2000);
@@ -228,6 +259,14 @@ function VoiceFloating() {
             setStatus(match.reply);
             if (window.speechSynthesis) {
               const speech = new SpeechSynthesisUtterance(match.reply);
+              
+              const bestVoice = getBestIndianMaleVoice();
+              if (bestVoice) {
+                speech.voice = bestVoice;
+              } else {
+                speech.lang = 'en-IN';
+              }
+              
               speech.rate = 1.05;
               speech.onend = () => {
                 setTimeout(closePanel, 1500);
