@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import CoverLetterGenerator from './CoverLetterGenerator';
 import AIResumeBuilder from './AIResumeBuilder';
 
@@ -54,6 +54,9 @@ export default function AdminDashboard() {
   // Admin Tools Modals
   const [modals, setModals] = useState({ clg: false, resumeAI: false });
 
+  const [filterSource, setFilterSource] = useState('ALL');
+  const [reminders, setReminders] = useState([]);
+
   const logout = useCallback(() => {
     setToken('');
     sessionStorage.removeItem('adminToken');
@@ -74,7 +77,7 @@ export default function AdminDashboard() {
   }, [token, logout]);
 
   useEffect(() => {
-    if (token) { setStep('dashboard'); fetchSubmissions(); fetchWeeklyTimetable(); }
+    if (token) { setStep('dashboard'); fetchSubmissions(); fetchWeeklyTimetable(); fetchReminders(); }
   }, [token]);
 
   useEffect(() => {
@@ -103,6 +106,11 @@ export default function AdminDashboard() {
     const d = await api({ action: 'get-submissions' });
     if (d.success) setSubmissions(d.data);
     setLoading(false);
+  };
+
+  const fetchReminders = async () => {
+    const d = await api({ action: 'get-reminders' });
+    if (d.success) setReminders(d.reminders);
   };
 
   const fetchCalSlots = async () => {
@@ -140,6 +148,13 @@ export default function AdminDashboard() {
     await api({ action: 'set-reminder', date: calDate, time: reminderTime, reminderText });
     alert('Reminder set! Email sent to confirm.');
     setReminderText(''); setReminderTime('');
+    fetchReminders();
+  };
+
+  const deleteReminder = async (id) => {
+    if (!confirm('Delete this reminder?')) return;
+    await api({ action: 'delete-reminder', id });
+    fetchReminders();
   };
 
   const fetchWeeklyTimetable = async () => {
@@ -386,6 +401,23 @@ export default function AdminDashboard() {
               </div>
             )}
 
+          {reminders.length > 0 && (
+            <div style={{ marginTop: '20px', padding: '16px', background: 'var(--bg)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <h4 style={{ margin: '0 0 12px 0', color: 'var(--gold)', fontSize: '0.9em' }}><i className="fas fa-bell" style={{ marginRight: '6px' }}/> Active Reminders</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {reminders.map(rem => (
+                  <div key={rem._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-2)', padding: '10px 14px', borderRadius: '6px' }}>
+                    <div>
+                      <strong style={{ fontSize: '0.85em', color: '#60a5fa' }}>{rem.date} at {rem.time}</strong>
+                      <div style={{ fontSize: '0.85em', marginTop: '4px' }}>{rem.reminderText}</div>
+                    </div>
+                    <button onClick={() => deleteReminder(rem._id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }} title="Delete Reminder"><i className="fas fa-trash-alt"/></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Slot Edit Modal */}
           {editingSlot && (
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -471,7 +503,20 @@ export default function AdminDashboard() {
 
         {/* ── SUBMISSIONS TABLE ── */}
         <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', overflowX: 'auto' }}>
-          <h3 style={{ margin: '0 0 20px 0' }}><i className="fas fa-inbox" style={{ color: 'var(--gold)', marginRight: '8px' }}/> All Submissions ({submissions.length})</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0 }}><i className="fas fa-inbox" style={{ color: 'var(--gold)', marginRight: '8px' }}/> All Submissions ({submissions.length})</h3>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {['ALL', 'HIRE', 'HIRE-KRISHNA', 'MEETING', 'COLLABORATION'].map(f => (
+                <button key={f} onClick={() => setFilterSource(f)} style={{
+                  padding: '6px 12px', borderRadius: '20px', fontSize: '0.75em', fontWeight: 'bold', cursor: 'pointer',
+                  background: filterSource === f ? 'var(--gold)' : 'var(--bg)',
+                  color: filterSource === f ? '#111' : 'gray',
+                  border: `1px solid ${filterSource === f ? 'var(--gold)' : 'var(--border)'}`,
+                  transition: 'all 0.2s'
+                }}>{f}</button>
+              ))}
+            </div>
+          </div>
           {loading ? <p style={{ textAlign: 'center' }}>Loading…</p> : (
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
               <thead>
@@ -485,8 +530,8 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {submissions.map(sub => (
-                  <>
+                {submissions.filter(s => filterSource === 'ALL' || (s.source || '').toUpperCase() === filterSource).map(sub => (
+                  <React.Fragment key={sub.trackingId}>
                     <tr key={sub.trackingId} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer' }}
                       onClick={() => setExpandedId(expandedId === sub.trackingId ? null : sub.trackingId)}>
                       <td style={{ padding: '12px', fontSize: '0.85em', fontFamily: 'monospace', color: 'var(--gold)' }}>{sub.trackingId}</td>
@@ -553,9 +598,9 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
-                {submissions.length === 0 && (
+                {submissions.filter(s => filterSource === 'ALL' || (s.source || '').toUpperCase() === filterSource).length === 0 && (
                   <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: 'gray' }}>No submissions yet.</td></tr>
                 )}
               </tbody>

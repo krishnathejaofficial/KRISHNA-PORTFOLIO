@@ -326,8 +326,17 @@ export default async function handler(req, res) {
 
     if (action === 'set-reminder') {
       const { date, time, reminderText } = req.body;
+      // Store dates in ISO format so they can be parsed for expiry checks later, but keep original for display if needed.
+      // We will parse date/time to a Date object:
+      const [year, month, day] = date.split('-');
+      let [timeStr, modifier] = time.split(' ');
+      let [hours, minutes] = timeStr.split(':');
+      if (modifier === 'PM' && hours !== '12') hours = parseInt(hours, 10) + 12;
+      if (modifier === 'AM' && hours === '12') hours = '00';
+      const reminderDate = new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
+
       await db.collection('reminders').insertOne({
-        date, time, reminderText, sent: false, createdAt: new Date()
+        date, time, reminderText, sent: false, createdAt: new Date(), reminderDate
       });
       const html = `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;border-radius:16px;border:1px solid #eaeaea;">
         <h2 style="color:#111827;">⏰ Reminder Set</h2>
@@ -336,6 +345,25 @@ export default async function handler(req, res) {
         <p style="color:#6b7280;font-size:12px;">Note: You will receive an email reminder 30 minutes before.</p>
       </div>`;
       await sendEmail(ADMIN_EMAIL, `⏰ Reminder: ${reminderText} on ${date} at ${time}`, html);
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === 'get-reminders') {
+      const now = new Date();
+      // Fetch only future reminders (not expired)
+      const reminders = await db.collection('reminders').find({ 
+        $or: [
+          { reminderDate: { $gte: now } },
+          { reminderDate: { $exists: false } } // For older ones where reminderDate wasn't set
+        ] 
+      }).sort({ reminderDate: 1, createdAt: 1 }).toArray();
+      return res.status(200).json({ success: true, reminders });
+    }
+
+    if (action === 'delete-reminder') {
+      const { id } = req.body;
+      const { ObjectId } = require('mongodb');
+      await db.collection('reminders').deleteOne({ _id: new ObjectId(id) });
       return res.status(200).json({ success: true });
     }
 
