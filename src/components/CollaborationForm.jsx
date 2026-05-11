@@ -22,15 +22,17 @@ export default function CollaborationForm({ isOpen, onClose }) {
     e.preventDefault();
     setStatus('sending');
     try {
-      const res = await fetch('https://api.web3forms.com/submit', {
+      const res = await fetch('/api/submit-form', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: `[Portfolio] Collaboration Request: ${form.type}`,
-          from_name: form.name,
+          source: 'collaboration',
+          type: form.type,
+          name: form.name,
           email: form.email,
-          message: `Type: ${form.type}\nOrg: ${form.org}\nTimeline: ${form.timeline}\n\nDetails:\n${form.detail}`,
+          org: form.org,
+          timeline: form.timeline,
+          detail: form.detail
         }),
       });
       const result = await res.json();

@@ -23,20 +23,22 @@ export default function Contact({ onOpenCollab, onOpenQR }) {
     setBtnText(<><i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }} />Sending...</>);
     setStatus('sending');
     const object = Object.fromEntries(new FormData(form));
+    object.source = 'contact'; // Add source flag
+    
     try {
-      const res = await fetch('https://api.web3forms.com/submit', {
+      const res = await fetch('/api/submit-form', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(object),
       });
       const result = await res.json();
-      if (res.status === 200) {
+      if (res.status === 200 && result.success) {
         setStatus('success');
         setBtnText(<><i className="fas fa-check" style={{ marginRight: '8px' }} />Sent Successfully!</>);
         form.reset();
         setTimeout(() => { setStatus('idle'); setBtnText(<><i className="fas fa-paper-plane" style={{ marginRight: '8px' }} />Send Message</>); }, 3000);
       } else {
-        throw new Error(result.message);
+        throw new Error(result.error || 'Failed to send');
       }
     } catch {
       setStatus('error');
@@ -53,8 +55,6 @@ export default function Contact({ onOpenCollab, onOpenQR }) {
       <h2>{t('contact_title')}</h2>
       <div className="section-divider" />
       <form onSubmit={handleSubmit}>
-        <input type="hidden" name="access_key" value="4e9cf101-22a3-4552-9b1f-dc1f86224eaa" />
-        <input type="hidden" name="subject" value="New Submission from Portfolio" />
         <input type="text" name="name" placeholder="Your Name" required />
         <input type="email" name="email" placeholder="Your Email" required />
         <textarea name="message" placeholder="Your Message" required />
