@@ -49,6 +49,7 @@ export default function AdminDashboard() {
   const [wtStart, setWtStart] = useState('08:00 AM');
   const [wtEnd, setWtEnd] = useState('02:00 PM');
   const [wtLabel, setWtLabel] = useState('Job / Class');
+  const [editingWtIndex, setEditingWtIndex] = useState(null); // { day, index }
 
   // Admin Tools Modals
   const [modals, setModals] = useState({ clg: false, resumeAI: false });
@@ -147,9 +148,35 @@ export default function AdminDashboard() {
   };
 
   const addWeeklyBlock = async () => {
-    await api({ action: 'add-weekly-block', day: wtDay, start: wtStart, end: wtEnd, label: wtLabel });
+    const action = editingWtIndex ? 'update-weekly-block' : 'add-weekly-block';
+    const body = { action, day: wtDay, start: wtStart, end: wtEnd, label: wtLabel };
+    if (editingWtIndex) body.index = editingWtIndex.index;
+    
+    const d = await api(body);
+    if (!d.success) return alert(d.error);
+    
+    setEditingWtIndex(null);
+    setWtStart('08:00 AM');
+    setWtEnd('02:00 PM');
+    setWtLabel('Job / Class');
     fetchWeeklyTimetable();
     fetchCalSlots();
+  };
+
+  const deleteWeeklyBlock = async (day, index) => {
+    if (!confirm('Delete this recurring time block?')) return;
+    await api({ action: 'delete-weekly-block', day, index });
+    fetchWeeklyTimetable();
+    fetchCalSlots();
+  };
+
+  const handleEditWeeklyBlock = (day, index, block) => {
+    setWtDay(day);
+    setWtStart(block.start);
+    setWtEnd(block.end);
+    setWtLabel(block.label || '');
+    setEditingWtIndex({ day, index });
+    document.getElementById('weekly-form')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   // --- Password Change Logic ---
@@ -384,7 +411,7 @@ export default function AdminDashboard() {
           <h3 style={{ margin: '0 0 16px 0' }}><i className="fas fa-clock" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Weekly Recurring Schedule</h3>
           <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '20px' }}>Set your recurring busy hours (e.g., job or classes). These will automatically block slots every week on the selected day.</p>
           
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', padding: '16px', background: 'var(--bg)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+          <div id="weekly-form" style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', padding: '16px', background: 'var(--bg)', borderRadius: '8px', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '120px' }}>
               <label style={{ fontSize: '0.8em', color: 'gray' }}>Day</label>
               <select value={wtDay} onChange={e => setWtDay(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white' }}>
@@ -407,8 +434,15 @@ export default function AdminDashboard() {
               <label style={{ fontSize: '0.8em', color: 'gray' }}>Label (e.g. Work)</label>
               <input type="text" value={wtLabel} onChange={e => setWtLabel(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white' }} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button onClick={addWeeklyBlock} className="btn" style={{ background: 'var(--gold)', color: '#111', padding: '10px 20px', height: '40px' }}><i className="fas fa-plus"/> Add</button>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+              <button onClick={addWeeklyBlock} className="btn" style={{ background: editingWtIndex ? '#3b82f6' : 'var(--gold)', color: editingWtIndex ? 'white' : '#111', padding: '10px 20px', height: '40px' }}>
+                <i className={`fas ${editingWtIndex ? 'fa-save' : 'fa-plus'}`}/> {editingWtIndex ? 'Update' : 'Add'}
+              </button>
+              {editingWtIndex && (
+                <button onClick={() => setEditingWtIndex(null)} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'white', padding: '10px', height: '40px' }}>
+                  <i className="fas fa-times" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -423,7 +457,10 @@ export default function AdminDashboard() {
                         <strong style={{ color: 'white' }}>{block.start} - {block.end}</strong>
                         <div style={{ color: 'gray', fontSize: '0.9em' }}>{block.label}</div>
                       </div>
-                      <button onClick={() => deleteWeeklyBlock(day, idx)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><i className="fas fa-times"/></button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleEditWeeklyBlock(day, idx, block)} style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer' }}><i className="fas fa-edit"/></button>
+                        <button onClick={() => deleteWeeklyBlock(day, idx)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><i className="fas fa-times"/></button>
+                      </div>
                     </div>
                   ))}
                 </div>

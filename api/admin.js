@@ -347,12 +347,59 @@ export default async function handler(req, res) {
 
     if (action === 'add-weekly-block') {
       const { day, start, end, label } = req.body;
+      const ALL_SLOTS = generateAllSlots();
+      const newStartIdx = ALL_SLOTS.indexOf(start);
+      const newEndIdx = ALL_SLOTS.indexOf(end);
+      
+      if (newStartIdx >= newEndIdx) return res.status(400).json({ error: 'Start time must be before end time' });
+
+      const doc = await db.collection('weekly_timetable').findOne({ _id: 'default' });
+      if (doc && doc[day]) {
+        for (const block of doc[day]) {
+          const exStartIdx = ALL_SLOTS.indexOf(block.start);
+          const exEndIdx = ALL_SLOTS.indexOf(block.end);
+          if (Math.max(newStartIdx, exStartIdx) < Math.min(newEndIdx, exEndIdx)) {
+            return res.status(400).json({ error: 'Time block overlaps with an existing schedule for this day.' });
+          }
+        }
+      }
+
       await db.collection('weekly_timetable').updateOne(
         { _id: 'default' },
         { $push: { [day]: { start, end, label } } },
         { upsert: true }
       );
       return res.status(200).json({ success: true });
+    }
+
+    if (action === 'update-weekly-block') {
+      const { day, index, start, end, label } = req.body;
+      const ALL_SLOTS = generateAllSlots();
+      const newStartIdx = ALL_SLOTS.indexOf(start);
+      const newEndIdx = ALL_SLOTS.indexOf(end);
+      if (newStartIdx >= newEndIdx) return res.status(400).json({ error: 'Start time must be before end time' });
+      
+      const doc = await db.collection('weekly_timetable').findOne({ _id: 'default' });
+      if (doc && doc[day]) {
+        for (let i = 0; i < doc[day].length; i++) {
+          if (i === index) continue;
+          const block = doc[day][i];
+          const exStartIdx = ALL_SLOTS.indexOf(block.start);
+          const exEndIdx = ALL_SLOTS.indexOf(block.end);
+          if (Math.max(newStartIdx, exStartIdx) < Math.min(newEndIdx, exEndIdx)) {
+            return res.status(400).json({ error: 'Time block overlaps with an existing schedule for this day.' });
+          }
+        }
+        
+        const newArr = [...doc[day]];
+        newArr[index] = { start, end, label };
+        await db.collection('weekly_timetable').updateOne(
+          { _id: 'default' },
+          { $set: { [day]: newArr } }
+        );
+        return res.status(200).json({ success: true });
+      }
+      return res.status(404).json({ error: 'Block not found' });
     }
 
     if (action === 'delete-weekly-block') {
