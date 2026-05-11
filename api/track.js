@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     // Find the submission by trackingId
     const submission = await db.collection('submissions').findOne(
       { trackingId: id },
-      { projection: { _id: 0, trackingId: 1, source: 1, type: 1, status: 1, createdAt: 1, updatedAt: 1 } }
+      { projection: { _id: 0, trackingId: 1, source: 1, type: 1, status: 1, adminNote: 1, timeline: 1, duration: 1, createdAt: 1, updatedAt: 1 } }
     );
 
     if (!submission) {

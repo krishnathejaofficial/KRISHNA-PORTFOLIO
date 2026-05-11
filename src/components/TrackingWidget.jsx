@@ -75,28 +75,33 @@ export default function TrackingWidget({ isOpen, onClose }) {
             <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '8px', border: '1px solid var(--gold-dim)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.9em', color: 'gray' }}>Status</span>
-                <span style={{ 
-                  background: `${getStatusColor(result.status)}20`, 
-                  color: getStatusColor(result.status), 
-                  padding: '6px 12px', 
-                  borderRadius: '20px', 
-                  fontWeight: 'bold',
-                  fontSize: '0.9em'
-                }}>
+                <span style={{ background: `${getStatusColor(result.status)}20`, color: getStatusColor(result.status), padding: '6px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.9em' }}>
                   {result.status}
                 </span>
               </div>
               <div style={{ marginBottom: '10px' }}>
                 <span style={{ fontSize: '0.9em', color: 'gray', display: 'block', marginBottom: '4px' }}>Request Type</span>
-                <strong style={{ color: 'white' }}>{result.source === 'collaboration' ? result.type : 'General Contact'}</strong>
+                <strong style={{ color: 'white' }}>{result.source === 'collaboration' || result.source === 'meeting' ? result.type : 'General Contact'}</strong>
               </div>
-              <div>
+              {result.source === 'meeting' && result.timeline && (
+                <div style={{ marginBottom: '10px' }}>
+                  <span style={{ fontSize: '0.9em', color: 'gray', display: 'block', marginBottom: '4px' }}>Scheduled Time</span>
+                  <strong style={{ color: '#60a5fa' }}>{result.timeline} · {result.duration || 30} min</strong>
+                </div>
+              )}
+              <div style={{ marginBottom: '10px' }}>
                 <span style={{ fontSize: '0.9em', color: 'gray', display: 'block', marginBottom: '4px' }}>Submitted On</span>
                 <strong style={{ color: 'white' }}>{new Date(result.createdAt).toLocaleDateString()}</strong>
               </div>
-              <p style={{ marginTop: '20px', fontSize: '0.85em', color: 'gray', textAlign: 'center' }}>
-                If you have questions, please email directly.
-              </p>
+              {result.adminNote && (
+                <div style={{ marginTop: '15px', padding: '12px', background: 'rgba(212,175,55,0.1)', borderRadius: '8px', border: '1px solid var(--gold-dim)' }}>
+                  <span style={{ fontSize: '0.85em', color: 'var(--gold)', display: 'block', marginBottom: '6px' }}>
+                    <i className="fas fa-comment-dots" style={{ marginRight: '6px' }}/>Note from Krishna:
+                  </span>
+                  <p style={{ margin: 0, fontSize: '0.9em', color: 'white', lineHeight: 1.5 }}>{result.adminNote}</p>
+                </div>
+              )}
+              <p style={{ marginTop: '15px', fontSize: '0.8em', color: 'gray', textAlign: 'center', marginBottom: 0 }}>For queries, email krishnatejareddy2003@gmail.com</p>
             </div>
           )}
         </div>

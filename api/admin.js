@@ -2,11 +2,10 @@ import { MongoClient } from 'mongodb';
 
 const MONGODB_URI = 'mongodb+srv://krishnateja:Gteja1234@cluster0.3veyidf.mongodb.net/trackingDB?retryWrites=true&w=majority';
 const RESEND_API_KEY = 're_5cTHKvba_3NR8u9NnnBvu9qc6V7NCwvMT';
-const ADMIN_EMAIL = 'krishnatejareddy2003@gmail.com'; 
-const ADMIN_PASSWORD = 'admin'; // Basic password for first layer
+const ADMIN_EMAIL = 'krishnatejareddy2003@gmail.com';
+const ADMIN_PASSWORD = 'admin';
 
 let cachedClient = null;
-
 async function connectToDatabase() {
   if (cachedClient) return cachedClient;
   const client = new MongoClient(MONGODB_URI);
@@ -15,162 +14,213 @@ async function connectToDatabase() {
   return client;
 }
 
+function generateAllSlots() {
+  const slots = [];
+  for (let h = 8; h < 24; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      const hour12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      slots.push(`${String(hour12).padStart(2,'0')}:${m === 0 ? '00' : '30'} ${ampm}`);
+    }
+  }
+  return slots;
+}
+
+async function sendEmail(to, subject, html) {
+  return fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'Krishna Portfolio <onboarding@resend.dev>', to, subject, html })
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { action, password, otp, token, trackingId, newStatus } = req.body;
+  const { action, password, otp, token, trackingId, newStatus, adminNote, reminderTime } = req.body;
 
   try {
     const client = await connectToDatabase();
     const db = client.db('trackingDB');
 
-    // 1. Request OTP
+    // ── AUTH ──────────────────────────────────────────────────────────────────
     if (action === 'request-otp') {
       if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Invalid password' });
-      
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // Save OTP to DB with a 10-minute expiry
       await db.collection('auth').updateOne(
         { role: 'admin' },
         { $set: { otp: generatedOtp, otpExpiry: Date.now() + 10 * 60 * 1000 } },
         { upsert: true }
       );
-
-      const otpTemplate = `
-      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-radius: 16px; border: 1px solid #eaeaea; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
-        <h1 style="color: #111827; margin: 0; font-size: 24px; font-weight: 700;">Admin Authentication</h1>
-        <p style="color: #6b7280; font-size: 14px; margin-top: 8px;">A login attempt was made to your portfolio dashboard.</p>
-        
-        <div style="margin: 30px 0; padding: 20px; background-color: #fcfcfc; border-radius: 12px; border: 2px dashed #D4AF37;">
-          <p style="margin: 0; color: #4b5563; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Your One-Time Password</p>
-          <strong style="font-size: 36px; color: #111827; letter-spacing: 5px;">${generatedOtp}</strong>
+      const html = `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;text-align:center;border-radius:16px;border:1px solid #eaeaea;">
+        <h1 style="color:#111827;font-size:24px;font-weight:700;">Admin Authentication</h1>
+        <p style="color:#6b7280;font-size:14px;">A login attempt was made to your portfolio dashboard.</p>
+        <div style="margin:30px 0;padding:20px;border-radius:12px;border:2px dashed #D4AF37;">
+          <p style="color:#4b5563;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Your OTP</p>
+          <strong style="font-size:36px;color:#111827;letter-spacing:5px;">${generatedOtp}</strong>
         </div>
-        
-        <p style="color: #ef4444; font-size: 12px; font-weight: 600;">This code expires in 10 minutes.</p>
-      </div>
-      `;
-
-      // Send OTP via Resend
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: 'Admin Security <onboarding@resend.dev>',
-          to: ADMIN_EMAIL,
-          subject: `🔐 Admin Login OTP: ${generatedOtp}`,
-          html: otpTemplate
-        })
-      });
-
-      return res.status(200).json({ success: true, message: 'OTP sent to your email.' });
+        <p style="color:#ef4444;font-size:12px;font-weight:600;">Expires in 10 minutes.</p>
+      </div>`;
+      await sendEmail(ADMIN_EMAIL, `🔐 Admin Login OTP: ${generatedOtp}`, html);
+      return res.status(200).json({ success: true });
     }
 
-    // 2. Verify OTP
     if (action === 'verify-otp') {
       const adminDoc = await db.collection('auth').findOne({ role: 'admin' });
-      if (!adminDoc || !adminDoc.otp || adminDoc.otp !== otp || Date.now() > adminDoc.otpExpiry) {
+      if (!adminDoc || adminDoc.otp !== otp || Date.now() > adminDoc.otpExpiry)
         return res.status(401).json({ error: 'Invalid or expired OTP' });
-      }
-
-      // Generate a session token
       const sessionToken = `session_${Math.random().toString(36).substring(2, 15)}`;
       await db.collection('auth').updateOne(
         { role: 'admin' },
-        { $set: { sessionToken, sessionExpiry: Date.now() + 24 * 60 * 60 * 1000 }, $unset: { otp: "", otpExpiry: "" } }
+        { $set: { sessionToken, sessionExpiry: Date.now() + 24 * 60 * 60 * 1000 }, $unset: { otp: '', otpExpiry: '' } }
       );
-
       return res.status(200).json({ success: true, token: sessionToken });
     }
 
-    // --- Protected Routes Below ---
+    // ── AUTH GUARD ────────────────────────────────────────────────────────────
     const adminDoc = await db.collection('auth').findOne({ role: 'admin', sessionToken: token });
-    if (!adminDoc || Date.now() > adminDoc.sessionExpiry) {
-      return res.status(401).json({ error: 'Unauthorized or session expired. Please login again.' });
-    }
+    if (!adminDoc || Date.now() > adminDoc.sessionExpiry)
+      return res.status(401).json({ error: 'Unauthorized or session expired.' });
 
-    // 3. Get all submissions
+    // ── SUBMISSIONS ───────────────────────────────────────────────────────────
     if (action === 'get-submissions') {
       const submissions = await db.collection('submissions').find().sort({ createdAt: -1 }).toArray();
       return res.status(200).json({ success: true, data: submissions });
     }
 
-    // 4. Update status & Send Email to User
     if (action === 'update-status') {
       if (!trackingId || !newStatus) return res.status(400).json({ error: 'Missing parameters' });
-      
       const submission = await db.collection('submissions').findOne({ trackingId });
       if (!submission) return res.status(404).json({ error: 'Submission not found' });
 
       await db.collection('submissions').updateOne(
         { trackingId },
-        { $set: { status: newStatus, updatedAt: new Date() } }
+        { $set: { status: newStatus, adminNote: adminNote || '', updatedAt: new Date() } }
       );
 
-      // Send status update email to the user
       const statusColor = newStatus === 'Accepted' ? '#10b981' : newStatus === 'Rejected' ? '#ef4444' : '#f59e0b';
-      const emailTemplate = `
-      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-radius: 16px; border: 1px solid #eaeaea;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #111827; margin: 0; font-size: 24px;">Update on your Request</h1>
-          <p style="color: #6b7280; font-size: 14px; margin-top: 8px;">Tracking ID: <strong>${trackingId}</strong></p>
+      const noteBlock = adminNote ? `
+        <div style="margin-top:20px;padding:15px;border-radius:8px;background:#f9fafb;border:1px solid #eee;text-align:left;">
+          <p style="margin:0 0 6px 0;font-size:13px;color:#4b5563;font-weight:600;">Note from Krishna:</p>
+          <p style="margin:0;color:#374151;line-height:1.6;">${adminNote}</p>
+        </div>` : '';
+      const html = `<div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;padding:30px;border-radius:16px;border:1px solid #eaeaea;">
+        <div style="text-align:center;margin-bottom:30px;">
+          <h1 style="color:#111827;margin:0;font-size:24px;">Update on your Request</h1>
+          <p style="color:#6b7280;font-size:14px;margin-top:8px;">Tracking ID: <strong>${trackingId}</strong></p>
         </div>
-        
-        <div style="background-color: #fcfcfc; padding: 25px; border-radius: 12px; border-left: 5px solid ${statusColor}; text-align: center;">
-          <p style="margin: 0; color: #4b5563; font-size: 16px;">The status of your request has been updated to:</p>
-          <h2 style="color: ${statusColor}; font-size: 28px; margin: 15px 0;">${newStatus}</h2>
-          <p style="color: #6b7280; font-size: 14px; margin: 0;">Krishna Teja has reviewed your submission.</p>
+        <div style="background:#fcfcfc;padding:25px;border-radius:12px;border-left:5px solid ${statusColor};text-align:center;">
+          <p style="margin:0;color:#4b5563;font-size:16px;">Status updated to:</p>
+          <h2 style="color:${statusColor};font-size:28px;margin:15px 0;">${newStatus}</h2>
+          <p style="color:#6b7280;font-size:14px;margin:0;">Krishna Teja has reviewed your submission.</p>
+          ${noteBlock}
         </div>
-        
-        <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #9ca3af;">
-          <p>Please do not reply to this automated email.</p>
+        <div style="text-align:center;margin-top:30px;font-size:12px;color:#9ca3af;">
+          <p>Automated notification from krishna's Portfolio · Do not reply.</p>
         </div>
-      </div>
-      `;
-
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: 'Krishna Portfolio <onboarding@resend.dev>',
-          to: submission.email,
-          subject: `Status Update: ${newStatus} [${trackingId}]`,
-          html: emailTemplate
-        })
-      });
-      
+      </div>`;
+      await sendEmail(submission.email, `${newStatus === 'Accepted' ? '✅' : newStatus === 'Rejected' ? '❌' : '🔄'} Status Update: ${newStatus} [${trackingId}]`, html);
       return res.status(200).json({ success: true });
     }
 
-    // 5. Delete Submission
     if (action === 'delete-submission') {
       if (!trackingId) return res.status(400).json({ error: 'Missing trackingId' });
       await db.collection('submissions').deleteOne({ trackingId });
       return res.status(200).json({ success: true });
     }
 
-    // 6. Get Blocked Slots for a Date
-    if (action === 'get-blocked-slots') {
+    // ── CALENDAR / SLOTS ──────────────────────────────────────────────────────
+    if (action === 'get-calendar-slots') {
       const { date } = req.body;
-      const doc = await db.collection('blocked_slots').findOne({ date });
-      return res.status(200).json({ success: true, blocked: doc ? doc.times : [] });
+      const ALL_SLOTS = generateAllSlots();
+      const blockedDoc = await db.collection('blocked_slots').findOne({ date });
+      const slotData = blockedDoc?.slotData || {};
+      // Legacy support
+      if (blockedDoc?.times) blockedDoc.times.forEach(t => { if (!slotData[t]) slotData[t] = { blocked: true, note: '' }; });
+
+      const bookings = await db.collection('submissions').find({
+        source: 'meeting', timeline: { $regex: `^${date}` }, status: { $nin: ['Rejected'] }
+      }).toArray();
+
+      const bookedMap = {};
+      bookings.forEach(b => {
+        const timePart = b.timeline.replace(`${date} at `, '').replace(' IST', '').trim();
+        const dur = parseInt(b.duration) || 30;
+        const slotsNeeded = Math.ceil(dur / 30);
+        const startIdx = ALL_SLOTS.indexOf(timePart);
+        for (let i = 0; i < slotsNeeded; i++) {
+          if (startIdx + i < ALL_SLOTS.length) {
+            bookedMap[ALL_SLOTS[startIdx + i]] = { trackingId: b.trackingId, name: b.name, purpose: b.type };
+          }
+        }
+      });
+
+      const result = ALL_SLOTS.map(slot => ({
+        time: slot,
+        isAdminBlocked: blockedDoc?.dayLocked || slotData[slot]?.blocked || false,
+        note: slotData[slot]?.note || '',
+        isBooked: !!bookedMap[slot],
+        bookedBy: bookedMap[slot] || null
+      }));
+
+      return res.status(200).json({ success: true, slots: result, dayLocked: blockedDoc?.dayLocked || false });
     }
 
-    // 7. Toggle Slot Block
     if (action === 'toggle-slot') {
-      const { date, time, isBlocked } = req.body;
-      if (isBlocked) {
+      const { date, time, isBlocked, note } = req.body;
+      const update = isBlocked
+        ? { $set: { [`slotData.${time}`]: { blocked: true, note: note || '' } } }
+        : { $unset: { [`slotData.${time}`]: '' } };
+      await db.collection('blocked_slots').updateOne({ date }, { ...update, $set: { ...((isBlocked) ? { [`slotData.${time}`]: { blocked: true, note: note || '' } } : {}), date } }, { upsert: true });
+      if (!isBlocked) {
+        await db.collection('blocked_slots').updateOne({ date }, { $unset: { [`slotData.${time}`]: '' } });
+      }
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === 'set-slot') {
+      // Upsert a specific slot's blocked state and note
+      const { date, time, blocked, note } = req.body;
+      if (blocked) {
         await db.collection('blocked_slots').updateOne(
           { date },
-          { $addToSet: { times: time } },
+          { $set: { date, [`slotData.${time}`]: { blocked: true, note: note || '' } } },
           { upsert: true }
         );
       } else {
         await db.collection('blocked_slots').updateOne(
           { date },
-          { $pull: { times: time } }
+          { $unset: { [`slotData.${time}`]: '' }, $setOnInsert: { date } },
+          { upsert: true }
         );
       }
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === 'lock-day') {
+      const { date, locked } = req.body;
+      await db.collection('blocked_slots').updateOne(
+        { date },
+        { $set: { date, dayLocked: locked } },
+        { upsert: true }
+      );
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === 'set-reminder') {
+      // Schedule a reminder: store it in DB, respond immediately
+      const { date, time, reminderText } = req.body;
+      await db.collection('reminders').insertOne({
+        date, time, reminderText, sent: false, createdAt: new Date()
+      });
+      // Send immediate confirmation
+      const html = `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;border-radius:16px;border:1px solid #eaeaea;">
+        <h2 style="color:#111827;">⏰ Reminder Set</h2>
+        <p>A reminder has been scheduled for <strong>${date} at ${time}</strong>.</p>
+        <p style="background:#f9fafb;padding:12px;border-radius:8px;border-left:4px solid #D4AF37;">${reminderText}</p>
+        <p style="color:#6b7280;font-size:12px;">Note: You will receive an email reminder 30 minutes before.</p>
+      </div>`;
+      await sendEmail(ADMIN_EMAIL, `⏰ Reminder: ${reminderText} on ${date} at ${time}`, html);
       return res.status(200).json({ success: true });
     }
 

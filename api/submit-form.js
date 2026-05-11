@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { type, name, email, phone, org, timeline, detail, message, source } = req.body;
+  const { type, name, email, phone, org, timeline, duration, detail, message, source } = req.body;
 
   try {
     // Generate a unique 6-digit Tracking ID
@@ -67,6 +67,7 @@ export default async function handler(req, res) {
           ${phone ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Phone:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><a href="tel:${phone}" style="color: #2563eb; text-decoration: none;">${phone}</a></td></tr>` : ''}
           <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Purpose:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><span style="background-color: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600;">${type}</span></td></tr>
           <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Time (IST):</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><strong>${timeline}</strong></td></tr>
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Duration:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><strong>${duration || 30} minutes</strong></td></tr>
         </table>
         <h3 style="color: #111827; font-size: 16px; margin: 25px 0 10px 0;">Agenda / Notes:</h3>
         <p style="color: #374151; line-height: 1.7; white-space: pre-wrap; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 0;">${detail}</p>
@@ -99,14 +100,17 @@ export default async function handler(req, res) {
       const db = client.db('trackingDB');
       await db.collection('submissions').insertOne({
         trackingId,
-        source, // 'collaboration' or 'contact'
+        source,
         type,
         name,
         email,
-        org,
-        timeline,
-        detail,
-        message,
+        phone: phone || '',
+        org: org || '',
+        timeline: timeline || '',
+        duration: duration || (source === 'meeting' ? 30 : null),
+        detail: detail || '',
+        message: message || '',
+        adminNote: '',
         status: 'Pending Review',
         createdAt: new Date(),
         updatedAt: new Date()
