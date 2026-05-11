@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 
 // Vercel serverless function for Form Submission & Email via Resend
 const RESEND_API_KEY = 're_5cTHKvba_3NR8u9NnnBvu9qc6V7NCwvMT';
-const DESTINATION_EMAIL = 'krishnatejareddy2001@gmail.com'; // Change to 2003 if preferred
+const DESTINATION_EMAIL = 'krishnatejareddy2003@gmail.com'; 
 const MONGODB_URI = 'mongodb+srv://krishnateja:Gteja1234@cluster0.3veyidf.mongodb.net/trackingDB?retryWrites=true&w=majority';
 
 let cachedClient = null;
@@ -29,56 +29,67 @@ export default async function handler(req, res) {
     let subject = '';
     let htmlContent = '';
 
-    if (source === 'collaboration') {
-      subject = `🚀 New Collab: ${type} - ${name} [${trackingId}]`;
-      htmlContent = `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
-          <div style="text-align: center; margin-bottom: 24px;">
-            <h2 style="color: #111827; margin: 0;">New Collaboration Proposal</h2>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Tracking ID: <strong>${trackingId}</strong></p>
-          </div>
-          
-          <div style="background-color: white; padding: 24px; border-radius: 8px; border-left: 4px solid #D4AF37; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <p style="margin: 0 0 12px 0;"><strong><span style="color: #4b5563;">From:</span></strong> ${name} (<a href="mailto:${email}" style="color: #2563eb;">${email}</a>)</p>
-            <p style="margin: 0 0 12px 0;"><strong><span style="color: #4b5563;">Type:</span></strong> <span style="background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: 500;">${type}</span></p>
-            ${org ? `<p style="margin: 0 0 12px 0;"><strong><span style="color: #4b5563;">Organization:</span></strong> ${org}</p>` : ''}
-            ${timeline ? `<p style="margin: 0 0 12px 0;"><strong><span style="color: #4b5563;">Timeline:</span></strong> ${timeline}</p>` : ''}
-            
-            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-            
-            <h3 style="color: #111827; font-size: 15px; margin-top: 0;">Proposal Details:</h3>
-            <p style="color: #374151; line-height: 1.6; white-space: pre-wrap; background-color: #f9fafb; padding: 12px; border-radius: 6px;">${detail}</p>
-          </div>
-          
-          <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #9ca3af;">
-            <p>This email was sent automatically from your portfolio website via Resend.</p>
-          </div>
+    const baseTemplate = (title, accentColor, innerContent) => `
+      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-radius: 16px; border: 1px solid #eaeaea; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #111827; margin: 0; font-size: 24px; font-weight: 700;">${title}</h1>
+          <p style="color: #6b7280; font-size: 14px; margin-top: 8px; letter-spacing: 1px;">TRACKING ID: <strong style="color: ${accentColor}; background: ${accentColor}15; padding: 4px 10px; border-radius: 20px;">${trackingId}</strong></p>
         </div>
-      `;
+        
+        <div style="background-color: #fcfcfc; padding: 25px; border-radius: 12px; border-left: 5px solid ${accentColor}; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+          ${innerContent}
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #9ca3af; border-top: 1px solid #eaeaea; padding-top: 20px;">
+          <p style="margin: 0;">This is an automated notification from Krishna's Portfolio.</p>
+          <p style="margin: 5px 0 0 0;">Powered by Resend & MongoDB</p>
+        </div>
+      </div>
+    `;
+
+    if (source === 'collaboration') {
+      subject = `🚀 New Collab Proposal: ${type} - ${name} [${trackingId}]`;
+      htmlContent = baseTemplate('Collaboration Proposal', '#D4AF37', `
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">From:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${name} (<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a>)</td></tr>
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Type:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><span style="background-color: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600;">${type}</span></td></tr>
+          ${org ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Organization:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${org}</td></tr>` : ''}
+          ${timeline ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Timeline:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${timeline}</td></tr>` : ''}
+        </table>
+        <h3 style="color: #111827; font-size: 16px; margin: 25px 0 10px 0;">Proposal Details:</h3>
+        <p style="color: #374151; line-height: 1.7; white-space: pre-wrap; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 0;">${detail}</p>
+      `);
+    } else if (source === 'meeting') {
+      subject = `📅 Meeting Booked: ${type} - ${name} [${trackingId}]`;
+      htmlContent = baseTemplate('Meeting Scheduled', '#3b82f6', `
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">With:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${name} (<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a>)</td></tr>
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Purpose:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><span style="background-color: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600;">${type}</span></td></tr>
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Time (IST):</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><strong>${timeline}</strong></td></tr>
+        </table>
+        <h3 style="color: #111827; font-size: 16px; margin: 25px 0 10px 0;">Agenda / Notes:</h3>
+        <p style="color: #374151; line-height: 1.7; white-space: pre-wrap; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 0;">${detail}</p>
+      `);
+    } else if (source === 'hire') {
+      subject = `💼 Quick Hire Inquiry: ${type} [${trackingId}]`;
+      htmlContent = baseTemplate('Hiring Inquiry', '#10b981', `
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Recruiter Email:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a></td></tr>
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Role/Position:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><span style="background-color: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600;">${type}</span></td></tr>
+        </table>
+        <h3 style="color: #111827; font-size: 16px; margin: 25px 0 10px 0;">Additional Context:</h3>
+        <p style="color: #374151; line-height: 1.7; white-space: pre-wrap; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 0;">${detail}</p>
+      `);
     } else {
       // Standard Contact Form
       subject = `✉️ New Message from ${name} [${trackingId}]`;
-      htmlContent = `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
-          <div style="text-align: center; margin-bottom: 24px;">
-            <h2 style="color: #111827; margin: 0;">New Message Received</h2>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Tracking ID: <strong>${trackingId}</strong></p>
-          </div>
-          
-          <div style="background-color: white; padding: 24px; border-radius: 8px; border-left: 4px solid #3b82f6; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <p style="margin: 0 0 12px 0;"><strong><span style="color: #4b5563;">From:</span></strong> ${name} (<a href="mailto:${email}" style="color: #2563eb;">${email}</a>)</p>
-            
-            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-            
-            <h3 style="color: #111827; font-size: 15px; margin-top: 0;">Message:</h3>
-            <p style="color: #374151; line-height: 1.6; white-space: pre-wrap; background-color: #f9fafb; padding: 12px; border-radius: 6px;">${message}</p>
-          </div>
-          
-          <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #9ca3af;">
-            <p>This email was sent automatically from your portfolio website via Resend.</p>
-          </div>
-        </div>
-      `;
+      htmlContent = baseTemplate('New Message Received', '#8b5cf6', `
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">From:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${name} (<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a>)</td></tr>
+        </table>
+        <h3 style="color: #111827; font-size: 16px; margin: 25px 0 10px 0;">Message Content:</h3>
+        <p style="color: #374151; line-height: 1.7; white-space: pre-wrap; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 0;">${message}</p>
+      `);
     }
 
     // Save to MongoDB

@@ -26,23 +26,30 @@ export default function MeetingScheduler({ isOpen, onClose }) {
   const [status, setStatus] = useState('idle');
   const [step, setStep] = useState(1);
 
+  const [trackingId, setTrackingId] = useState('');
+
   function set(field, val) { setForm(p => ({ ...p, [field]: val })); }
 
   async function book() {
     setStatus('sending');
     try {
-      const res = await fetch('https://api.web3forms.com/submit', {
+      const res = await fetch('/api/submit-form', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: `[Portfolio] Meeting Request: ${meetType?.label} — ${day} ${time}`,
-          from_name: form.name,
+          source: 'meeting',
+          type: meetType?.label,
+          name: form.name,
           email: form.email,
-          message: `Meeting Type: ${meetType?.label} (${meetType?.duration})\nDay: ${day} at ${time} (IST)\nNote: ${form.note || 'None'}\n\nFrom: ${form.name} <${form.email}>`,
+          timeline: `${day} at ${time} IST`,
+          detail: form.note || 'No agenda provided.',
         }),
       });
-      if (res.ok) setStatus('success');
+      const result = await res.json();
+      if (res.ok && result.success) { 
+        setTrackingId(result.trackingId);
+        setStatus('success'); 
+      }
       else throw new Error();
     } catch { setStatus('error'); }
   }
@@ -79,6 +86,13 @@ export default function MeetingScheduler({ isOpen, onClose }) {
               <i className="fas fa-calendar-check" style={{ fontSize: '3em', color: '#22c55e' }} />
               <h3>Meeting Requested!</h3>
               <p>Krishna will confirm your <strong>{meetType?.label}</strong> on <strong>{day} at {time}</strong> via email within 24 hours.</p>
+              
+              <div style={{ background: 'var(--surface-2)', padding: '15px', borderRadius: '8px', border: '1px dashed var(--gold)', margin: '20px 0' }}>
+                <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '5px' }}>Your Tracking ID</p>
+                <strong style={{ fontSize: '1.4em', letterSpacing: '2px', color: 'white' }}>{trackingId}</strong>
+                <p style={{ fontSize: '0.8em', color: 'gray', marginTop: '10px' }}>Save this ID to track your meeting status.</p>
+              </div>
+
               <button className="btn" onClick={onClose} style={{ marginTop: '16px' }}>Done</button>
             </div>
           ) : (

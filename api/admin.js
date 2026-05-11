@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 
 const MONGODB_URI = 'mongodb+srv://krishnateja:Gteja1234@cluster0.3veyidf.mongodb.net/trackingDB?retryWrites=true&w=majority';
 const RESEND_API_KEY = 're_5cTHKvba_3NR8u9NnnBvu9qc6V7NCwvMT';
-const ADMIN_EMAIL = 'krishnatejareddy2001@gmail.com'; 
+const ADMIN_EMAIL = 'krishnatejareddy2003@gmail.com'; 
 const ADMIN_PASSWORD = 'admin'; // Basic password for first layer
 
 let cachedClient = null;
@@ -37,6 +37,20 @@ export default async function handler(req, res) {
         { upsert: true }
       );
 
+      const otpTemplate = `
+      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-radius: 16px; border: 1px solid #eaeaea; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+        <h1 style="color: #111827; margin: 0; font-size: 24px; font-weight: 700;">Admin Authentication</h1>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 8px;">A login attempt was made to your portfolio dashboard.</p>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: #fcfcfc; border-radius: 12px; border: 2px dashed #D4AF37;">
+          <p style="margin: 0; color: #4b5563; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Your One-Time Password</p>
+          <strong style="font-size: 36px; color: #111827; letter-spacing: 5px;">${generatedOtp}</strong>
+        </div>
+        
+        <p style="color: #ef4444; font-size: 12px; font-weight: 600;">This code expires in 10 minutes.</p>
+      </div>
+      `;
+
       // Send OTP via Resend
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -44,8 +58,8 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           from: 'Admin Security <onboarding@resend.dev>',
           to: ADMIN_EMAIL,
-          subject: `Admin Login OTP: ${generatedOtp}`,
-          html: `<p>Your admin login OTP is: <strong>${generatedOtp}</strong>. It expires in 10 minutes.</p>`
+          subject: `🔐 Admin Login OTP: ${generatedOtp}`,
+          html: otpTemplate
         })
       });
 

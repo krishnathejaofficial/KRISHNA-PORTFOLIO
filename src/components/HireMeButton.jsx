@@ -80,15 +80,46 @@ export default function HireMeButton({ initialOpen = false, onClose }) {
             <label style={{ fontSize: '0.8em' }}>Their Contact Email (so you can reply)</label>
             <input type="email" placeholder="e.g. recruiter@company.com" id="hire-email-input" style={{ fontSize: '0.85em', padding: '9px 12px', marginBottom: '8px' }} />
           </div>
-          <button className="btn" onClick={() => {
+
+          {status === 'success' && (
+            <div style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '8px', border: '1px dashed #22c55e', margin: '10px 0', textAlign: 'center' }}>
+              <i className="fas fa-check-circle" style={{ color: '#22c55e', marginBottom: '5px', fontSize: '1.2em' }} />
+              <p style={{ fontSize: '0.9em', color: 'white', marginBottom: '8px' }}>Inquiry Sent!</p>
+              <p style={{ fontSize: '0.8em', color: 'gray' }}>Tracking ID: <strong style={{ color: 'white' }}>{document.getElementById('hire-tracking-id')?.value || ''}</strong></p>
+            </div>
+          )}
+          <input type="hidden" id="hire-tracking-id" value="" />
+
+          <button className="btn" onClick={async () => {
             const emailInput = document.getElementById('hire-email-input').value;
             if (!emailInput) return alert('Please enter an email address so Krishna can reply.');
-            const obj = { access_key: '4e9cf101-22a3-4552-9b1f-dc1f86224eaa', subject: role ? `Hire Me: ${role}` : 'Hire Me Inquiry', email: emailInput, message: `Role: ${role}\n\nContext: ${context}` };
+            
             setStatus('sending');
-            fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) })
-              .then(r => r.json()).then(r => { if(r.success) { setStatus('success'); setTimeout(() => {setShowPanel(false); setStatus('idle'); setRole(''); setContext(''); document.getElementById('hire-email-input').value='';}, 2000); } else setStatus('error'); })
-              .catch(() => setStatus('error'));
-          }} style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '4px', border: 'none', cursor: 'pointer', borderRadius: '10px', padding: '11px 20px', fontSize: '0.9em' }} disabled={status === 'sending'}>
+            try {
+              const res = await fetch('/api/submit-form', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  source: 'hire',
+                  type: role || 'General Hire Inquiry',
+                  name: 'Recruiter',
+                  email: emailInput,
+                  detail: context || 'No additional context provided.',
+                })
+              });
+              const r = await res.json();
+              if (r.success) {
+                document.getElementById('hire-tracking-id').value = r.trackingId;
+                setStatus('success');
+                setTimeout(() => {
+                  setShowPanel(false); setStatus('idle'); setRole(''); setContext(''); 
+                  if(document.getElementById('hire-email-input')) document.getElementById('hire-email-input').value='';
+                }, 8000); // Wait longer so they can see tracking ID
+              } else setStatus('error');
+            } catch (err) {
+              setStatus('error');
+            }
+          }} style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '4px', border: 'none', cursor: 'pointer', borderRadius: '10px', padding: '11px 20px', fontSize: '0.9em' }} disabled={status === 'sending' || status === 'success'}>
             {status === 'idle' && <><i className="fas fa-paper-plane" /> Send Inquiry Directly</>}
             {status === 'sending' && <><i className="fas fa-spinner fa-spin" /> Sending...</>}
             {status === 'success' && <><i className="fas fa-check" /> Sent Successfully!</>}
