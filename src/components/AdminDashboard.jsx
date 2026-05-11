@@ -153,7 +153,7 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '12px' }}>
           <h1 style={{ margin: 0, fontSize: '1.5em' }}><i className="fas fa-shield-alt" style={{ color: 'var(--gold)', marginRight: '10px' }}/> Admin Dashboard</h1>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={fetchSubmissions} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}><i className="fas fa-sync-alt"/></button>
+            <button onClick={fetchSubmissions} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'white' }}><i className="fas fa-sync-alt"/></button>
             <button onClick={logout} className="btn" style={{ background: '#ef4444' }}><i className="fas fa-sign-out-alt"/> Logout</button>
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
               style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white' }} />
             <input type="text" placeholder="Reminder note (e.g. Faculty Meeting)" value={reminderText} onChange={e => setReminderText(e.target.value)}
               style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', minWidth: '160px' }} />
-            <button onClick={setReminder} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--gold-dim)' }}>
+            <button onClick={setReminder} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--gold-dim)', color: 'white' }}>
               <i className="fas fa-bell" style={{ marginRight: '6px' }}/>Set Reminder
             </button>
           </div>
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={() => saveSlot(editingSlot.time, true, slotNote)} className="btn" style={{ flex: 1, background: '#ef4444' }}><i className="fas fa-lock"/> Block</button>
                   {editingSlot.isAdminBlocked && <button onClick={() => saveSlot(editingSlot.time, false, '')} className="btn" style={{ flex: 1, background: '#10b981' }}><i className="fas fa-lock-open"/> Unblock</button>}
-                  <button onClick={() => setEditingSlot(null)} className="btn" style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)' }}>Cancel</button>
+                  <button onClick={() => setEditingSlot(null)} className="btn" style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', color: 'white' }}>Cancel</button>
                 </div>
               </div>
             </div>
