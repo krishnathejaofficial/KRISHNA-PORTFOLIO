@@ -74,6 +74,22 @@ export default function AdminDashboard() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update-status', token, trackingId, newStatus })
       });
+      if (res.ok) {
+        alert('Status updated & email sent to user!');
+        fetchSubmissions();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteSubmission = async (trackingId) => {
+    if (!confirm('Are you sure you want to permanently delete this request?')) return;
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete-submission', token, trackingId })
+      });
       if (res.ok) fetchSubmissions();
     } catch (err) {
       console.error(err);
@@ -107,6 +123,35 @@ export default function AdminDashboard() {
     </div>
   );
 
+  const [calDate, setCalDate] = useState('');
+  const [blockedSlots, setBlockedSlots] = useState([]);
+  const DEFAULT_SLOTS = ['10:00 AM', '11:00 AM', '12:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'];
+
+  useEffect(() => {
+    if (calDate && token) fetchBlockedSlots();
+  }, [calDate]);
+
+  const fetchBlockedSlots = async () => {
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get-blocked-slots', token, date: calDate })
+      });
+      const data = await res.json();
+      if (res.ok) setBlockedSlots(data.blocked || []);
+    } catch (err) { console.error(err); }
+  };
+
+  const toggleBlockSlot = async (time, currentlyBlocked) => {
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle-slot', token, date: calDate, time, isBlocked: !currentlyBlocked })
+      });
+      if (res.ok) fetchBlockedSlots();
+    } catch (err) { console.error(err); }
+  };
+
   const renderDashboard = () => (
     <div style={{ maxWidth: '1000px', margin: '50px auto', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -117,15 +162,49 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div style={{ background: 'var(--surface-2)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border)' }}>
+      <div style={{ background: 'var(--surface-2)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+        <h3><i className="fas fa-calendar-times" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Block Calendar Slots</h3>
+        <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '15px' }}>Select a date to block out specific times so users cannot book meetings.</p>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input 
+            type="date" 
+            value={calDate} 
+            onChange={e => setCalDate(e.target.value)} 
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white' }}
+          />
+          {calDate && (
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {DEFAULT_SLOTS.map(slot => {
+                const isBlocked = blockedSlots.includes(slot);
+                return (
+                  <button 
+                    key={slot}
+                    onClick={() => toggleBlockSlot(slot, isBlocked)}
+                    style={{ 
+                      padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85em',
+                      background: isBlocked ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg)',
+                      border: `1px solid ${isBlocked ? '#ef4444' : 'var(--border)'}`,
+                      color: isBlocked ? '#ef4444' : 'white',
+                    }}
+                  >
+                    {slot} {isBlocked && <i className="fas fa-lock" style={{ marginLeft: '4px' }}/>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ background: 'var(--surface-2)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border)', overflowX: 'auto' }}>
         {loading ? <p style={{ textAlign: 'center' }}>Loading submissions...</p> : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
                 <th style={{ padding: '12px' }}>ID</th>
                 <th style={{ padding: '12px' }}>Type</th>
-                <th style={{ padding: '12px' }}>Name</th>
-                <th style={{ padding: '12px' }}>Date</th>
+                <th style={{ padding: '12px' }}>Contact Details</th>
+                <th style={{ padding: '12px' }}>Timeline / Date</th>
                 <th style={{ padding: '12px' }}>Status</th>
                 <th style={{ padding: '12px' }}>Action</th>
               </tr>
@@ -138,16 +217,27 @@ export default function AdminDashboard() {
                     <span style={{ background: 'var(--bg)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85em', color: 'var(--gold)' }}>
                       {sub.source.toUpperCase()}
                     </span>
+                    <div style={{ fontSize: '0.8em', marginTop: '4px', color: 'gray' }}>{sub.type}</div>
                   </td>
-                  <td style={{ padding: '12px' }}>{sub.name} <br/><span style={{ fontSize: '0.8em', color: 'gray' }}>{sub.email}</span></td>
-                  <td style={{ padding: '12px', fontSize: '0.85em' }}>{new Date(sub.createdAt).toLocaleDateString()}</td>
+                  <td style={{ padding: '12px' }}>
+                    <strong>{sub.name}</strong> <br/>
+                    <span style={{ fontSize: '0.8em', color: 'gray' }}><i className="fas fa-envelope"/> {sub.email}</span><br/>
+                    {sub.phone && <span style={{ fontSize: '0.8em', color: 'gray' }}><i className="fas fa-phone"/> {sub.phone}</span>}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '0.85em' }}>
+                    {sub.source === 'meeting' ? (
+                      <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>{sub.timeline}</span>
+                    ) : (
+                      sub.timeline || new Date(sub.createdAt).toLocaleDateString()
+                    )}
+                  </td>
                   <td style={{ padding: '12px' }}>
                     <span style={{ 
                       color: sub.status === 'Accepted' ? '#10b981' : sub.status === 'Rejected' ? '#ef4444' : '#f59e0b',
                       fontWeight: 'bold', fontSize: '0.9em'
                     }}>{sub.status}</span>
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td style={{ padding: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <select 
                       value={sub.status} 
                       onChange={(e) => updateStatus(sub.trackingId, e.target.value)}
@@ -158,6 +248,13 @@ export default function AdminDashboard() {
                       <option value="Accepted">Accepted</option>
                       <option value="Rejected">Rejected</option>
                     </select>
+                    <button 
+                      onClick={() => deleteSubmission(sub.trackingId)}
+                      style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px' }}
+                      title="Delete Request"
+                    >
+                      <i className="fas fa-trash-alt" />
+                    </button>
                   </td>
                 </tr>
               ))}

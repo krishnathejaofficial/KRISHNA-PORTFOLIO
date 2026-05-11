@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 
-export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenResumeAI }) {
+export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenResumeAI, onOpenTrack }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
   const { t } = useTranslation();
@@ -64,7 +64,7 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
         </div>
 
         {/* ── Secondary Action Row ── */}
-        <div className="hero-actions-row">
+        <div className="hero-actions-row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
           <button className="hero-action-chip hero-hire" onClick={onOpenHireMe}>
             <i className="fas fa-briefcase" /> Hire Me
           </button>
@@ -73,6 +73,9 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
           </button>
           <button className="hero-action-chip" onClick={onOpenCollab}>
             <i className="fas fa-handshake" /> Collaborate
+          </button>
+          <button className="hero-action-chip" onClick={onOpenTrack} style={{ background: 'var(--surface-2)', border: '1px solid var(--gold)' }}>
+            <i className="fas fa-search-location" style={{ color: 'var(--gold)' }} /> Track Request
           </button>
         </div>
 

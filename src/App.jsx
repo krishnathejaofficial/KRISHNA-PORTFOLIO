@@ -78,6 +78,7 @@ function App() {
           onOpenCollab={() => openModal('collab')}
           onOpenHireMe={() => openModal('hire')}
           onOpenResumeAI={() => openModal('resumeAI')}
+          onOpenTrack={() => openModal('track')}
         />
         <About />
         <Career />

@@ -95,15 +95,82 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, data: submissions });
     }
 
-    // 4. Update status
+    // 4. Update status & Send Email to User
     if (action === 'update-status') {
       if (!trackingId || !newStatus) return res.status(400).json({ error: 'Missing parameters' });
       
+      const submission = await db.collection('submissions').findOne({ trackingId });
+      if (!submission) return res.status(404).json({ error: 'Submission not found' });
+
       await db.collection('submissions').updateOne(
         { trackingId },
         { $set: { status: newStatus, updatedAt: new Date() } }
       );
+
+      // Send status update email to the user
+      const statusColor = newStatus === 'Accepted' ? '#10b981' : newStatus === 'Rejected' ? '#ef4444' : '#f59e0b';
+      const emailTemplate = `
+      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-radius: 16px; border: 1px solid #eaeaea;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #111827; margin: 0; font-size: 24px;">Update on your Request</h1>
+          <p style="color: #6b7280; font-size: 14px; margin-top: 8px;">Tracking ID: <strong>${trackingId}</strong></p>
+        </div>
+        
+        <div style="background-color: #fcfcfc; padding: 25px; border-radius: 12px; border-left: 5px solid ${statusColor}; text-align: center;">
+          <p style="margin: 0; color: #4b5563; font-size: 16px;">The status of your request has been updated to:</p>
+          <h2 style="color: ${statusColor}; font-size: 28px; margin: 15px 0;">${newStatus}</h2>
+          <p style="color: #6b7280; font-size: 14px; margin: 0;">Krishna Teja has reviewed your submission.</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #9ca3af;">
+          <p>Please do not reply to this automated email.</p>
+        </div>
+      </div>
+      `;
+
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: 'Krishna Portfolio <onboarding@resend.dev>',
+          to: submission.email,
+          subject: `Status Update: ${newStatus} [${trackingId}]`,
+          html: emailTemplate
+        })
+      });
       
+      return res.status(200).json({ success: true });
+    }
+
+    // 5. Delete Submission
+    if (action === 'delete-submission') {
+      if (!trackingId) return res.status(400).json({ error: 'Missing trackingId' });
+      await db.collection('submissions').deleteOne({ trackingId });
+      return res.status(200).json({ success: true });
+    }
+
+    // 6. Get Blocked Slots for a Date
+    if (action === 'get-blocked-slots') {
+      const { date } = req.body;
+      const doc = await db.collection('blocked_slots').findOne({ date });
+      return res.status(200).json({ success: true, blocked: doc ? doc.times : [] });
+    }
+
+    // 7. Toggle Slot Block
+    if (action === 'toggle-slot') {
+      const { date, time, isBlocked } = req.body;
+      if (isBlocked) {
+        await db.collection('blocked_slots').updateOne(
+          { date },
+          { $addToSet: { times: time } },
+          { upsert: true }
+        );
+      } else {
+        await db.collection('blocked_slots').updateOne(
+          { date },
+          { $pull: { times: time } }
+        );
+      }
       return res.status(200).json({ success: true });
     }
 

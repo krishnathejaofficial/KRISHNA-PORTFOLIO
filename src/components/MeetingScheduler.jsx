@@ -1,13 +1,4 @@
-import { useState } from 'react';
-
-/* Meeting Scheduler — Calendly-style with manual slot system + email booking */
-const SLOTS = {
-  Mon: ['10:00 AM', '11:00 AM', '2:00 PM', '4:00 PM'],
-  Tue: ['10:00 AM', '12:00 PM', '3:00 PM', '5:00 PM'],
-  Wed: ['11:00 AM', '2:00 PM', '4:00 PM'],
-  Thu: ['10:00 AM', '11:00 AM', '3:00 PM'],
-  Fri: ['10:00 AM', '12:00 PM', '2:00 PM'],
-};
+import { useState, useEffect } from 'react';
 
 const MEETING_TYPES = [
   { icon: 'fa-flask', label: 'Research Discussion', duration: '30 min', color: '#D4AF37' },
@@ -16,19 +7,37 @@ const MEETING_TYPES = [
   { icon: 'fa-comment-dots', label: 'General Connect', duration: '20 min', color: '#34d399' },
 ];
 
-const WEB3FORMS_KEY = '4e9cf101-22a3-4552-9b1f-dc1f86224eaa';
-
 export default function MeetingScheduler({ isOpen, onClose }) {
   const [meetType, setMeetType] = useState(null);
-  const [day, setDay] = useState(null);
-  const [time, setTime] = useState(null);
-  const [form, setForm] = useState({ name: '', email: '', note: '' });
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', phone: '', note: '' });
   const [status, setStatus] = useState('idle');
   const [step, setStep] = useState(1);
-
   const [trackingId, setTrackingId] = useState('');
 
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [fetchingSlots, setFetchingSlots] = useState(false);
+
   function set(field, val) { setForm(p => ({ ...p, [field]: val })); }
+
+  useEffect(() => {
+    if (step === 2 && date) {
+      setFetchingSlots(true);
+      setTime('');
+      fetch(`/api/slots?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setAvailableSlots(data.availableSlots);
+          } else {
+            setAvailableSlots([]);
+          }
+        })
+        .catch(() => setAvailableSlots([]))
+        .finally(() => setFetchingSlots(false));
+    }
+  }, [date, step]);
 
   async function book() {
     setStatus('sending');
@@ -41,7 +50,8 @@ export default function MeetingScheduler({ isOpen, onClose }) {
           type: meetType?.label,
           name: form.name,
           email: form.email,
-          timeline: `${day} at ${time} IST`,
+          phone: form.phone,
+          timeline: `${date} at ${time} IST`,
           detail: form.note || 'No agenda provided.',
         }),
       });
@@ -72,7 +82,7 @@ export default function MeetingScheduler({ isOpen, onClose }) {
 
         {/* Steps indicator */}
         <div className="sched-steps">
-          {['Type', 'Slot', 'Confirm'].map((s, i) => (
+          {['Type', 'Date/Time', 'Confirm'].map((s, i) => (
             <div key={s} className={`sched-step ${step > i ? 'done' : ''} ${step === i + 1 ? 'active' : ''}`}>
               <div className="sched-step-dot">{step > i + 1 ? <i className="fas fa-check" /> : i + 1}</div>
               <span>{s}</span>
@@ -85,7 +95,7 @@ export default function MeetingScheduler({ isOpen, onClose }) {
             <div className="collab-success">
               <i className="fas fa-calendar-check" style={{ fontSize: '3em', color: '#22c55e' }} />
               <h3>Meeting Requested!</h3>
-              <p>Krishna will confirm your <strong>{meetType?.label}</strong> on <strong>{day} at {time}</strong> via email within 24 hours.</p>
+              <p>Krishna will confirm your <strong>{meetType?.label}</strong> on <strong>{date} at {time}</strong> via email within 24 hours.</p>
               
               <div style={{ background: 'var(--surface-2)', padding: '15px', borderRadius: '8px', border: '1px dashed var(--gold)', margin: '20px 0' }}>
                 <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '5px' }}>Your Tracking ID</p>
@@ -127,23 +137,46 @@ export default function MeetingScheduler({ isOpen, onClose }) {
                       <i className={`fas ${meetType?.icon}`} style={{ color: 'var(--gold)' }} /> {meetType?.label}
                     </span>
                   </div>
-                  <p className="sched-label">Pick a Day & Time</p>
-                  {Object.entries(SLOTS).map(([d, times]) => (
-                    <div key={d} className="sched-day-row">
-                      <span className="sched-day-name">{d}</span>
-                      <div className="sched-times">
-                        {times.map(t => (
-                          <button key={t}
-                            className={`sched-time-btn ${day === d && time === t ? 'active' : ''}`}
-                            onClick={() => { setDay(d); setTime(t); }}>
-                            {t}
-                          </button>
-                        ))}
-                      </div>
+                  <p className="sched-label">Pick a Date & Time</p>
+                  
+                  <div className="clg-field">
+                    <label>Date *</label>
+                    <input 
+                      type="date" 
+                      min={new Date().toISOString().split("T")[0]}
+                      value={date}
+                      onChange={e => setDate(e.target.value)}
+                      style={{ padding: '12px', background: 'var(--bg)', color: 'white', border: '1px solid var(--border)', borderRadius: '6px' }}
+                    />
+                  </div>
+
+                  {date && (
+                    <div style={{ marginTop: '20px' }}>
+                      <label style={{ fontSize: '0.85em', color: 'gray', marginBottom: '10px', display: 'block' }}>Available Slots (IST)</label>
+                      {fetchingSlots ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--gold)', fontSize: '0.9em' }}>
+                          <i className="fas fa-spinner fa-spin" /> Fetching availability...
+                        </div>
+                      ) : availableSlots.length > 0 ? (
+                        <div className="sched-times" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))' }}>
+                          {availableSlots.map(t => (
+                            <button key={t}
+                              className={`sched-time-btn ${time === t ? 'active' : ''}`}
+                              onClick={() => setTime(t)}>
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '6px', fontSize: '0.9em' }}>
+                          No slots available on this date. Please select another date.
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  <button className="btn" style={{ width: '100%', marginTop: '12px' }}
-                    disabled={!day || !time} onClick={() => setStep(3)}>
+                  )}
+
+                  <button className="btn" style={{ width: '100%', marginTop: '20px' }}
+                    disabled={!date || !time} onClick={() => setStep(3)}>
                     Next <i className="fas fa-arrow-right" style={{ marginLeft: '6px' }} />
                   </button>
                 </div>
@@ -156,18 +189,26 @@ export default function MeetingScheduler({ isOpen, onClose }) {
                       <i className="fas fa-arrow-left" /> Back
                     </button>
                     <span className="sched-selected-type" style={{ fontSize: '0.82em' }}>
-                      {meetType?.label} · {day} {time}
+                      {meetType?.label} · {date} {time}
                     </span>
                   </div>
                   <div className="sched-confirm-box">
                     <div className="sched-confirm-row"><i className="fas fa-video" /><span>{meetType?.label}</span></div>
-                    <div className="sched-confirm-row"><i className="fas fa-clock" /><span>{meetType?.duration} · {day} at {time} IST</span></div>
+                    <div className="sched-confirm-row"><i className="fas fa-clock" /><span>{meetType?.duration} · {date} at {time} IST</span></div>
                     <div className="sched-confirm-row"><i className="fas fa-video" /><span>Google Meet (link sent via email)</span></div>
                   </div>
-                  <div className="clg-field" style={{ marginTop: '14px' }}>
-                    <label>Your Name *</label>
-                    <input type="text" placeholder="Full name" required value={form.name} onChange={e => set('name', e.target.value)} />
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '14px' }}>
+                    <div className="clg-field">
+                      <label>Your Name *</label>
+                      <input type="text" placeholder="Full name" required value={form.name} onChange={e => set('name', e.target.value)} />
+                    </div>
+                    <div className="clg-field">
+                      <label>Mobile Number *</label>
+                      <input type="tel" placeholder="+91 90000 00000" required value={form.phone} onChange={e => set('phone', e.target.value)} />
+                    </div>
                   </div>
+                  
                   <div className="clg-field">
                     <label>Your Email *</label>
                     <input type="email" placeholder="Confirmation will be sent here" required value={form.email} onChange={e => set('email', e.target.value)} />
@@ -177,7 +218,7 @@ export default function MeetingScheduler({ isOpen, onClose }) {
                     <textarea rows={2} placeholder="What would you like to discuss?" value={form.note} onChange={e => set('note', e.target.value)} />
                   </div>
                   <button className="btn" style={{ width: '100%' }}
-                    disabled={status === 'sending' || !form.name || !form.email}
+                    disabled={status === 'sending' || !form.name || !form.email || !form.phone}
                     onClick={book}>
                     {status === 'sending'
                       ? <><i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }} />Booking...</>
