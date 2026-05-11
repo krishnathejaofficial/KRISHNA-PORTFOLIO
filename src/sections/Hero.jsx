@@ -61,7 +61,7 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
         {/* ── Secondary Action Row ── */}
         <div className="hero-actions-row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
           <button className="hero-action-chip hero-hire" onClick={onOpenHireMe}>
-            <i className="fas fa-briefcase" /> Hire Me
+            <i className="fas fa-user-plus" /> Join Team
           </button>
           <button className="hero-action-chip" onClick={onOpenQR}>
             <i className="fas fa-id-card" /> Digital Card

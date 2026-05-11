@@ -82,13 +82,15 @@ export default async function handler(req, res) {
         <p style="color: #374151; line-height: 1.7; white-space: pre-wrap; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 0;">${detail}</p>
       `);
     } else if (source === 'hire') {
-      subject = `💼 Quick Hire Inquiry: ${type} [${trackingId}]`;
-      htmlContent = baseTemplate('Hiring Inquiry', '#10b981', `
+      subject = `💼 Job/Intern Application: ${type} - ${name} [${trackingId}]`;
+      htmlContent = baseTemplate('Team Application Received', '#10b981', `
         <table style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Recruiter Email:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a></td></tr>
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Applicant:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${name} (<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a>)</td></tr>
+          ${phone ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Phone:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><a href="tel:${phone}" style="color: #2563eb; text-decoration: none;">${phone}</a></td></tr>` : ''}
+          ${timeline ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Experience:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${timeline}</td></tr>` : ''}
           <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Role/Position:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><span style="background-color: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600;">${type}</span></td></tr>
         </table>
-        <h3 style="color: #111827; font-size: 16px; margin: 25px 0 10px 0;">Additional Context:</h3>
+        <h3 style="color: #111827; font-size: 16px; margin: 25px 0 10px 0;">Application Details & Resume:</h3>
         <p style="color: #374151; line-height: 1.7; white-space: pre-wrap; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 0;">${detail}</p>
       `);
     } else {
