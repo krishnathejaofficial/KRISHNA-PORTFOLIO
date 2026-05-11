@@ -52,12 +52,7 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
             onClick={e => { e.preventDefault(); document.querySelector('#resume')?.scrollIntoView({ behavior: 'smooth' }); }}>
             <i className="fas fa-file-alt" /> View Resume
           </a>
-          <button className="btn hero-btn-outline" onClick={onOpenResumeAI}>
-            <i className="fas fa-robot" /> AI Resume Tailor
-          </button>
-          <button className="btn hero-btn-outline" onClick={onOpenCoverLetter}>
-            <i className="fas fa-magic" /> Cover Letter
-          </button>
+
           <button className="btn hero-btn-outline" onClick={onOpenMeeting}>
             <i className="fas fa-calendar-alt" /> Book Meeting
           </button>

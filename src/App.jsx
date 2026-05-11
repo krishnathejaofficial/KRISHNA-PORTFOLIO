@@ -4,12 +4,12 @@ import Sidebar from './components/Sidebar';
 import Preloader from './components/Preloader';
 import RightDock from './components/RightDock';
 
-import CoverLetterGenerator from './components/CoverLetterGenerator';
+
+
 import QRBusinessCard from './components/QRBusinessCard';
 import CollaborationForm from './components/CollaborationForm';
 import MeetingScheduler from './components/MeetingScheduler';
 import HireMeButton from './components/HireMeButton';
-import AIResumeBuilder from './components/AIResumeBuilder';
 
 import Hero from './sections/Hero';
 import About from './sections/About';
@@ -72,12 +72,10 @@ function App() {
 
       <main>
         <Hero
-          onOpenCoverLetter={() => openModal('clg')}
           onOpenMeeting={() => openModal('meeting')}
           onOpenQR={() => openModal('qr')}
           onOpenCollab={() => openModal('collab')}
           onOpenHireMe={() => openModal('hire')}
-          onOpenResumeAI={() => openModal('resumeAI')}
           onOpenTrack={() => openModal('track')}
         />
         <About />
@@ -103,12 +101,10 @@ function App() {
       </footer>
 
       {/* Modals */}
-      <CoverLetterGenerator isOpen={modals.clg} onClose={() => closeModal('clg')} />
       <QRBusinessCard isOpen={modals.qr} onClose={() => closeModal('qr')} />
       <CollaborationForm isOpen={modals.collab} onClose={() => closeModal('collab')} />
       <MeetingScheduler isOpen={modals.meeting} onClose={() => closeModal('meeting')} />
       {modals.hire && <HireMeButton initialOpen onClose={() => closeModal('hire')} />}
-      <AIResumeBuilder isOpen={modals.resumeAI} onClose={() => closeModal('resumeAI')} />
       <TrackingWidget isOpen={modals.track} onClose={() => closeModal('track')} />
     </div>
   );

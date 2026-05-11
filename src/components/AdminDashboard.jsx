@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import CoverLetterGenerator from './CoverLetterGenerator';
+import AIResumeBuilder from './AIResumeBuilder';
 
 // All slots 8AM–11:30PM
 const ALL_SLOTS = (() => {
@@ -46,6 +48,9 @@ export default function AdminDashboard() {
   const [wtStart, setWtStart] = useState('08:00 AM');
   const [wtEnd, setWtEnd] = useState('02:00 PM');
   const [wtLabel, setWtLabel] = useState('Job / Class');
+
+  // Admin Tools Modals
+  const [modals, setModals] = useState({ clg: false, resumeAI: false });
 
   const api = useCallback(async (body) => {
     const res = await fetch('/api/admin', {
@@ -179,6 +184,19 @@ export default function AdminDashboard() {
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={fetchSubmissions} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'white' }}><i className="fas fa-sync-alt"/></button>
             <button onClick={logout} className="btn" style={{ background: '#ef4444' }}><i className="fas fa-sign-out-alt"/> Logout</button>
+          </div>
+        </div>
+
+        {/* ── ADMIN TOOLS ── */}
+        <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+          <h3 style={{ margin: '0 0 16px 0' }}><i className="fas fa-toolbox" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Admin Tools</h3>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button className="btn hero-btn-outline" onClick={() => setModals(p => ({ ...p, resumeAI: true }))}>
+              <i className="fas fa-robot" /> AI Resume Tailor
+            </button>
+            <button className="btn hero-btn-outline" onClick={() => setModals(p => ({ ...p, clg: true }))}>
+              <i className="fas fa-magic" /> Cover Letter
+            </button>
           </div>
         </div>
 
@@ -406,6 +424,10 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+      
+      {/* Tool Modals */}
+      <CoverLetterGenerator isOpen={modals.clg} onClose={() => setModals(p => ({ ...p, clg: false }))} />
+      <AIResumeBuilder isOpen={modals.resumeAI} onClose={() => setModals(p => ({ ...p, resumeAI: false }))} />
     </div>
   );
 }
