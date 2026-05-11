@@ -70,6 +70,9 @@ export default function Sidebar({ isOpen, onClose, onOpenQR }) {
           <button className="btn" onClick={() => { onClose(); onOpenQR(); }} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)', fontSize: '0.85em', padding: '10px' }}>
             <i className="fas fa-qrcode" style={{ marginRight: '8px' }} /> QR Business Card
           </button>
+          <button className="btn" onClick={() => { onClose(); onOpenTrack(); }} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)', fontSize: '0.85em', padding: '10px', marginTop: '10px' }}>
+            <i className="fas fa-search-location" style={{ marginRight: '8px' }} /> Track Request
+          </button>
         </div>
         <div className="sidebar-footer">
           {socialLogos.map(s => (

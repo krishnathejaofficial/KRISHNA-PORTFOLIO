@@ -25,10 +25,17 @@ import Media from './sections/Media';
 import Career from './sections/Career';
 import Resume from './sections/Resume';
 import Contact from './sections/Contact';
+import AdminDashboard from './components/AdminDashboard';
+import TrackingWidget from './components/TrackingWidget';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, resumeAI: false });
+  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, resumeAI: false, track: false });
+
+  // Simple routing for Admin Dashboard
+  if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+    return <AdminDashboard />;
+  }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => {
@@ -61,7 +68,7 @@ function App() {
       {/* Right Dock: Theme + Language + Back-to-top + Voice (left) + AI Chat (bottom-right) */}
       <RightDock />
 
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} />
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} onOpenTrack={() => openModal('track')} />
 
       <main>
         <Hero
@@ -101,6 +108,7 @@ function App() {
       <MeetingScheduler isOpen={modals.meeting} onClose={() => closeModal('meeting')} />
       {modals.hire && <HireMeButton initialOpen onClose={() => closeModal('hire')} />}
       <AIResumeBuilder isOpen={modals.resumeAI} onClose={() => closeModal('resumeAI')} />
+      <TrackingWidget isOpen={modals.track} onClose={() => closeModal('track')} />
     </div>
   );
 }

@@ -1,6 +1,19 @@
+import { MongoClient } from 'mongodb';
+
 // Vercel serverless function for Form Submission & Email via Resend
 const RESEND_API_KEY = 're_5cTHKvba_3NR8u9NnnBvu9qc6V7NCwvMT';
 const DESTINATION_EMAIL = 'krishnatejareddy2001@gmail.com'; // Change to 2003 if preferred
+const MONGODB_URI = 'mongodb+srv://krishnateja:Gteja1234@cluster0.3veyidf.mongodb.net/trackingDB?retryWrites=true&w=majority';
+
+let cachedClient = null;
+
+async function connectToDatabase() {
+  if (cachedClient) return cachedClient;
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  cachedClient = client;
+  return client;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,16 +23,19 @@ export default async function handler(req, res) {
   const { type, name, email, org, timeline, detail, message, source } = req.body;
 
   try {
+    // Generate a unique 6-digit Tracking ID
+    const trackingId = `KT-${Math.floor(100000 + Math.random() * 900000)}`;
+
     let subject = '';
     let htmlContent = '';
 
     if (source === 'collaboration') {
-      subject = `🚀 New Collaboration Request: ${type} - ${name}`;
+      subject = `🚀 New Collab: ${type} - ${name} [${trackingId}]`;
       htmlContent = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
           <div style="text-align: center; margin-bottom: 24px;">
             <h2 style="color: #111827; margin: 0;">New Collaboration Proposal</h2>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">via Krishna Portfolio</p>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Tracking ID: <strong>${trackingId}</strong></p>
           </div>
           
           <div style="background-color: white; padding: 24px; border-radius: 8px; border-left: 4px solid #D4AF37; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -41,12 +57,12 @@ export default async function handler(req, res) {
       `;
     } else {
       // Standard Contact Form
-      subject = `✉️ New Contact Message from ${name}`;
+      subject = `✉️ New Message from ${name} [${trackingId}]`;
       htmlContent = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
           <div style="text-align: center; margin-bottom: 24px;">
             <h2 style="color: #111827; margin: 0;">New Message Received</h2>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">via Krishna Portfolio Contact Form</p>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Tracking ID: <strong>${trackingId}</strong></p>
           </div>
           
           <div style="background-color: white; padding: 24px; border-radius: 8px; border-left: 4px solid #3b82f6; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -63,6 +79,29 @@ export default async function handler(req, res) {
           </div>
         </div>
       `;
+    }
+
+    // Save to MongoDB
+    try {
+      const client = await connectToDatabase();
+      const db = client.db('trackingDB');
+      await db.collection('submissions').insertOne({
+        trackingId,
+        source, // 'collaboration' or 'contact'
+        type,
+        name,
+        email,
+        org,
+        timeline,
+        detail,
+        message,
+        status: 'Pending Review',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    } catch (dbErr) {
+      console.error('MongoDB Error:', dbErr);
+      // We continue to send the email even if DB fails, to ensure no messages are lost.
     }
 
     // Send email via Resend API
@@ -87,7 +126,9 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    return res.status(200).json({ success: true, data });
+    
+    // We haven't hooked up MongoDB yet, but we will return the trackingId to the user.
+    return res.status(200).json({ success: true, trackingId, data });
   } catch (error) {
     console.error('Form submission error:', error);
     return res.status(500).json({ error: error.message });

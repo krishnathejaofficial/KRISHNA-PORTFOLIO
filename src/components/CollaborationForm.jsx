@@ -15,6 +15,7 @@ const COLLAB_TYPES = [
 export default function CollaborationForm({ isOpen, onClose }) {
   const [form, setForm] = useState({ type: '', name: '', org: '', email: '', detail: '', timeline: '' });
   const [status, setStatus] = useState('idle');
+  const [trackingId, setTrackingId] = useState('');
 
   function set(field, val) { setForm(p => ({ ...p, [field]: val })); }
 
@@ -36,7 +37,10 @@ export default function CollaborationForm({ isOpen, onClose }) {
         }),
       });
       const result = await res.json();
-      if (res.ok && result.success) { setStatus('success'); }
+      if (res.ok && result.success) { 
+        setTrackingId(result.trackingId);
+        setStatus('success'); 
+      }
       else throw new Error();
     } catch { setStatus('error'); }
   }
@@ -62,7 +66,14 @@ export default function CollaborationForm({ isOpen, onClose }) {
             <div className="collab-success">
               <i className="fas fa-check-circle" style={{ fontSize: '3em', color: '#22c55e' }} />
               <h3>Request Sent!</h3>
-              <p>Krishna will review your collaboration request and get back to you within 24–48 hours.</p>
+              <p>Krishna will review your collaboration request and get back to you soon.</p>
+              
+              <div style={{ background: 'var(--surface-2)', padding: '15px', borderRadius: '8px', border: '1px dashed var(--gold)', margin: '20px 0' }}>
+                <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '5px' }}>Your Tracking ID</p>
+                <strong style={{ fontSize: '1.4em', letterSpacing: '2px', color: 'white' }}>{trackingId}</strong>
+                <p style={{ fontSize: '0.8em', color: 'gray', marginTop: '10px' }}>Save this ID to track your request status using the "Track Request" option in the menu.</p>
+              </div>
+
               <button className="btn" onClick={onClose} style={{ marginTop: '16px' }}>Close</button>
             </div>
           ) : (
