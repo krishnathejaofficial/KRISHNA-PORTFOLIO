@@ -39,11 +39,32 @@ export default async function handler(req, res) {
       // 1. Admin blocked slots with notes
       const blockedDoc = await db.collection('blocked_slots').findOne({ date });
       const adminBlockedMap = blockedDoc ? blockedDoc.slotData || {} : {};
-      // Legacy support for old 'times' array format
       if (blockedDoc?.times) {
         blockedDoc.times.forEach(t => { if (!adminBlockedMap[t]) adminBlockedMap[t] = { blocked: true, note: '' }; });
       }
       const dayFullyBlocked = blockedDoc?.dayLocked || false;
+
+      // 1b. Weekly recurring timetable
+      const parsedDate = new Date(date);
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayOfWeek = days[parsedDate.getDay()];
+      
+      const weeklyDoc = await db.collection('weekly_timetable').findOne({ _id: 'default' });
+      const recurringBlocks = weeklyDoc && weeklyDoc[dayOfWeek] ? weeklyDoc[dayOfWeek] : [];
+      // recurringBlocks = [{ start: '08:00 AM', end: '02:00 PM', label: 'Job' }]
+      
+      recurringBlocks.forEach(block => {
+        const startIdx = ALL_SLOTS.indexOf(block.start);
+        const endIdx = ALL_SLOTS.indexOf(block.end);
+        if (startIdx !== -1 && endIdx !== -1) {
+          for (let i = startIdx; i < endIdx; i++) { // block up to but not including the end time
+            const slot = ALL_SLOTS[i];
+            if (!adminBlockedMap[slot]) {
+              adminBlockedMap[slot] = { blocked: true, note: `Weekly: ${block.label || 'Busy'}` };
+            }
+          }
+        }
+      });
 
       // 2. Booked meetings (accepted or pending, not rejected)
       const bookings = await db.collection('submissions').find({

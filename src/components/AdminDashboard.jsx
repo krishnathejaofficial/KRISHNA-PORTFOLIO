@@ -40,6 +40,13 @@ export default function AdminDashboard() {
   // Expanded submission row
   const [expandedId, setExpandedId] = useState(null);
 
+  // Weekly Timetable state
+  const [weeklyTimetable, setWeeklyTimetable] = useState({});
+  const [wtDay, setWtDay] = useState('Monday');
+  const [wtStart, setWtStart] = useState('08:00 AM');
+  const [wtEnd, setWtEnd] = useState('02:00 PM');
+  const [wtLabel, setWtLabel] = useState('Job / Class');
+
   const api = useCallback(async (body) => {
     const res = await fetch('/api/admin', {
       method: 'POST',
@@ -50,7 +57,7 @@ export default function AdminDashboard() {
   }, [token]);
 
   useEffect(() => {
-    if (token) { setStep('dashboard'); fetchSubmissions(); }
+    if (token) { setStep('dashboard'); fetchSubmissions(); fetchWeeklyTimetable(); }
   }, [token]);
 
   useEffect(() => {
@@ -116,6 +123,23 @@ export default function AdminDashboard() {
     await api({ action: 'set-reminder', date: calDate, time: reminderTime, reminderText });
     alert('Reminder set! Email sent to confirm.');
     setReminderText(''); setReminderTime('');
+  };
+
+  const fetchWeeklyTimetable = async () => {
+    const d = await api({ action: 'get-weekly-timetable' });
+    if (d.success) setWeeklyTimetable(d.timetable);
+  };
+
+  const addWeeklyBlock = async () => {
+    await api({ action: 'add-weekly-block', day: wtDay, start: wtStart, end: wtEnd, label: wtLabel });
+    fetchWeeklyTimetable();
+    fetchCalSlots();
+  };
+
+  const deleteWeeklyBlock = async (day, index) => {
+    await api({ action: 'delete-weekly-block', day, index });
+    fetchWeeklyTimetable();
+    fetchCalSlots();
   };
 
   const logout = () => { setToken(''); localStorage.removeItem('adminToken'); setStep('password'); };
@@ -233,6 +257,59 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* ── WEEKLY RECURRING TIMETABLE ── */}
+        <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+          <h3 style={{ margin: '0 0 16px 0' }}><i className="fas fa-clock" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Weekly Recurring Schedule</h3>
+          <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '20px' }}>Set your recurring busy hours (e.g., job or classes). These will automatically block slots every week on the selected day.</p>
+          
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', padding: '16px', background: 'var(--bg)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '120px' }}>
+              <label style={{ fontSize: '0.8em', color: 'gray' }}>Day</label>
+              <select value={wtDay} onChange={e => setWtDay(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white' }}>
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '100px' }}>
+              <label style={{ fontSize: '0.8em', color: 'gray' }}>Start Time</label>
+              <select value={wtStart} onChange={e => setWtStart(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white' }}>
+                {ALL_SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '100px' }}>
+              <label style={{ fontSize: '0.8em', color: 'gray' }}>End Time</label>
+              <select value={wtEnd} onChange={e => setWtEnd(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white' }}>
+                {ALL_SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 2, minWidth: '150px' }}>
+              <label style={{ fontSize: '0.8em', color: 'gray' }}>Label (e.g. Work)</label>
+              <input type="text" value={wtLabel} onChange={e => setWtLabel(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white' }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button onClick={addWeeklyBlock} className="btn" style={{ background: 'var(--gold)', color: '#111', padding: '10px 20px', height: '40px' }}><i className="fas fa-plus"/> Add</button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+              weeklyTimetable[day] && weeklyTimetable[day].length > 0 && (
+                <div key={day} style={{ background: 'var(--bg)', borderRadius: '8px', padding: '12px', border: '1px solid var(--border)' }}>
+                  <h4 style={{ margin: '0 0 10px 0', color: 'var(--gold)', borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>{day}</h4>
+                  {weeklyTimetable[day].map((block, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-2)', padding: '8px', borderRadius: '6px', marginBottom: '6px', fontSize: '0.85em' }}>
+                      <div>
+                        <strong style={{ color: 'white' }}>{block.start} - {block.end}</strong>
+                        <div style={{ color: 'gray', fontSize: '0.9em' }}>{block.label}</div>
+                      </div>
+                      <button onClick={() => deleteWeeklyBlock(day, idx)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><i className="fas fa-times"/></button>
+                    </div>
+                  ))}
+                </div>
+              )
+            ))}
+          </div>
         </div>
 
         {/* ── SUBMISSIONS TABLE ── */}

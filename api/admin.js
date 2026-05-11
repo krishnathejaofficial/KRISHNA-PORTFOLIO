@@ -151,8 +151,27 @@ export default async function handler(req, res) {
       const ALL_SLOTS = generateAllSlots();
       const blockedDoc = await db.collection('blocked_slots').findOne({ date });
       const slotData = blockedDoc?.slotData || {};
-      // Legacy support
       if (blockedDoc?.times) blockedDoc.times.forEach(t => { if (!slotData[t]) slotData[t] = { blocked: true, note: '' }; });
+
+      // Merge weekly recurring timetable for admin view
+      const parsedDate = new Date(date);
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayOfWeek = days[parsedDate.getDay()];
+      const weeklyDoc = await db.collection('weekly_timetable').findOne({ _id: 'default' });
+      if (weeklyDoc && weeklyDoc[dayOfWeek]) {
+        weeklyDoc[dayOfWeek].forEach(block => {
+          const startIdx = ALL_SLOTS.indexOf(block.start);
+          const endIdx = ALL_SLOTS.indexOf(block.end);
+          if (startIdx !== -1 && endIdx !== -1) {
+            for (let i = startIdx; i < endIdx; i++) {
+              const slot = ALL_SLOTS[i];
+              if (!slotData[slot]) {
+                slotData[slot] = { blocked: true, note: `Weekly: ${block.label || 'Busy'}`, isWeekly: true };
+              }
+            }
+          }
+        });
+      }
 
       const bookings = await db.collection('submissions').find({
         source: 'meeting', timeline: { $regex: `^${date}` }, status: { $nin: ['Rejected'] }
@@ -176,7 +195,8 @@ export default async function handler(req, res) {
         isAdminBlocked: blockedDoc?.dayLocked || slotData[slot]?.blocked || false,
         note: slotData[slot]?.note || '',
         isBooked: !!bookedMap[slot],
-        bookedBy: bookedMap[slot] || null
+        bookedBy: bookedMap[slot] || null,
+        isWeekly: slotData[slot]?.isWeekly || false
       }));
 
       return res.status(200).json({ success: true, slots: result, dayLocked: blockedDoc?.dayLocked || false });
@@ -195,7 +215,6 @@ export default async function handler(req, res) {
     }
 
     if (action === 'set-slot') {
-      // Upsert a specific slot's blocked state and note
       const { date, time, blocked, note } = req.body;
       if (blocked) {
         await db.collection('blocked_slots').updateOne(
@@ -224,12 +243,10 @@ export default async function handler(req, res) {
     }
 
     if (action === 'set-reminder') {
-      // Schedule a reminder: store it in DB, respond immediately
       const { date, time, reminderText } = req.body;
       await db.collection('reminders').insertOne({
         date, time, reminderText, sent: false, createdAt: new Date()
       });
-      // Send immediate confirmation
       const html = `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;border-radius:16px;border:1px solid #eaeaea;">
         <h2 style="color:#111827;">⏰ Reminder Set</h2>
         <p>A reminder has been scheduled for <strong>${date} at ${time}</strong>.</p>
@@ -237,6 +254,36 @@ export default async function handler(req, res) {
         <p style="color:#6b7280;font-size:12px;">Note: You will receive an email reminder 30 minutes before.</p>
       </div>`;
       await sendEmail(ADMIN_EMAIL, `⏰ Reminder: ${reminderText} on ${date} at ${time}`, html);
+      return res.status(200).json({ success: true });
+    }
+
+    // ── WEEKLY TIMETABLE ──────────────────────────────────────────────────────
+    if (action === 'get-weekly-timetable') {
+      const doc = await db.collection('weekly_timetable').findOne({ _id: 'default' });
+      return res.status(200).json({ success: true, timetable: doc || {} });
+    }
+
+    if (action === 'add-weekly-block') {
+      const { day, start, end, label } = req.body;
+      await db.collection('weekly_timetable').updateOne(
+        { _id: 'default' },
+        { $push: { [day]: { start, end, label } } },
+        { upsert: true }
+      );
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === 'delete-weekly-block') {
+      const { day, index } = req.body;
+      const doc = await db.collection('weekly_timetable').findOne({ _id: 'default' });
+      if (doc && doc[day]) {
+        const newArr = [...doc[day]];
+        newArr.splice(index, 1);
+        await db.collection('weekly_timetable').updateOne(
+          { _id: 'default' },
+          { $set: { [day]: newArr } }
+        );
+      }
       return res.status(200).json({ success: true });
     }
 
