@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   const [step, setStep] = useState('password');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
-  const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
+  const [token, setToken] = useState(sessionStorage.getItem('adminToken') || '');
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -52,14 +52,24 @@ export default function AdminDashboard() {
   // Admin Tools Modals
   const [modals, setModals] = useState({ clg: false, resumeAI: false });
 
+  const logout = useCallback(() => {
+    setToken('');
+    sessionStorage.removeItem('adminToken');
+    setStep('password');
+  }, []);
+
   const api = useCallback(async (body) => {
     const res = await fetch('/api/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...body, token })
     });
+    if (res.status === 401) {
+      logout();
+      return { success: false, error: 'Unauthorized' };
+    }
     return res.json();
-  }, [token]);
+  }, [token, logout]);
 
   useEffect(() => {
     if (token) { setStep('dashboard'); fetchSubmissions(); fetchWeeklyTimetable(); }
@@ -81,7 +91,7 @@ export default function AdminDashboard() {
     e.preventDefault(); setLoading(true); setError('');
     const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'verify-otp', otp }) });
     const d = await r.json();
-    if (r.ok) { setToken(d.token); localStorage.setItem('adminToken', d.token); }
+    if (r.ok) { setToken(d.token); sessionStorage.setItem('adminToken', d.token); }
     else setError(d.error);
     setLoading(false);
   };
@@ -141,13 +151,32 @@ export default function AdminDashboard() {
     fetchCalSlots();
   };
 
-  const deleteWeeklyBlock = async (day, index) => {
-    await api({ action: 'delete-weekly-block', day, index });
-    fetchWeeklyTimetable();
-    fetchCalSlots();
+  // --- Password Change Logic ---
+  const [showPwdModal, setShowPwdModal] = useState(false);
+  const [pwdStep, setPwdStep] = useState('request'); // 'request' or 'verify'
+  const [currentPwd, setCurrentPwd] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [pwdOtp, setPwdOtp] = useState('');
+
+  const requestPwdChange = async (e) => {
+    e.preventDefault(); setLoading(true); setError('');
+    const d = await api({ action: 'request-password-change-otp', currentPassword: currentPwd, newPassword: newPwd });
+    if (d.success) setPwdStep('verify'); else setError(d.error);
+    setLoading(false);
   };
 
-  const logout = () => { setToken(''); localStorage.removeItem('adminToken'); setStep('password'); };
+  const verifyPwdChange = async (e) => {
+    e.preventDefault(); setLoading(true); setError('');
+    const d = await api({ action: 'verify-password-change-otp', otp: pwdOtp });
+    if (d.success) {
+      alert('Password changed successfully! Please log in again.');
+      setShowPwdModal(false);
+      logout();
+    } else {
+      setError(d.error);
+    }
+    setLoading(false);
+  };
 
   if (step !== 'dashboard') return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -182,6 +211,7 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '12px' }}>
           <h1 style={{ margin: 0, fontSize: '1.5em' }}><i className="fas fa-shield-alt" style={{ color: 'var(--gold)', marginRight: '10px' }}/> Admin Dashboard</h1>
           <div style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={() => { setShowPwdModal(true); setPwdStep('request'); setError(''); setCurrentPwd(''); setNewPwd(''); setPwdOtp(''); }} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'white' }}><i className="fas fa-key"/> Change Password</button>
             <button onClick={fetchSubmissions} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'white' }}><i className="fas fa-sync-alt"/></button>
             <button onClick={logout} className="btn" style={{ background: '#ef4444' }}><i className="fas fa-sign-out-alt"/> Logout</button>
           </div>
@@ -425,6 +455,37 @@ export default function AdminDashboard() {
         </div>
       </div>
       
+      {/* Password Change Modal */}
+      {showPwdModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--surface-2)', borderRadius: '12px', padding: '30px', maxWidth: '400px', width: '90%', border: '1px solid var(--gold-dim)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, color: 'var(--gold)' }}><i className="fas fa-key" style={{ marginRight: '8px' }}/> Change Password</h3>
+              <button onClick={() => setShowPwdModal(false)} style={{ background: 'none', border: 'none', color: 'gray', cursor: 'pointer', fontSize: '1.2em' }}><i className="fas fa-times"/></button>
+            </div>
+            
+            {error && <p style={{ color: '#ef4444', textAlign: 'center', marginBottom: '12px', fontSize: '0.9em' }}>{error}</p>}
+            
+            {pwdStep === 'request' ? (
+              <form onSubmit={requestPwdChange}>
+                <input type="password" placeholder="Current Password" value={currentPwd} onChange={e => setCurrentPwd(e.target.value)}
+                  required style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+                <input type="password" placeholder="New Password" value={newPwd} onChange={e => setNewPwd(e.target.value)}
+                  required style={{ width: '100%', padding: '12px', marginBottom: '16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+                <button type="submit" className="btn" style={{ width: '100%', background: 'var(--gold)', color: '#111' }} disabled={loading}>{loading ? 'Sending OTP…' : 'Request OTP'}</button>
+              </form>
+            ) : (
+              <form onSubmit={verifyPwdChange}>
+                <p style={{ textAlign: 'center', color: 'gray', marginBottom: '16px', fontSize: '0.9em' }}>An OTP has been sent to your admin email.</p>
+                <input type="text" placeholder="6-digit OTP" value={pwdOtp} onChange={e => setPwdOtp(e.target.value)}
+                  required style={{ width: '100%', padding: '12px', marginBottom: '16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box', letterSpacing: '4px', textAlign: 'center', fontSize: '1.2em' }} />
+                <button type="submit" className="btn" style={{ width: '100%', background: '#10b981', color: 'white' }} disabled={loading}>{loading ? 'Verifying…' : 'Verify & Update Password'}</button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Tool Modals */}
       <CoverLetterGenerator isOpen={modals.clg} onClose={() => setModals(p => ({ ...p, clg: false }))} />
       <AIResumeBuilder isOpen={modals.resumeAI} onClose={() => setModals(p => ({ ...p, resumeAI: false }))} />

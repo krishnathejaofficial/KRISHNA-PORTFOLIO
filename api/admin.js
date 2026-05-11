@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 
 const MONGODB_URI = 'mongodb+srv://krishnateja:Gteja1234@cluster0.3veyidf.mongodb.net/trackingDB?retryWrites=true&w=majority';
 const ADMIN_EMAIL = 'krishnatejareddy2003@gmail.com';
-const ADMIN_PASSWORD = 'admin';
+const DEFAULT_PASSWORD = 'admin';
 const GMAIL_APP_PASSWORD = 'kqdvnpdqtneakjjr';
 
 let cachedClient = null;
@@ -53,7 +53,7 @@ async function sendEmail(to, subject, html) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { action, password, otp, token, trackingId, newStatus, adminNote, reminderTime } = req.body;
+  const { action, password, currentPassword, newPassword, otp, token, trackingId, newStatus, adminNote, reminderTime } = req.body;
 
   try {
     const client = await connectToDatabase();
@@ -61,7 +61,10 @@ export default async function handler(req, res) {
 
     // ── AUTH ──────────────────────────────────────────────────────────────────
     if (action === 'request-otp') {
-      if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Invalid password' });
+      const authDoc = await db.collection('auth').findOne({ role: 'admin' });
+      const activePassword = authDoc?.password || DEFAULT_PASSWORD;
+
+      if (password !== activePassword) return res.status(401).json({ error: 'Invalid password' });
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
       await db.collection('auth').updateOne(
         { role: 'admin' },
@@ -97,6 +100,44 @@ export default async function handler(req, res) {
     const adminDoc = await db.collection('auth').findOne({ role: 'admin', sessionToken: token });
     if (!adminDoc || Date.now() > adminDoc.sessionExpiry)
       return res.status(401).json({ error: 'Unauthorized or session expired.' });
+
+    // ── PASSWORD CHANGE ───────────────────────────────────────────────────────
+    if (action === 'request-password-change-otp') {
+      const activePassword = adminDoc.password || DEFAULT_PASSWORD;
+      if (currentPassword !== activePassword) return res.status(401).json({ error: 'Incorrect current password' });
+      
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      await db.collection('auth').updateOne(
+        { role: 'admin' },
+        { $set: { changePwdOtp: generatedOtp, changePwdOtpExpiry: Date.now() + 10 * 60 * 1000, pendingNewPassword: newPassword } }
+      );
+      
+      const html = `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;text-align:center;border-radius:16px;border:1px solid #eaeaea;">
+        <h1 style="color:#111827;font-size:24px;font-weight:700;">Password Change Request</h1>
+        <p style="color:#6b7280;font-size:14px;">An attempt was made to change your admin password.</p>
+        <div style="margin:30px 0;padding:20px;border-radius:12px;border:2px dashed #D4AF37;">
+          <p style="color:#4b5563;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Verification OTP</p>
+          <strong style="font-size:36px;color:#111827;letter-spacing:5px;">${generatedOtp}</strong>
+        </div>
+      </div>`;
+      await sendEmail(ADMIN_EMAIL, `🔐 Password Change OTP: ${generatedOtp}`, html);
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === 'verify-password-change-otp') {
+      if (!adminDoc.changePwdOtp || adminDoc.changePwdOtp !== otp || Date.now() > adminDoc.changePwdOtpExpiry) {
+        return res.status(401).json({ error: 'Invalid or expired OTP for password change' });
+      }
+      
+      await db.collection('auth').updateOne(
+        { role: 'admin' },
+        { 
+          $set: { password: adminDoc.pendingNewPassword },
+          $unset: { changePwdOtp: '', changePwdOtpExpiry: '', pendingNewPassword: '', sessionToken: '', sessionExpiry: '' }
+        }
+      );
+      return res.status(200).json({ success: true });
+    }
 
     // ── SUBMISSIONS ───────────────────────────────────────────────────────────
     if (action === 'get-submissions') {
