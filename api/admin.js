@@ -1,9 +1,10 @@
 import { MongoClient } from 'mongodb';
+import nodemailer from 'nodemailer';
 
 const MONGODB_URI = 'mongodb+srv://krishnateja:Gteja1234@cluster0.3veyidf.mongodb.net/trackingDB?retryWrites=true&w=majority';
-const RESEND_API_KEY = 're_5cTHKvba_3NR8u9NnnBvu9qc6V7NCwvMT';
 const ADMIN_EMAIL = 'krishnatejareddy2003@gmail.com';
 const ADMIN_PASSWORD = 'admin';
+const GMAIL_APP_PASSWORD = 'kqdvnpdqtneakjjr';
 
 let cachedClient = null;
 async function connectToDatabase() {
@@ -26,12 +27,27 @@ function generateAllSlots() {
   return slots;
 }
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: ADMIN_EMAIL,
+    pass: GMAIL_APP_PASSWORD
+  }
+});
+
 async function sendEmail(to, subject, html) {
-  return fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: 'Krishna Portfolio <onboarding@resend.dev>', to, subject, html })
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: `"Krishna's Portfolio" <${ADMIN_EMAIL}>`,
+      to,
+      subject,
+      html
+    });
+    return info;
+  } catch (error) {
+    console.error('Nodemailer error:', error);
+    throw error;
+  }
 }
 
 export default async function handler(req, res) {

@@ -1,8 +1,9 @@
 import { MongoClient } from 'mongodb';
+import nodemailer from 'nodemailer';
 
-// Vercel serverless function for Form Submission & Email via Resend
-const RESEND_API_KEY = 're_5cTHKvba_3NR8u9NnnBvu9qc6V7NCwvMT';
+// Vercel serverless function for Form Submission & Email via Nodemailer
 const DESTINATION_EMAIL = 'krishnatejareddy2003@gmail.com'; 
+const GMAIL_APP_PASSWORD = 'kqdvnpdqtneakjjr';
 const MONGODB_URI = 'mongodb+srv://krishnateja:Gteja1234@cluster0.3veyidf.mongodb.net/trackingDB?retryWrites=true&w=majority';
 
 let cachedClient = null;
@@ -14,6 +15,14 @@ async function connectToDatabase() {
   cachedClient = client;
   return client;
 }
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: DESTINATION_EMAIL,
+    pass: GMAIL_APP_PASSWORD
+  }
+});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -42,7 +51,7 @@ export default async function handler(req, res) {
         
         <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #9ca3af; border-top: 1px solid #eaeaea; padding-top: 20px;">
           <p style="margin: 0;">This is an automated notification from Krishna's Portfolio.</p>
-          <p style="margin: 5px 0 0 0;">Powered by Resend & MongoDB</p>
+          <p style="margin: 5px 0 0 0;">Powered by Nodemailer & MongoDB</p>
         </div>
       </div>
     `;
@@ -117,34 +126,17 @@ export default async function handler(req, res) {
       });
     } catch (dbErr) {
       console.error('MongoDB Error:', dbErr);
-      // We continue to send the email even if DB fails, to ensure no messages are lost.
     }
 
-    // Send email via Resend API
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Portfolio Contact <onboarding@resend.dev>', // Resend trial requires this from address
-        to: DESTINATION_EMAIL,
-        subject: subject,
-        html: htmlContent,
-      }),
+    // Send email to admin via Nodemailer
+    await transporter.sendMail({
+      from: `"Portfolio Contact" <${DESTINATION_EMAIL}>`,
+      to: DESTINATION_EMAIL,
+      subject: subject,
+      html: htmlContent
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Resend API error:', errorData);
-      return res.status(response.status).json(errorData);
-    }
-
-    const data = await response.json();
-    
-    // We haven't hooked up MongoDB yet, but we will return the trackingId to the user.
-    return res.status(200).json({ success: true, trackingId, data });
+    return res.status(200).json({ success: true, trackingId });
   } catch (error) {
     console.error('Form submission error:', error);
     return res.status(500).json({ error: error.message });
