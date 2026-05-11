@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 
-export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenResumeAI, onOpenTrack }) {
+export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenHireKrishna, onOpenResumeAI, onOpenTrack }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
   const { t } = useTranslation();
@@ -60,6 +60,9 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
 
         {/* ── Secondary Action Row ── */}
         <div className="hero-actions-row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button className="hero-action-chip hero-hire" onClick={onOpenHireKrishna} style={{ background: 'var(--gold)', color: '#111' }}>
+            <i className="fas fa-hand-holding-usd" style={{ color: '#111' }} /> Hire Krishna
+          </button>
           <button className="hero-action-chip hero-hire" onClick={onOpenHireMe}>
             <i className="fas fa-user-plus" /> Join Team
           </button>

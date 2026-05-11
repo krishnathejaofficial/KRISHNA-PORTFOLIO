@@ -5,10 +5,11 @@ const ROLES = [
   { icon: 'fa-code', label: 'Developer Intern', color: '#60a5fa' },
   { icon: 'fa-chart-line', label: 'Business Analyst', color: '#34d399' },
   { icon: 'fa-hands-helping', label: 'Project Assistant', color: '#a78bfa' },
+  { icon: 'fa-plus', label: 'Other', color: '#f97316' },
 ];
 
 export default function HireMeButton({ initialOpen = false, onClose }) {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', role: '', experience: '', whyJoin: '', resumeLink: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', role: '', customRole: '', experience: '', whyJoin: '', resumeLink: '' });
   const [status, setStatus] = useState('idle');
   const [trackingId, setTrackingId] = useState('');
 
@@ -17,6 +18,7 @@ export default function HireMeButton({ initialOpen = false, onClose }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!form.role) return alert('Please select a role.');
+    if (form.role === 'Other' && !form.customRole) return alert('Please type the custom role.');
     setStatus('sending');
     try {
       const res = await fetch('/api/submit-form', {
@@ -24,7 +26,7 @@ export default function HireMeButton({ initialOpen = false, onClose }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           source: 'hire',
-          type: form.role,
+          type: form.role === 'Other' ? form.customRole : form.role,
           name: form.name,
           email: form.email,
           phone: form.phone,
@@ -84,6 +86,11 @@ export default function HireMeButton({ initialOpen = false, onClose }) {
                     </div>
                   ))}
                 </div>
+                {form.role === 'Other' && (
+                  <div style={{ marginTop: '10px' }}>
+                    <input type="text" required placeholder="Type the role..." value={form.customRole} onChange={e => set('customRole', e.target.value)} />
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>

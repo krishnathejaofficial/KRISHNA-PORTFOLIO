@@ -10,6 +10,7 @@ import QRBusinessCard from './components/QRBusinessCard';
 import CollaborationForm from './components/CollaborationForm';
 import MeetingScheduler from './components/MeetingScheduler';
 import HireMeButton from './components/HireMeButton';
+import HireKrishnaModal from './components/HireKrishnaModal';
 
 import Hero from './sections/Hero';
 import About from './sections/About';
@@ -30,7 +31,7 @@ import TrackingWidget from './components/TrackingWidget';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, resumeAI: false, track: false });
+  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, hireKrishna: false, resumeAI: false, track: false });
 
   // Simple routing for Admin Dashboard
   if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
@@ -76,6 +77,7 @@ function App() {
           onOpenQR={() => openModal('qr')}
           onOpenCollab={() => openModal('collab')}
           onOpenHireMe={() => openModal('hire')}
+          onOpenHireKrishna={() => openModal('hireKrishna')}
           onOpenTrack={() => openModal('track')}
         />
         <About />
@@ -105,6 +107,7 @@ function App() {
       <CollaborationForm isOpen={modals.collab} onClose={() => closeModal('collab')} />
       <MeetingScheduler isOpen={modals.meeting} onClose={() => closeModal('meeting')} />
       {modals.hire && <HireMeButton initialOpen onClose={() => closeModal('hire')} />}
+      <HireKrishnaModal isOpen={modals.hireKrishna} onClose={() => closeModal('hireKrishna')} />
       <TrackingWidget isOpen={modals.track} onClose={() => closeModal('track')} />
     </div>
   );
