@@ -96,6 +96,47 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, token: sessionToken });
     }
 
+    // ── FORGOT PASSWORD ───────────────────────────────────────────────────────
+    if (action === 'request-forgot-password') {
+      const { email } = req.body;
+      if (email !== ADMIN_EMAIL) return res.status(401).json({ error: 'Invalid admin email address' });
+      
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      await db.collection('auth').updateOne(
+        { role: 'admin' },
+        { $set: { forgotPwdOtp: generatedOtp, forgotPwdOtpExpiry: Date.now() + 10 * 60 * 1000 } },
+        { upsert: true }
+      );
+      
+      const html = `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;text-align:center;border-radius:16px;border:1px solid #eaeaea;">
+        <h1 style="color:#111827;font-size:24px;font-weight:700;">Password Reset Request</h1>
+        <p style="color:#6b7280;font-size:14px;">An attempt was made to reset your admin password.</p>
+        <div style="margin:30px 0;padding:20px;border-radius:12px;border:2px dashed #D4AF37;">
+          <p style="color:#4b5563;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Verification OTP</p>
+          <strong style="font-size:36px;color:#111827;letter-spacing:5px;">${generatedOtp}</strong>
+        </div>
+      </div>`;
+      await sendEmail(ADMIN_EMAIL, `🔐 Password Reset OTP: ${generatedOtp}`, html);
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === 'reset-forgot-password') {
+      const { otp, newPassword } = req.body;
+      const adminDoc = await db.collection('auth').findOne({ role: 'admin' });
+      if (!adminDoc || !adminDoc.forgotPwdOtp || adminDoc.forgotPwdOtp !== otp || Date.now() > adminDoc.forgotPwdOtpExpiry) {
+        return res.status(401).json({ error: 'Invalid or expired OTP' });
+      }
+      
+      await db.collection('auth').updateOne(
+        { role: 'admin' },
+        { 
+          $set: { password: newPassword },
+          $unset: { forgotPwdOtp: '', forgotPwdOtpExpiry: '', sessionToken: '', sessionExpiry: '' }
+        }
+      );
+      return res.status(200).json({ success: true });
+    }
+
     // ── AUTH GUARD ────────────────────────────────────────────────────────────
     const adminDoc = await db.collection('auth').findOne({ role: 'admin', sessionToken: token });
     if (!adminDoc || Date.now() > adminDoc.sessionExpiry)

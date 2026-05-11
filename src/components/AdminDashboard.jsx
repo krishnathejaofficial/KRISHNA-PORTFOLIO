@@ -18,9 +18,10 @@ const ALL_SLOTS = (() => {
 const STATUS_COLORS = { 'Accepted': '#10b981', 'Rejected': '#ef4444', 'In Progress': '#3b82f6', 'Pending Review': '#f59e0b' };
 
 export default function AdminDashboard() {
-  const [step, setStep] = useState('password');
+  const [step, setStep] = useState('password'); // password, otp, forgot-email, forgot-otp, dashboard
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [token, setToken] = useState(sessionStorage.getItem('adminToken') || '');
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -156,10 +157,42 @@ export default function AdminDashboard() {
   const [pwdStep, setPwdStep] = useState('request'); // 'request' or 'verify'
   const [currentPwd, setCurrentPwd] = useState('');
   const [newPwd, setNewPwd] = useState('');
+  const [confirmNewPwd, setConfirmNewPwd] = useState('');
   const [pwdOtp, setPwdOtp] = useState('');
+  const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+
+  // --- Forgot Password Logic ---
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [forgotNewPwd, setForgotNewPwd] = useState('');
+  const [forgotConfirmPwd, setForgotConfirmPwd] = useState('');
+  const [showForgotPwd, setShowForgotPwd] = useState(false);
+
+  const requestForgotPwd = async (e) => {
+    e.preventDefault(); setLoading(true); setError('');
+    const d = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'request-forgot-password', email: forgotEmail }) }).then(r => r.json());
+    if (d.success) setStep('forgot-otp'); else setError(d.error);
+    setLoading(false);
+  };
+
+  const resetForgotPwd = async (e) => {
+    e.preventDefault(); setLoading(true); setError('');
+    if (forgotNewPwd !== forgotConfirmPwd) { setError('Passwords do not match'); setLoading(false); return; }
+    const d = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reset-forgot-password', otp: forgotOtp, newPassword: forgotNewPwd }) }).then(r => r.json());
+    if (d.success) {
+      alert('Password reset successful! Please login with your new password.');
+      setStep('password');
+      setForgotEmail(''); setForgotOtp(''); setForgotNewPwd(''); setForgotConfirmPwd('');
+    } else {
+      setError(d.error);
+    }
+    setLoading(false);
+  };
 
   const requestPwdChange = async (e) => {
     e.preventDefault(); setLoading(true); setError('');
+    if (newPwd !== confirmNewPwd) { setError('New passwords do not match'); setLoading(false); return; }
     const d = await api({ action: 'request-password-change-otp', currentPassword: currentPwd, newPassword: newPwd });
     if (d.success) setPwdStep('verify'); else setError(d.error);
     setLoading(false);
@@ -186,18 +219,57 @@ export default function AdminDashboard() {
           <h2 style={{ color: 'var(--gold)', margin: 0 }}>Admin Login</h2>
         </div>
         {error && <p style={{ color: '#ef4444', textAlign: 'center', marginBottom: '12px' }}>{error}</p>}
-        {step === 'password' ? (
+        
+        {step === 'password' && (
           <form onSubmit={requestOtp}>
-            <input type="password" placeholder="Admin Password" value={password} onChange={e => setPassword(e.target.value)}
-              required style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
-            <button type="submit" className="btn" style={{ width: '100%' }} disabled={loading}>{loading ? 'Sending OTP…' : 'Get OTP'}</button>
+            <div style={{ position: 'relative', marginBottom: '12px' }}>
+              <input type={showPwd ? 'text' : 'password'} placeholder="Admin Password" value={password} onChange={e => setPassword(e.target.value)}
+                required style={{ width: '100%', padding: '12px', paddingRight: '40px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+              <i className={`fas ${showPwd ? 'fa-eye-slash' : 'fa-eye'}`} onClick={() => setShowPwd(!showPwd)} style={{ position: 'absolute', right: '12px', top: '15px', color: 'gray', cursor: 'pointer' }}/>
+            </div>
+            <button type="submit" className="btn" style={{ width: '100%', marginBottom: '12px' }} disabled={loading}>{loading ? 'Sending OTP…' : 'Get OTP'}</button>
+            <div style={{ textAlign: 'center' }}>
+              <button type="button" onClick={() => setStep('forgot-email')} style={{ background: 'none', border: 'none', color: 'var(--gold)', fontSize: '0.85em', cursor: 'pointer', textDecoration: 'underline' }}>Forgot Password?</button>
+            </div>
           </form>
-        ) : (
+        )}
+        
+        {step === 'otp' && (
           <form onSubmit={verifyOtp}>
             <p style={{ textAlign: 'center', color: 'gray', marginBottom: '12px', fontSize: '0.9em' }}>OTP sent to your email.</p>
             <input type="text" placeholder="6-digit OTP" value={otp} onChange={e => setOtp(e.target.value)}
               required style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box', letterSpacing: '4px', textAlign: 'center', fontSize: '1.2em' }} />
             <button type="submit" className="btn" style={{ width: '100%' }} disabled={loading}>{loading ? 'Verifying…' : 'Verify & Login'}</button>
+          </form>
+        )}
+
+        {step === 'forgot-email' && (
+          <form onSubmit={requestForgotPwd}>
+            <p style={{ textAlign: 'center', color: 'gray', marginBottom: '12px', fontSize: '0.9em' }}>Enter admin email to reset password.</p>
+            <input type="email" placeholder="Admin Email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
+              required style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+            <button type="submit" className="btn" style={{ width: '100%', marginBottom: '12px' }} disabled={loading}>{loading ? 'Sending OTP…' : 'Send Reset OTP'}</button>
+            <div style={{ textAlign: 'center' }}>
+              <button type="button" onClick={() => setStep('password')} style={{ background: 'none', border: 'none', color: 'gray', fontSize: '0.85em', cursor: 'pointer' }}>Back to Login</button>
+            </div>
+          </form>
+        )}
+
+        {step === 'forgot-otp' && (
+          <form onSubmit={resetForgotPwd}>
+            <p style={{ textAlign: 'center', color: 'gray', marginBottom: '12px', fontSize: '0.9em' }}>OTP sent! Set your new password.</p>
+            <input type="text" placeholder="6-digit OTP" value={forgotOtp} onChange={e => setForgotOtp(e.target.value)}
+              required style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box', letterSpacing: '4px', textAlign: 'center', fontSize: '1.2em' }} />
+            <div style={{ position: 'relative', marginBottom: '12px' }}>
+              <input type={showForgotPwd ? 'text' : 'password'} placeholder="New Password" value={forgotNewPwd} onChange={e => setForgotNewPwd(e.target.value)}
+                required style={{ width: '100%', padding: '12px', paddingRight: '40px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+              <i className={`fas ${showForgotPwd ? 'fa-eye-slash' : 'fa-eye'}`} onClick={() => setShowForgotPwd(!showForgotPwd)} style={{ position: 'absolute', right: '12px', top: '15px', color: 'gray', cursor: 'pointer' }}/>
+            </div>
+            <div style={{ position: 'relative', marginBottom: '16px' }}>
+              <input type={showForgotPwd ? 'text' : 'password'} placeholder="Confirm New Password" value={forgotConfirmPwd} onChange={e => setForgotConfirmPwd(e.target.value)}
+                required style={{ width: '100%', padding: '12px', paddingRight: '40px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+            </div>
+            <button type="submit" className="btn" style={{ width: '100%', background: '#10b981', color: 'white' }} disabled={loading}>{loading ? 'Resetting…' : 'Reset Password'}</button>
           </form>
         )}
       </div>
@@ -468,10 +540,20 @@ export default function AdminDashboard() {
             
             {pwdStep === 'request' ? (
               <form onSubmit={requestPwdChange}>
-                <input type="password" placeholder="Current Password" value={currentPwd} onChange={e => setCurrentPwd(e.target.value)}
-                  required style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
-                <input type="password" placeholder="New Password" value={newPwd} onChange={e => setNewPwd(e.target.value)}
-                  required style={{ width: '100%', padding: '12px', marginBottom: '16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+                <div style={{ position: 'relative', marginBottom: '12px' }}>
+                  <input type={showCurrentPwd ? 'text' : 'password'} placeholder="Current Password" value={currentPwd} onChange={e => setCurrentPwd(e.target.value)}
+                    required style={{ width: '100%', padding: '12px', paddingRight: '40px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+                  <i className={`fas ${showCurrentPwd ? 'fa-eye-slash' : 'fa-eye'}`} onClick={() => setShowCurrentPwd(!showCurrentPwd)} style={{ position: 'absolute', right: '12px', top: '15px', color: 'gray', cursor: 'pointer' }}/>
+                </div>
+                <div style={{ position: 'relative', marginBottom: '12px' }}>
+                  <input type={showNewPwd ? 'text' : 'password'} placeholder="New Password" value={newPwd} onChange={e => setNewPwd(e.target.value)}
+                    required style={{ width: '100%', padding: '12px', paddingRight: '40px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+                  <i className={`fas ${showNewPwd ? 'fa-eye-slash' : 'fa-eye'}`} onClick={() => setShowNewPwd(!showNewPwd)} style={{ position: 'absolute', right: '12px', top: '15px', color: 'gray', cursor: 'pointer' }}/>
+                </div>
+                <div style={{ position: 'relative', marginBottom: '16px' }}>
+                  <input type={showNewPwd ? 'text' : 'password'} placeholder="Confirm New Password" value={confirmNewPwd} onChange={e => setConfirmNewPwd(e.target.value)}
+                    required style={{ width: '100%', padding: '12px', paddingRight: '40px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box' }} />
+                </div>
                 <button type="submit" className="btn" style={{ width: '100%', background: 'var(--gold)', color: '#111' }} disabled={loading}>{loading ? 'Sending OTP…' : 'Request OTP'}</button>
               </form>
             ) : (
