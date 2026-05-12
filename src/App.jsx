@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import SplashCursor from './components/SplashCursor';
 import ScrollProgress from './components/ScrollProgress';
+import VisitorCounter from './components/VisitorCounter';
 import Sidebar from './components/Sidebar';
 import Preloader from './components/Preloader';
 import RightDock from './components/RightDock';
@@ -113,6 +114,7 @@ function App() {
         <p style={{ marginTop: '8px', fontSize: '0.8em', opacity: 0.7 }}>
           Built with <i className="fas fa-heart" style={{ color: 'var(--gold)' }}></i> using React &amp; Vite.
         </p>
+        <VisitorCounter />
       </footer>
 
       {/* Modals */}

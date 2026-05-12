@@ -11,6 +11,18 @@ export default function AvailabilityWidget() {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [istTime, setIstTime] = useState('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      setIstTime(new Date().toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true
+      }));
+    };
+    updateTime();
+    const t = setInterval(updateTime, 60000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     fetch('/api/availability')
@@ -89,11 +101,16 @@ export default function AvailabilityWidget() {
           <p style={{ margin: '0 0 6px 0', fontSize: '0.8em', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
             {data?.message || 'Open to new opportunities — feel free to reach out!'}
           </p>
-          {data?.updatedAt && (
-            <div style={{ fontSize: '0.68em', color: 'rgba(255,255,255,0.28)' }}>
-              Updated: {new Date(data.updatedAt).toLocaleDateString()}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: '0.75em', color: 'var(--gold)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <i className="fas fa-clock" /> {istTime} (IST)
             </div>
-          )}
+            {data?.updatedAt && (
+              <div style={{ fontSize: '0.68em', color: 'rgba(255,255,255,0.28)' }}>
+                Updated: {new Date(data.updatedAt).toLocaleDateString()}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
