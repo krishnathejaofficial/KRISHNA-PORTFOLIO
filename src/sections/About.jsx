@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from '../components/LanguageSwitcher';
 import CounterAnimation from '../components/CounterAnimation';
+import AIBioSummarizer from '../components/AIBioSummarizer';
 
 export default function About() {
   const ref = useRef(null);
@@ -46,6 +47,9 @@ export default function About() {
             </div>
           ))}
         </div>
+
+        {/* AI Bio Summarizer */}
+        <AIBioSummarizer />
       </div>
     </section>
   );
