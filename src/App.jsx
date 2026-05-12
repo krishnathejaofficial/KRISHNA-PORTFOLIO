@@ -32,10 +32,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, hireKrishna: false, resumeAI: false, track: false });
 
-  // Simple routing for Admin Dashboard
-  if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
-    return <AdminDashboard />;
-  }
+  const isAdmin = typeof window !== 'undefined' && window.location.pathname === '/admin';
 
   // Auto-open tracking widget if URL has ?track= param
   useEffect(() => {
@@ -60,6 +57,10 @@ function App() {
 
   const openModal = (key) => setModals(prev => ({ ...prev, [key]: true }));
   const closeModal = (key) => setModals(prev => ({ ...prev, [key]: false }));
+
+  if (isAdmin) {
+    return <AdminDashboard />;
+  }
 
   return (
     <div className="app-container">
@@ -86,6 +87,8 @@ function App() {
           onOpenHireMe={() => openModal('hire')}
           onOpenHireKrishna={() => openModal('hireKrishna')}
           onOpenTrack={() => openModal('track')}
+          onOpenCoverLetter={() => openModal('clg')}
+          onOpenResumeAI={() => openModal('resumeAI')}
         />
         <About />
         <Career />

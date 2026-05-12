@@ -1,5 +1,5 @@
 // Service Worker for Krishna's Portfolio PWA
-const CACHE_NAME = 'krishna-portfolio-v1';
+const CACHE_NAME = 'krishna-portfolio-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

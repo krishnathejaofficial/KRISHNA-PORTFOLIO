@@ -70,7 +70,7 @@ export default function Skills() {
       <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '32px' }}>
         {[
           { id: 'bars', icon: 'fa-bars', label: 'Progress Bars' },
-          { id: 'radar', icon: 'fa-chart-radar', label: 'Radar Chart' }
+          { id: 'radar', icon: 'fa-chart-area', label: 'Radar Chart' }
         ].map(tab => (
           <button
             key={tab.id}

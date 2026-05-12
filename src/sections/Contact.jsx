@@ -72,7 +72,7 @@ export default function Contact({ onOpenCollab, onOpenQR }) {
       </form>
       <div className="contact-info" data-animate>
         <p><i className="fas fa-map-marker-alt" style={{ color: 'var(--gold)', marginRight: '8px' }} />Madharapakkam, Tiruvallur, Tamil Nadu - 601202</p>
-        <p style={{ marginTop: '10px' }}><i className="fas fa-envelope" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="mailto:krishnatejareddy2001@gmail.com">krishnatejareddy2001@gmail.com</a></p>
+        <p style={{ marginTop: '10px' }}><i className="fas fa-envelope" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="mailto:krishnatejareddy2003@gmail.com">krishnatejareddy2003@gmail.com</a></p>
         <p style={{ marginTop: '10px' }}><i className="fas fa-phone" style={{ color: 'var(--gold)', marginRight: '8px' }} /><a href="tel:+919390850349">+91 93908 50349</a></p>
       </div>
       <div className="social-links" data-animate style={{ width: '100%', overflow: 'hidden' }}>
