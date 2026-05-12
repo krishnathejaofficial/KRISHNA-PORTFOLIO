@@ -58,7 +58,7 @@ export default function AdminDashboard() {
   const [reminders, setReminders] = useState([]);
 
   // New feature state
-  const [activeTab, setActiveTab] = useState('submissions'); // submissions | calendar | weekly | tools | analytics | log | availability
+  const [activeTab, setActiveTab] = useState('submissions'); // submissions | calendar | weekly | tools | analytics | log | availability | testimonials
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [activityLog, setActivityLog] = useState([]);
@@ -69,6 +69,12 @@ export default function AdminDashboard() {
   const [notifGranted, setNotifGranted] = useState(false);
   const notifPollRef = useRef(null);
   const lastSubmissionCount = useRef(0);
+
+  // Testimonials state
+  const [testimonials, setTestimonials] = useState([]);
+  const [testimonialsLoading, setTestimonialsLoading] = useState(false);
+  const [editingTestimonial, setEditingTestimonial] = useState(null); // null | {} | {_id,...} (existing)
+  const EMPTY_T = { name: '', role: '', org: '', avatar: '', avatarColor: '#D4AF37', rating: 5, text: '', relation: '', date: '' };
 
   const logout = useCallback(() => {
     setToken('');
@@ -98,6 +104,7 @@ export default function AdminDashboard() {
       fetchAnalytics();
       fetchActivityLog();
       fetchAvailability();
+      fetchTestimonials();
     }
   }, [token]);
 
@@ -212,6 +219,50 @@ export default function AdminDashboard() {
     else alert('Notifications were denied. Please allow them in browser settings.');
   };
 
+  // ── TESTIMONIALS CRUD ─────────────────────────────────────────────────────
+  const fetchTestimonials = async () => {
+    setTestimonialsLoading(true);
+    try {
+      const r = await fetch('/api/testimonials');
+      const d = await r.json();
+      if (d.success) setTestimonials(d.testimonials || []);
+    } catch (e) { console.error(e); }
+    setTestimonialsLoading(false);
+  };
+
+  const saveTestimonial = async (data) => {
+    const isNew = !data._id;
+    const body = {
+      action: isNew ? 'add' : 'update',
+      token,
+      ...data,
+      id: data._id
+    };
+    try {
+      const r = await fetch('/api/testimonials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      if (d.success) { setEditingTestimonial(null); fetchTestimonials(); }
+      else alert(d.error || 'Save failed');
+    } catch (e) { alert('Error saving testimonial'); }
+  };
+
+  const deleteTestimonial = async (id) => {
+    if (!confirm('Permanently delete this testimonial?')) return;
+    try {
+      const r = await fetch('/api/testimonials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', token, id })
+      });
+      const d = await r.json();
+      if (d.success) fetchTestimonials();
+      else alert(d.error || 'Delete failed');
+    } catch (e) { alert('Error deleting'); }
+  };
 
   const fetchCalSlots = async () => {
     setCalLoading(true);
@@ -464,6 +515,7 @@ export default function AdminDashboard() {
             { id: 'calendar', icon: 'fa-calendar-alt', label: 'Calendar' },
             { id: 'weekly', icon: 'fa-clock', label: 'Schedule' },
             { id: 'availability', icon: 'fa-circle-check', label: 'Availability' },
+            { id: 'testimonials', icon: 'fa-star', label: 'Testimonials' },
             { id: 'analytics', icon: 'fa-chart-bar', label: 'Analytics' },
             { id: 'log', icon: 'fa-list-alt', label: 'Activity Log' },
             { id: 'tools', icon: 'fa-toolbox', label: 'Tools' },
@@ -687,6 +739,171 @@ export default function AdminDashboard() {
             <button onClick={updateAvailability} disabled={availLoading} className="btn" style={{ background: 'var(--gold)', color: '#111', fontWeight: 700 }}>
               <i className="fas fa-save" style={{ marginRight: '6px' }}/>{availLoading ? 'Saving…' : 'Save Availability'}
             </button>
+          </div>
+        )}
+
+        {/* ── TESTIMONIALS TAB ── */}
+        {activeTab === 'testimonials' && (
+          <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+              <h3 style={{ margin: 0 }}><i className="fas fa-star" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Manage Testimonials</h3>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={fetchTestimonials} className="btn" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'white', fontSize: '0.82em' }}>
+                  <i className="fas fa-sync-alt"/> Refresh
+                </button>
+                <button onClick={() => setEditingTestimonial({ ...EMPTY_T })} className="btn" style={{ background: 'var(--gold)', color: '#111', fontWeight: 700 }}>
+                  <i className="fas fa-plus" style={{ marginRight: '6px' }}/> Add Testimonial
+                </button>
+              </div>
+            </div>
+
+            {/* Add / Edit form */}
+            {editingTestimonial && (() => {
+              const et = editingTestimonial;
+              const set = (k, v) => setEditingTestimonial(p => ({ ...p, [k]: v }));
+              const isNew = !et._id;
+              const COLORS = ['#D4AF37','#10b981','#3b82f6','#6366f1','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899'];
+              return (
+                <div style={{ background: 'var(--bg)', borderRadius: '14px', padding: '20px', border: '1px solid var(--gold-dim)', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h4 style={{ margin: 0, color: 'var(--gold)' }}>{isNew ? '➕ Add New Testimonial' : '✏️ Edit Testimonial'}</h4>
+                    <button onClick={() => setEditingTestimonial(null)} style={{ background: 'none', border: 'none', color: 'gray', cursor: 'pointer', fontSize: '1.1em' }}><i className="fas fa-times"/></button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                    <div>
+                      <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '4px' }}>Name *</label>
+                      <input value={et.name} onChange={e => { set('name', e.target.value); if (!et._id) set('avatar', e.target.value.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()); }}
+                        placeholder="Dr. Jane Smith" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '4px' }}>Role / Title</label>
+                      <input value={et.role} onChange={e => set('role', e.target.value)}
+                        placeholder="Professor, Dept. of Biotechnology" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '4px' }}>Organisation</label>
+                      <input value={et.org} onChange={e => set('org', e.target.value)}
+                        placeholder="VIT University" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '4px' }}>Relation</label>
+                      <input value={et.relation} onChange={e => set('relation', e.target.value)}
+                        placeholder="Academic Mentor" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '4px' }}>Avatar Initials</label>
+                      <input value={et.avatar} onChange={e => set('avatar', e.target.value.slice(0,3).toUpperCase())}
+                        placeholder="JS" maxLength={3} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box', letterSpacing: '2px' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '4px' }}>Date</label>
+                      <input value={et.date} onChange={e => set('date', e.target.value)}
+                        placeholder="March 2025" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+
+                  {/* Star rating */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '6px' }}>Rating</label>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {[1,2,3,4,5].map(i => (
+                        <i key={i} className="fas fa-star" onClick={() => set('rating', i)}
+                          style={{ fontSize: '1.3em', color: i <= et.rating ? '#D4AF37' : 'rgba(212,175,55,0.2)', cursor: 'pointer', transition: 'color 0.15s' }} />
+                      ))}
+                      <span style={{ marginLeft: '8px', fontSize: '0.85em', color: 'gray', alignSelf: 'center' }}>{et.rating}/5</span>
+                    </div>
+                  </div>
+
+                  {/* Avatar color */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '6px' }}>Avatar Color</label>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {COLORS.map(c => (
+                        <button key={c} onClick={() => set('avatarColor', c)}
+                          style={{ width: '28px', height: '28px', borderRadius: '50%', background: c, border: et.avatarColor === c ? '3px solid white' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.15s', outline: 'none' }} />
+                      ))}
+                      {/* Preview */}
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: et.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8em', color: '#fff', marginLeft: '8px', border: `2px solid ${et.avatarColor}80` }}>
+                        {et.avatar || 'AB'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Testimonial text */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ fontSize: '0.78em', color: 'gray', display: 'block', marginBottom: '4px' }}>Testimonial Text *</label>
+                    <textarea value={et.text} onChange={e => set('text', e.target.value)} rows={4}
+                      placeholder="Write the testimonial here…"
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.6 }} />
+                    <div style={{ fontSize: '0.72em', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>{et.text.length} characters</div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => saveTestimonial(et)} className="btn" style={{ background: 'var(--gold)', color: '#111', fontWeight: 700 }}
+                      disabled={!et.name || !et.text}>
+                      <i className="fas fa-save" style={{ marginRight: '6px' }}/>{isNew ? 'Add Testimonial' : 'Save Changes'}
+                    </button>
+                    <button onClick={() => setEditingTestimonial(null)} className="btn" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'white' }}>Cancel</button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Testimonials list */}
+            {testimonialsLoading
+              ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gold)' }}><i className="fas fa-spinner fa-spin"/> Loading…</div>
+              : testimonials.length === 0
+                ? <div style={{ textAlign: 'center', padding: '40px', color: 'gray' }}>
+                    <i className="fas fa-star" style={{ fontSize: '2em', marginBottom: '12px', display: 'block', opacity: 0.3 }}/>
+                    No testimonials yet. Click "Add Testimonial" to get started.
+                  </div>
+                : <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {testimonials.map((t, idx) => (
+                      <div key={t._id} style={{
+                        background: 'var(--bg)', borderRadius: '12px', padding: '16px 20px',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        display: 'flex', gap: '14px', alignItems: 'flex-start'
+                      }}>
+                        {/* Avatar */}
+                        <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: t.avatarColor || '#D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85em', color: '#fff', flexShrink: 0 }}>
+                          {t.avatar || t.name?.slice(0,2)}
+                        </div>
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.95em' }}>{t.name}</span>
+                            <span style={{ fontSize: '0.75em', color: t.avatarColor || 'var(--gold)' }}>{t.role}</span>
+                            {t.org && <span style={{ fontSize: '0.72em', color: 'gray' }}>· {t.org}</span>}
+                            {/* Stars */}
+                            <span style={{ marginLeft: 'auto', display: 'flex', gap: '2px' }}>
+                              {[1,2,3,4,5].map(i => <i key={i} className="fas fa-star" style={{ color: i <= (t.rating||5) ? '#D4AF37' : 'rgba(212,175,55,0.2)', fontSize: '0.75em' }}/>)}
+                            </span>
+                          </div>
+                          <p style={{ margin: '0 0 6px 0', fontSize: '0.83em', color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, fontStyle: 'italic' }}>
+                            "{t.text?.slice(0, 120)}{t.text?.length > 120 ? '…' : ''}"
+                          </p>
+                          <div style={{ fontSize: '0.72em', color: 'rgba(255,255,255,0.3)' }}>
+                            {t.relation && <span style={{ marginRight: '10px' }}>{t.relation}</span>}
+                            {t.date && <span>{t.date}</span>}
+                          </div>
+                        </div>
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                          <button onClick={() => setEditingTestimonial({ ...t })}
+                            style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--gold)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '0.82em', fontWeight: 600 }}>
+                            <i className="fas fa-edit" style={{ marginRight: '4px' }}/>Edit
+                          </button>
+                          <button onClick={() => deleteTestimonial(t._id)}
+                            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '0.82em', fontWeight: 600 }}>
+                            <i className="fas fa-trash" style={{ marginRight: '4px' }}/>Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+            }
           </div>
         )}
 
