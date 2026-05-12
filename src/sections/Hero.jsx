@@ -101,10 +101,6 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
             <i className="fas fa-file-alt" /> View Resume
           </a>
 
-          <button className="btn hero-btn-outline" onClick={onOpenResumeAI} style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
-            <i className="fas fa-magic" /> AI Tailor Resume
-          </button>
-          
           <button className="btn hero-btn-outline" onClick={onOpenMeeting}>
             <i className="fas fa-calendar-alt" /> Book Meeting
           </button>
