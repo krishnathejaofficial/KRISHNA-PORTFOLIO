@@ -444,6 +444,24 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
+    // ── ACTIVITY LOG ─────────────────────────────────────────────────────────
+    if (action === 'get-activity-log') {
+      const log = await db.collection('activity_log')
+        .find().sort({ timestamp: -1 }).limit(100).toArray();
+      return res.status(200).json({ success: true, log });
+    }
+
+    if (action === 'log-activity') {
+      const { activity, detail } = req.body;
+      await db.collection('activity_log').insertOne({
+        action: activity,
+        detail: detail || '',
+        source: 'admin',
+        timestamp: new Date()
+      });
+      return res.status(200).json({ success: true });
+    }
+
     return res.status(400).json({ error: 'Invalid action' });
   } catch (error) {
     console.error('Admin API error:', error);

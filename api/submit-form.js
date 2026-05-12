@@ -24,6 +24,65 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Auto-reply email template for submitters
+function buildAutoReply(name, trackingId, source) {
+  const sourceLabels = {
+    collaboration: 'Collaboration Proposal',
+    meeting: 'Meeting Request',
+    hire: 'Job/Internship Application',
+    'hire-krishna': 'Hiring Offer',
+    contact: 'Message'
+  };
+  const label = sourceLabels[source] || 'Submission';
+  const trackUrl = `https://krishnateja.vercel.app/?track=${trackingId}`;
+
+  return `
+    <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;padding:0;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #eaeaea;">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#111827 0%,#1f2937 100%);padding:36px 32px;text-align:center;">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(212,175,55,0.15);border:2px solid #D4AF37;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <span style="font-size:24px;">✅</span>
+        </div>
+        <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Received!</h1>
+        <p style="color:#9ca3af;font-size:14px;margin:8px 0 0 0;">Your ${label} has been submitted</p>
+      </div>
+
+      <!-- Body -->
+      <div style="padding:32px;">
+        <p style="color:#374151;font-size:16px;line-height:1.7;margin:0 0 20px 0;">
+          Hi <strong>${name}</strong>,
+        </p>
+        <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 20px 0;">
+          Thank you for reaching out! I've received your <strong>${label}</strong> and will review it personally. 
+          I aim to respond within <strong>24–48 hours</strong>.
+        </p>
+
+        <!-- Tracking Card -->
+        <div style="background:#f9fafb;border-radius:12px;padding:20px;border:1px solid #eee;text-align:center;margin:24px 0;">
+          <p style="margin:0 0 8px 0;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Your Tracking ID</p>
+          <p style="margin:0 0 16px 0;font-size:28px;font-weight:800;color:#D4AF37;letter-spacing:4px;">${trackingId}</p>
+          <a href="${trackUrl}" style="display:inline-block;background:#D4AF37;color:#111;padding:10px 24px;border-radius:25px;text-decoration:none;font-weight:700;font-size:14px;">
+            Track Your Request →
+          </a>
+        </div>
+
+        <p style="color:#6b7280;font-size:14px;line-height:1.6;margin:0;">
+          You can use this tracking ID at any time to check the status of your request on my portfolio website. 
+          You'll also receive an email notification when I update the status.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="background:#f9fafb;padding:20px 32px;border-top:1px solid #eee;text-align:center;">
+        <p style="margin:0;color:#9ca3af;font-size:12px;">
+          G. Krishna Teja · VIT University · Biotechnology & Business Professional<br/>
+          <a href="https://krishnateja.vercel.app" style="color:#D4AF37;text-decoration:none;">krishnateja.vercel.app</a>
+        </p>
+      </div>
+    </div>
+  `;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -138,17 +197,39 @@ export default async function handler(req, res) {
         createdAt: new Date(),
         updatedAt: new Date()
       });
+
+      // Log activity
+      await db.collection('activity_log').insertOne({
+        action: 'new_submission',
+        trackingId,
+        source: source || 'contact',
+        name,
+        email,
+        timestamp: new Date()
+      });
     } catch (dbErr) {
       console.error('MongoDB Error:', dbErr);
     }
 
-    // Send email to admin via Nodemailer
+    // Send notification email to admin
     await transporter.sendMail({
       from: `"Portfolio Contact" <${DESTINATION_EMAIL}>`,
       to: DESTINATION_EMAIL,
       subject: subject,
       html: htmlContent
     });
+
+    // Send auto-reply to the submitter
+    try {
+      await transporter.sendMail({
+        from: `"G. Krishna Teja" <${DESTINATION_EMAIL}>`,
+        to: email,
+        subject: `✅ Received! Your ${source === 'meeting' ? 'Meeting Request' : source === 'collaboration' ? 'Collaboration Proposal' : 'Message'} [${trackingId}]`,
+        html: buildAutoReply(name, trackingId, source)
+      });
+    } catch (replyErr) {
+      console.error('Auto-reply error (non-critical):', replyErr);
+    }
 
     return res.status(200).json({ success: true, trackingId });
   } catch (error) {

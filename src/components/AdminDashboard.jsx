@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import CoverLetterGenerator from './CoverLetterGenerator';
 import AIResumeBuilder from './AIResumeBuilder';
 
@@ -57,6 +57,19 @@ export default function AdminDashboard() {
   const [filterSource, setFilterSource] = useState('ALL');
   const [reminders, setReminders] = useState([]);
 
+  // New feature state
+  const [activeTab, setActiveTab] = useState('submissions'); // submissions | calendar | weekly | tools | analytics | log | availability
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [activityLog, setActivityLog] = useState([]);
+  const [logLoading, setLogLoading] = useState(false);
+  const [availability, setAvailability] = useState({ status: 'available', message: '' });
+  const [availLoading, setAvailLoading] = useState(false);
+  const [notifSupported, setNotifSupported] = useState(false);
+  const [notifGranted, setNotifGranted] = useState(false);
+  const notifPollRef = useRef(null);
+  const lastSubmissionCount = useRef(0);
+
   const logout = useCallback(() => {
     setToken('');
     sessionStorage.removeItem('adminToken');
@@ -77,12 +90,51 @@ export default function AdminDashboard() {
   }, [token, logout]);
 
   useEffect(() => {
-    if (token) { setStep('dashboard'); fetchSubmissions(); fetchWeeklyTimetable(); fetchReminders(); }
+    if (token) {
+      setStep('dashboard');
+      fetchSubmissions();
+      fetchWeeklyTimetable();
+      fetchReminders();
+      fetchAnalytics();
+      fetchActivityLog();
+      fetchAvailability();
+    }
   }, [token]);
 
   useEffect(() => {
     if (step === 'dashboard' && calDate) fetchCalSlots();
   }, [calDate, step]);
+
+  // Browser notification support check
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotifSupported(true);
+      setNotifGranted(Notification.permission === 'granted');
+    }
+  }, []);
+
+  // Poll for new submissions every 60s and fire browser notification
+  useEffect(() => {
+    if (!token || !notifGranted) return;
+    notifPollRef.current = setInterval(async () => {
+      const d = await api({ action: 'get-submissions' });
+      if (d.success) {
+        const count = d.data.length;
+        if (lastSubmissionCount.current > 0 && count > lastSubmissionCount.current) {
+          const newest = d.data[0];
+          new Notification("📬 New Portfolio Submission!", {
+            body: `${newest.name} submitted a ${newest.source} request.`,
+            icon: '/favicon.svg',
+            tag: 'portfolio-submission'
+          });
+        }
+        lastSubmissionCount.current = count;
+        setSubmissions(d.data);
+      }
+    }, 60000);
+    return () => clearInterval(notifPollRef.current);
+  }, [token, notifGranted]);
+
 
   const requestOtp = async (e) => {
     e.preventDefault(); setLoading(true); setError('');
@@ -104,7 +156,7 @@ export default function AdminDashboard() {
   const fetchSubmissions = async () => {
     setLoading(true);
     const d = await api({ action: 'get-submissions' });
-    if (d.success) setSubmissions(d.data);
+    if (d.success) { setSubmissions(d.data); lastSubmissionCount.current = d.data.length; }
     setLoading(false);
   };
 
@@ -112,6 +164,54 @@ export default function AdminDashboard() {
     const d = await api({ action: 'get-reminders' });
     if (d.success) setReminders(d.reminders);
   };
+
+  const fetchAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      const r = await fetch('/api/analytics?type=summary');
+      const d = await r.json();
+      if (d.success) setAnalytics(d.data);
+    } catch (e) { console.error(e); }
+    setAnalyticsLoading(false);
+  };
+
+  const fetchActivityLog = async () => {
+    setLogLoading(true);
+    const d = await api({ action: 'get-activity-log' });
+    if (d.success) setActivityLog(d.log);
+    setLogLoading(false);
+  };
+
+  const fetchAvailability = async () => {
+    try {
+      const r = await fetch('/api/availability');
+      const d = await r.json();
+      if (d.success) setAvailability({ status: d.status, message: d.message || '' });
+    } catch (e) { console.error(e); }
+  };
+
+  const updateAvailability = async () => {
+    setAvailLoading(true);
+    try {
+      const r = await fetch('/api/availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: availability.status, message: availability.message, token })
+      });
+      const d = await r.json();
+      if (d.success) alert('✅ Availability updated!');
+      else alert(d.error || 'Failed to update');
+    } catch (e) { alert('Error updating availability'); }
+    setAvailLoading(false);
+  };
+
+  const requestNotifPermission = async () => {
+    const perm = await Notification.requestPermission();
+    setNotifGranted(perm === 'granted');
+    if (perm === 'granted') alert('✅ Notifications enabled! You will be notified of new submissions.');
+    else alert('Notifications were denied. Please allow them in browser settings.');
+  };
+
 
   const fetchCalSlots = async () => {
     setCalLoading(true);
@@ -320,32 +420,90 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', padding: '20px' }}>
-      {/* Header */}
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '12px' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <h1 style={{ margin: 0, fontSize: '1.5em' }}><i className="fas fa-shield-alt" style={{ color: 'var(--gold)', marginRight: '10px' }}/> Admin Dashboard</h1>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {notifSupported && (
+              <button onClick={notifGranted ? () => alert('✅ Notifications already enabled!') : requestNotifPermission}
+                className="btn" style={{ background: notifGranted ? '#10b981' : 'var(--surface-2)', border: `1px solid ${notifGranted ? '#10b981' : 'var(--border)'}`, color: 'white', fontSize: '0.82em' }}>
+                <i className={`fas fa-bell${notifGranted ? '' : '-slash'}`}/> {notifGranted ? 'Notifs ON' : 'Enable Notifs'}
+              </button>
+            )}
             <button onClick={() => { setShowPwdModal(true); setPwdStep('request'); setError(''); setCurrentPwd(''); setNewPwd(''); setPwdOtp(''); }} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'white' }}><i className="fas fa-key"/> Change Password</button>
             <button onClick={fetchSubmissions} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'white' }}><i className="fas fa-sync-alt"/></button>
             <button onClick={logout} className="btn" style={{ background: '#ef4444' }}><i className="fas fa-sign-out-alt"/> Logout</button>
           </div>
         </div>
 
-        {/* ── ADMIN TOOLS ── */}
-        <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
-          <h3 style={{ margin: '0 0 16px 0' }}><i className="fas fa-toolbox" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Admin Tools</h3>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <button className="btn hero-btn-outline" onClick={() => setModals(p => ({ ...p, resumeAI: true }))}>
-              <i className="fas fa-robot" /> AI Resume Tailor
-            </button>
-            <button className="btn hero-btn-outline" onClick={() => setModals(p => ({ ...p, clg: true }))}>
-              <i className="fas fa-magic" /> Cover Letter
-            </button>
+        {/* Analytics Quick Stats */}
+        {analytics && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+            {[
+              { label: 'Total Visits', value: analytics.totalVisits, icon: 'fa-eye', color: '#3b82f6' },
+              { label: 'Today', value: analytics.todayVisits, icon: 'fa-calendar-day', color: '#10b981' },
+              { label: 'This Week', value: analytics.weekVisits, icon: 'fa-chart-line', color: '#f59e0b' },
+              { label: 'Unique (30d)', value: analytics.uniqueVisitors, icon: 'fa-users', color: '#8b5cf6' },
+              { label: 'Submissions', value: submissions.length, icon: 'fa-inbox', color: '#D4AF37' },
+              { label: 'Pending', value: submissions.filter(s => s.status === 'Pending Review').length, icon: 'fa-clock', color: '#ef4444' }
+            ].map(stat => (
+              <div key={stat.label} style={{ background: 'var(--surface-2)', borderRadius: '12px', padding: '16px', border: `1px solid ${stat.color}30`, textAlign: 'center' }}>
+                <i className={`fas ${stat.icon}`} style={{ color: stat.color, fontSize: '1.2em', marginBottom: '6px', display: 'block' }} />
+                <div style={{ fontSize: '1.6em', fontWeight: 800, color: stat.color }}>{stat.value ?? '—'}</div>
+                <div style={{ fontSize: '0.72em', color: 'gray' }}>{stat.label}</div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
+
+        {/* Tab Navigation */}
+        {(() => {
+          const tabs = [
+            { id: 'submissions', icon: 'fa-inbox', label: 'Submissions' },
+            { id: 'calendar', icon: 'fa-calendar-alt', label: 'Calendar' },
+            { id: 'weekly', icon: 'fa-clock', label: 'Schedule' },
+            { id: 'availability', icon: 'fa-circle-check', label: 'Availability' },
+            { id: 'analytics', icon: 'fa-chart-bar', label: 'Analytics' },
+            { id: 'log', icon: 'fa-list-alt', label: 'Activity Log' },
+            { id: 'tools', icon: 'fa-toolbox', label: 'Tools' },
+          ];
+          return (
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '24px', padding: '6px', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--border)' }}>
+              {tabs.map(t => (
+                <button key={t.id} onClick={() => setActiveTab(t.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 14px', borderRadius: '10px', cursor: 'pointer',
+                    fontSize: '0.82em', fontWeight: 600, border: 'none',
+                    background: activeTab === t.id ? 'var(--gold)' : 'transparent',
+                    color: activeTab === t.id ? '#111' : 'rgba(255,255,255,0.5)',
+                    transition: 'all 0.2s'
+                  }}>
+                  <i className={`fas ${t.icon}`} />{t.label}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* ── TOOLS TAB ── */}
+        {activeTab === 'tools' && (
+          <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+            <h3 style={{ margin: '0 0 16px 0' }}><i className="fas fa-toolbox" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Admin Tools</h3>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button className="btn hero-btn-outline" onClick={() => setModals(p => ({ ...p, resumeAI: true }))}>
+                <i className="fas fa-robot" /> AI Resume Tailor
+              </button>
+              <button className="btn hero-btn-outline" onClick={() => setModals(p => ({ ...p, clg: true }))}>
+                <i className="fas fa-magic" /> Cover Letter
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── CALENDAR BLOCK SECTION ── */}
-        <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+        {activeTab === 'calendar' && <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <h3 style={{ margin: 0 }}><i className="fas fa-calendar-alt" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Availability Calendar</h3>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -370,6 +528,15 @@ export default function AdminDashboard() {
               style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', minWidth: '160px' }} />
             <button onClick={setReminder} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid var(--gold-dim)', color: 'white' }}>
               <i className="fas fa-bell" style={{ marginRight: '6px' }}/>Set Reminder
+            </button>
+            <button onClick={() => {
+              // Google Calendar Sync: open add event for selected date
+              const title = encodeURIComponent('Available Slot - Krishna Teja Portfolio');
+              const date = calDate.replace(/-/g, '');
+              const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${date}/${date}&details=${encodeURIComponent('Booked via portfolio calendar')}`;
+              window.open(url, '_blank');
+            }} className="btn" style={{ background: 'var(--surface-2)', border: '1px solid #4285f4', color: '#4285f4' }}>
+              <i className="fab fa-google" style={{ marginRight: '6px' }}/>Sync to Google Calendar
             </button>
           </div>
 
@@ -436,10 +603,10 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-        </div>
+        </div>}
 
         {/* ── WEEKLY RECURRING TIMETABLE ── */}
-        <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+        {activeTab === 'weekly' && <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
           <h3 style={{ margin: '0 0 16px 0' }}><i className="fas fa-clock" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Weekly Recurring Schedule</h3>
           <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '20px' }}>Set your recurring busy hours (e.g., job or classes). These will automatically block slots every week on the selected day.</p>
           
@@ -499,10 +666,105 @@ export default function AdminDashboard() {
               )
             ))}
           </div>
-        </div>
+        </div>}
+
+        {/* ── AVAILABILITY STATUS TAB ── */}
+        {activeTab === 'availability' && (
+          <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+            <h3 style={{ margin: '0 0 16px 0' }}><i className="fas fa-circle-check" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Public Availability Status</h3>
+            <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '20px' }}>This status is shown publicly on your portfolio as a colored widget. Update it to reflect your current availability.</p>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+              {[['available','Available','#10b981'],['busy','Busy','#f59e0b'],['away','Away','#6366f1'],['dnd','Do Not Disturb','#ef4444']].map(([s, label, color]) => (
+                <button key={s} onClick={() => setAvailability(p => ({ ...p, status: s }))}
+                  style={{ padding: '10px 20px', borderRadius: '24px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85em', border: `2px solid ${color}`, background: availability.status === s ? color : 'transparent', color: availability.status === s ? '#fff' : color, transition: 'all 0.2s' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <textarea value={availability.message} onChange={e => setAvailability(p => ({ ...p, message: e.target.value }))}
+              placeholder="Status message shown on portfolio (e.g. Open to opportunities! Feel free to reach out.)" rows={3}
+              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'white', boxSizing: 'border-box', marginBottom: '16px', resize: 'vertical' }} />
+            <button onClick={updateAvailability} disabled={availLoading} className="btn" style={{ background: 'var(--gold)', color: '#111', fontWeight: 700 }}>
+              <i className="fas fa-save" style={{ marginRight: '6px' }}/>{availLoading ? 'Saving…' : 'Save Availability'}
+            </button>
+          </div>
+        )}
+
+        {/* ── ANALYTICS TAB ── */}
+        {activeTab === 'analytics' && (
+          <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0 }}><i className="fas fa-chart-bar" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Portfolio Visitor Analytics</h3>
+              <button onClick={fetchAnalytics} className="btn" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'white', fontSize: '0.82em' }}><i className="fas fa-sync-alt"/> Refresh</button>
+            </div>
+            {analyticsLoading ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gold)' }}><i className="fas fa-spinner fa-spin"/> Loading…</div> : analytics ? (
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+                  {[{label:'Total Visits',value:analytics.totalVisits,color:'#3b82f6'},{label:'Today',value:analytics.todayVisits,color:'#10b981'},{label:'This Week',value:analytics.weekVisits,color:'#f59e0b'},{label:'This Month',value:analytics.monthVisits,color:'#8b5cf6'},{label:'Unique (30d)',value:analytics.uniqueVisitors,color:'#D4AF37'}].map(s => (
+                    <div key={s.label} style={{ background: 'var(--bg)', borderRadius: '12px', padding: '20px', textAlign: 'center', border: `1px solid ${s.color}30` }}>
+                      <div style={{ fontSize: '2em', fontWeight: 800, color: s.color }}>{s.value ?? 0}</div>
+                      <div style={{ fontSize: '0.78em', color: 'gray', marginTop: '4px' }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+                {analytics.dailyChart?.length > 0 && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4 style={{ color: 'var(--gold)', marginBottom: '12px', fontSize: '0.9em' }}>Last 7 Days</h4>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', height: '80px' }}>
+                      {analytics.dailyChart.map(d => {
+                        const max = Math.max(...analytics.dailyChart.map(x => x.count), 1);
+                        return (
+                          <div key={d.date} title={`${d.date}: ${d.count} visits`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <div style={{ width: '100%', background: 'var(--gold)', borderRadius: '4px 4px 0 0', height: `${(d.count / max) * 60}px`, minHeight: '4px' }} />
+                            <div style={{ fontSize: '0.65em', color: 'gray' }}>{d.date.slice(5)}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {analytics.topPages?.length > 0 && (
+                  <div>
+                    <h4 style={{ color: 'var(--gold)', marginBottom: '12px', fontSize: '0.9em' }}>Top Pages</h4>
+                    {analytics.topPages.map(p => (
+                      <div key={p.page} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--bg)', borderRadius: '6px', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.85em' }}>{p.page || '/'}</span>
+                        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: '0.85em' }}>{p.count} visits</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : <p style={{ color: 'gray', textAlign: 'center' }}>No analytics data yet. Visits will be tracked automatically.</p>}
+          </div>
+        )}
+
+        {/* ── ACTIVITY LOG TAB ── */}
+        {activeTab === 'log' && (
+          <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0 }}><i className="fas fa-list-alt" style={{ color: 'var(--gold)', marginRight: '8px' }}/> Activity Log</h3>
+              <button onClick={fetchActivityLog} className="btn" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'white', fontSize: '0.82em' }}><i className="fas fa-sync-alt"/> Refresh</button>
+            </div>
+            {logLoading ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gold)' }}><i className="fas fa-spinner fa-spin"/> Loading…</div> : activityLog.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px', overflowY: 'auto' }}>
+                {activityLog.map((entry, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <i className={`fas ${entry.action === 'new_submission' ? 'fa-inbox' : 'fa-shield-alt'}`} style={{ color: entry.action === 'new_submission' ? '#D4AF37' : '#6366f1', width: '16px' }}/>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.85em', fontWeight: 600 }}>{(entry.action || '').replace(/_/g, ' ')}</div>
+                      <div style={{ fontSize: '0.75em', color: 'gray' }}>{entry.name || entry.detail || entry.trackingId || ''}</div>
+                    </div>
+                    <div style={{ fontSize: '0.72em', color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>{new Date(entry.timestamp).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            ) : <p style={{ color: 'gray', textAlign: 'center' }}>No activity logged yet.</p>}
+          </div>
+        )}
 
         {/* ── SUBMISSIONS TABLE ── */}
-        <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', overflowX: 'auto' }}>
+        {activeTab === 'submissions' && <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border)', overflowX: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '20px' }}>
             <h3 style={{ margin: 0 }}><i className="fas fa-inbox" style={{ color: 'var(--gold)', marginRight: '8px' }}/> All Submissions ({submissions.length})</h3>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -606,7 +868,7 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           )}
-        </div>
+        </div>}
       </div>
       
       {/* Password Change Modal */}

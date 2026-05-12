@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SplashCursor from './components/SplashCursor';
 import Sidebar from './components/Sidebar';
 import Preloader from './components/Preloader';
 import RightDock from './components/RightDock';
-
-
+import AvailabilityWidget from './components/AvailabilityWidget';
 
 import QRBusinessCard from './components/QRBusinessCard';
 import CollaborationForm from './components/CollaborationForm';
@@ -26,6 +25,7 @@ import Media from './sections/Media';
 import Career from './sections/Career';
 import Resume from './sections/Resume';
 import Contact from './sections/Contact';
+import Testimonials from './sections/Testimonials';
 import AdminDashboard from './components/AdminDashboard';
 import TrackingWidget from './components/TrackingWidget';
 
@@ -37,6 +37,14 @@ function App() {
   if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
     return <AdminDashboard />;
   }
+
+  // Auto-open tracking widget if URL has ?track= param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('track')) {
+      setModals(prev => ({ ...prev, track: true }));
+    }
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => {
@@ -69,6 +77,9 @@ function App() {
       {/* Right Dock: Theme + Language + Back-to-top + Voice (left) + AI Chat (bottom-right) */}
       <RightDock />
 
+      {/* Availability Status Widget */}
+      <AvailabilityWidget />
+
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} onOpenTrack={() => openModal('track')} />
 
       <main>
@@ -90,6 +101,7 @@ function App() {
         <Experience />
         <Certifications />
         <Languages />
+        <Testimonials />
         <Media />
         <Resume />
         <Contact onOpenCollab={() => openModal('collab')} onOpenQR={() => openModal('qr')} />

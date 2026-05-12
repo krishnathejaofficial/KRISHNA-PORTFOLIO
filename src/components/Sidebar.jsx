@@ -17,6 +17,7 @@ export default function Sidebar({ isOpen, onClose, onOpenQR }) {
     { href: '#experience', icon: 'fa-briefcase', label: 'Leadership' },
     { href: '#certifications', icon: 'fa-trophy', label: 'Achievements' },
     { href: '#languages', icon: 'fa-globe', label: 'Languages' },
+    { href: '#testimonials', icon: 'fa-star', label: 'Testimonials' },
     { href: '#media', icon: 'fa-photo-video', label: 'Media' },
     { href: '#resume', icon: 'fa-file-pdf', label: 'Resume' },
     { href: '#contact', icon: 'fa-envelope', label: t('nav_contact') },

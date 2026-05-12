@@ -374,9 +374,17 @@ const MODEL = 'meta/llama-3.3-70b-instruct';
 const SYSTEM_PROMPT = (ctx) => `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01). Speak in first person as Krishna. Be warm, confident, concise (2-4 sentences). Base answers on context below. If unknown, say to email krishnatejareddy2003@gmail.com.\n\nCONTEXT:\n${ctx}`;
 const SUGGESTIONS = ['Tell me about your research 🔬', 'What are your top skills?', 'What projects have you built?', 'How can I contact you?'];
 
+const CHAT_SESSION_KEY = 'krishna_chat_history';
+const DEFAULT_MSG = { role: 'assistant', content: "Hi! I'm Krishna's AI assistant 🧬 Ask me anything about his research, skills, or projects!" };
+
 export function AIChatFloating() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([{ role: 'assistant', content: "Hi! I'm Krishna's AI assistant 🧬 Ask me anything about his research, skills, or projects!" }]);
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(CHAT_SESSION_KEY);
+      return saved ? JSON.parse(saved) : [DEFAULT_MSG];
+    } catch { return [DEFAULT_MSG]; }
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const endRef = useRef(null);
@@ -385,7 +393,18 @@ export function AIChatFloating() {
   const stateRef = useRef({ messages, loading });
   useEffect(() => { stateRef.current = { messages, loading }; }, [messages, loading]);
 
+  // Persist chat history to sessionStorage
+  useEffect(() => {
+    try { sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(messages)); } catch {}
+  }, [messages]);
+
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  function clearHistory() {
+    const fresh = [DEFAULT_MSG];
+    setMessages(fresh);
+    try { sessionStorage.removeItem(CHAT_SESSION_KEY); } catch {}
+  }
 
   async function send(text) {
     const msg = (text || input).trim();
@@ -403,7 +422,7 @@ export function AIChatFloating() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: MODEL,
-          messages: [{ role: 'system', content: SYSTEM_PROMPT(ctx) }, ...newMsgs.slice(-8)],
+          messages: [{ role: 'system', content: SYSTEM_PROMPT(ctx) }, ...newMsgs.slice(-10)],
           max_tokens: 300,
         }),
       });
@@ -433,7 +452,12 @@ export function AIChatFloating() {
                 <span style={{ fontSize: '0.72em', color: 'var(--gold)' }}>AI Assistant · Always online</span>
               </div>
             </div>
-            <button className="rd-close-btn" onClick={() => setOpen(false)}><i className="fas fa-times" /></button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button onClick={clearHistory} title="Clear chat history" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.78em', padding: '4px 8px', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.color='#ef4444'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.4)'}>
+                <i className="fas fa-trash-alt" style={{ marginRight: '3px' }}/> Clear
+              </button>
+              <button className="rd-close-btn" onClick={() => setOpen(false)}><i className="fas fa-times" /></button>
+            </div>
           </div>
 
           <div className="ai-float-messages">

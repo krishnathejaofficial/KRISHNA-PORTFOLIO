@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import SkillsRadarChart from '../components/SkillsRadarChart';
 
 function SkillCard({ icon, title, skills }) {
   const cardRef = useRef(null);
@@ -36,13 +37,16 @@ function SkillCard({ icon, title, skills }) {
 
 export default function Skills() {
   const ref = useRef(null);
+  const [view, setView] = useState('bars'); // 'bars' | 'radar'
+
   useEffect(() => {
+    if (view !== 'bars') return;
     const obs = new IntersectionObserver(entries => {
       entries.forEach((e, idx) => { if (e.isIntersecting) { setTimeout(() => e.target.classList.add('visible'), idx * 80); obs.unobserve(e.target); } });
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
     ref.current?.querySelectorAll('[data-animate]').forEach(el => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [view]);
 
   const categories = [
     { icon: 'fa-dna', title: 'Molecular Biology', skills: [{ name: 'PCR', pct: 90 }, { name: 'Agarose Gel Electrophoresis', pct: 90 }, { name: 'SDS-PAGE', pct: 85 }, { name: 'Vector Ligation', pct: 80 }, { name: 'DNA Isolation & Quantification', pct: 90 }, { name: 'Restriction Enzyme Digestion', pct: 85 }] },
@@ -61,9 +65,45 @@ export default function Skills() {
       <div className="section-icon"><i className="fas fa-chart-bar" /></div>
       <h2>Skills</h2>
       <div className="section-divider" />
-      <div className="grid-2">
-        {categories.map(cat => <SkillCard key={cat.title} icon={cat.icon} title={cat.title} skills={cat.skills} />)}
+
+      {/* View Toggle */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '32px' }}>
+        {[
+          { id: 'bars', icon: 'fa-bars', label: 'Progress Bars' },
+          { id: 'radar', icon: 'fa-chart-radar', label: 'Radar Chart' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setView(tab.id)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '8px 20px', borderRadius: '24px', cursor: 'pointer',
+              fontSize: '0.85em', fontWeight: 600,
+              background: view === tab.id ? 'var(--gold)' : 'var(--surface-2)',
+              color: view === tab.id ? '#111' : 'rgba(255,255,255,0.6)',
+              border: view === tab.id ? '1px solid var(--gold)' : '1px solid rgba(255,255,255,0.1)',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <i className={`fas ${tab.icon}`} />
+            {tab.label}
+          </button>
+        ))}
       </div>
+
+      {view === 'bars' ? (
+        <div className="grid-2">
+          {categories.map(cat => <SkillCard key={cat.title} icon={cat.icon} title={cat.title} skills={cat.skills} />)}
+        </div>
+      ) : (
+        <div style={{
+          display: 'flex', justifyContent: 'center', padding: '24px 0',
+          background: 'var(--surface-2)', borderRadius: '24px',
+          border: '1px solid rgba(212,175,55,0.1)'
+        }}>
+          <SkillsRadarChart />
+        </div>
+      )}
     </section>
   );
 }
