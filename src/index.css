@@ -584,3 +584,14 @@ footer i { color: var(--gold); }
     transform: translateX(50%) translateY(-2px);
   }
 }
+.project-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.proj-link:hover {
+  background: var(--gold) !important;
+  color: #111 !important;
+  transform: translateY(-2px);
+}
+

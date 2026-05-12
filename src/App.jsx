@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import SplashCursor from './components/SplashCursor';
+import ScrollProgress from './components/ScrollProgress';
 import Sidebar from './components/Sidebar';
 import Preloader from './components/Preloader';
 import RightDock from './components/RightDock';
@@ -64,6 +65,7 @@ function App() {
 
   return (
     <div className="app-container">
+      <ScrollProgress />
       <Preloader />
       <SplashCursor />
 

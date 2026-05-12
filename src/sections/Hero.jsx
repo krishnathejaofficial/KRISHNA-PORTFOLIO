@@ -2,11 +2,23 @@ import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 import AvailabilityWidget from '../components/AvailabilityWidget';
+import ShareButton from '../components/ShareButton';
+
+const ROLES = [
+  "Integrated M.Sc. Biotechnology",
+  "Pharma Business Dev",
+  "Clinical Operations",
+  "Full-Stack Developer",
+  "AI Systems Enthusiast"
+];
 
 export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenHireKrishna, onOpenResumeAI, onOpenTrack }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
   const { t } = useTranslation();
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [roleText, setRoleText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const el = nameRef.current;
@@ -18,7 +30,7 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
       typeInterval = setInterval(() => {
         if (i < text.length) { el.textContent += text[i++]; }
         else { clearInterval(typeInterval); }
-      }, 120);
+      }, 100);
     }
     const container = particlesRef.current;
     if (container) {
@@ -33,6 +45,33 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
     return () => { if (typeInterval) clearInterval(typeInterval); };
   }, []);
 
+  // Typing Roles Effect
+  useEffect(() => {
+    const currentRole = ROLES[roleIndex];
+    let typeSpeed = isDeleting ? 50 : 100;
+    
+    if (!isDeleting && roleText === currentRole) {
+      typeSpeed = 2000; // Pause at end of word
+      setTimeout(() => setIsDeleting(true), typeSpeed);
+      return;
+    } else if (isDeleting && roleText === '') {
+      setIsDeleting(false);
+      setRoleIndex((prev) => (prev + 1) % ROLES.length);
+      typeSpeed = 500; // Pause before new word
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setRoleText(prev => 
+        isDeleting 
+          ? currentRole.substring(0, prev.length - 1)
+          : currentRole.substring(0, prev.length + 1)
+      );
+    }, typeSpeed);
+
+    return () => clearTimeout(timer);
+  }, [roleText, isDeleting, roleIndex]);
+
   return (
     <section id="home" className="hero">
       <div className="hero-bg" />
@@ -45,7 +84,9 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
           onError={e => { e.target.onerror = null; e.target.src = '/images/krishna teja profile.jpg'; }}
         />
         <h1 className="hero-name" ref={nameRef}>G. Krishna Teja</h1>
-        <p className="hero-tagline">{t('hero_tagline')}</p>
+        <p className="hero-tagline" style={{ height: '30px', margin: '0 0 20px 0', fontSize: '1.2em', color: 'var(--gold)', fontWeight: 500 }}>
+          {roleText}<span className="cursor-blink">|</span>
+        </p>
 
         {/* ── Availability Status ── */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
@@ -81,6 +122,7 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
           <button className="hero-action-chip" onClick={onOpenTrack} style={{ background: 'var(--surface-2)', border: '1px solid var(--gold)' }}>
             <i className="fas fa-search-location" style={{ color: 'var(--gold)' }} /> Track Request
           </button>
+          <ShareButton />
         </div>
 
         {/* ── Contact Info ── */}
@@ -97,6 +139,15 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
           </div>
         </div>
       </div>
+      <style>{`
+        .cursor-blink {
+          animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+      `}</style>
     </section>
   );
 }
