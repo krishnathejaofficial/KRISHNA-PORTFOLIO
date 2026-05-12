@@ -76,6 +76,21 @@ export default function AdminDashboard() {
   const [editingTestimonial, setEditingTestimonial] = useState(null); // null | {} | {_id,...} (existing)
   const EMPTY_T = { name: '', role: '', org: '', avatar: '', avatarColor: '#D4AF37', rating: 5, text: '', relation: '', date: '' };
 
+  // Notification state
+  const [toast, setToast] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
+  const toastTimeout = useRef(null);
+
+  const showToast = useCallback((message, type = 'success') => {
+    if (toastTimeout.current) clearTimeout(toastTimeout.current);
+    setToast({ message, type, id: Date.now() });
+    toastTimeout.current = setTimeout(() => setToast(null), 3500);
+  }, []);
+
+  const confirmAction = useCallback((message, onConfirm) => {
+    setConfirmDialog({ message, onConfirm: () => { setConfirmDialog(null); onConfirm(); } });
+  }, []);
+
   const logout = useCallback(() => {
     setToken('');
     sessionStorage.removeItem('adminToken');
@@ -206,17 +221,17 @@ export default function AdminDashboard() {
         body: JSON.stringify({ status: availability.status, message: availability.message, token })
       });
       const d = await r.json();
-      if (d.success) alert('✅ Availability updated!');
-      else alert(d.error || 'Failed to update');
-    } catch (e) { alert('Error updating availability'); }
+      if (d.success) showToast('Availability updated!');
+      else showToast(d.error || 'Failed to update', 'error');
+    } catch (e) { showToast('Error updating availability', 'error'); }
     setAvailLoading(false);
   };
 
   const requestNotifPermission = async () => {
     const perm = await Notification.requestPermission();
     setNotifGranted(perm === 'granted');
-    if (perm === 'granted') alert('✅ Notifications enabled! You will be notified of new submissions.');
-    else alert('Notifications were denied. Please allow them in browser settings.');
+    if (perm === 'granted') showToast('Notifications enabled! You will be notified of new submissions.');
+    else showToast('Notifications were denied. Please allow them in browser settings.', 'error');
   };
 
   // ── TESTIMONIALS CRUD ─────────────────────────────────────────────────────
@@ -246,8 +261,8 @@ export default function AdminDashboard() {
       });
       const d = await r.json();
       if (d.success) { setEditingTestimonial(null); fetchTestimonials(); }
-      else alert(d.error || 'Save failed');
-    } catch (e) { alert('Error saving testimonial'); }
+      else showToast(d.error || 'Save failed', 'error');
+    } catch (e) { showToast('Error saving testimonial', 'error'); }
   };
 
   const deleteTestimonial = async (id) => {
@@ -260,8 +275,8 @@ export default function AdminDashboard() {
       });
       const d = await r.json();
       if (d.success) fetchTestimonials();
-      else alert(d.error || 'Delete failed');
-    } catch (e) { alert('Error deleting'); }
+      else showToast(d.error || 'Delete failed', 'error');
+    } catch (e) { showToast('Error deleting', 'error'); }
   };
 
   const fetchCalSlots = async () => {
@@ -274,13 +289,14 @@ export default function AdminDashboard() {
   const updateStatus = async (trackingId, newStatus) => {
     const note = adminNotes[trackingId] || '';
     const d = await api({ action: 'update-status', trackingId, newStatus, adminNote: note });
-    if (d.success) { alert(`Status updated to "${newStatus}" & email sent!`); fetchSubmissions(); }
+    if (d.success) { showToast(`Status updated to "${newStatus}" & email sent!`); fetchSubmissions(); }
   };
 
   const deleteSubmission = async (trackingId) => {
-    if (!confirm('Permanently delete this request?')) return;
-    const d = await api({ action: 'delete-submission', trackingId });
-    if (d.success) fetchSubmissions();
+    confirmAction('Permanently delete this request?', async () => {
+      const d = await api({ action: 'delete-submission', trackingId });
+      if (d.success) fetchSubmissions();
+    });
   };
 
   const saveSlot = async (time, blocked, note) => {
@@ -295,9 +311,9 @@ export default function AdminDashboard() {
   };
 
   const setReminder = async () => {
-    if (!reminderTime || !reminderText) return alert('Enter reminder time and text');
+    if (!reminderTime || !reminderText) return showToast('Enter reminder time and text', 'error');
     await api({ action: 'set-reminder', date: calDate, time: reminderTime, reminderText });
-    alert('Reminder set! Email sent to confirm.');
+    showToast('Reminder set! Email sent to confirm.');
     setReminderText(''); setReminderTime('');
     fetchReminders();
   };
@@ -319,7 +335,7 @@ export default function AdminDashboard() {
     if (editingWtIndex) body.index = editingWtIndex.index;
     
     const d = await api(body);
-    if (!d.success) return alert(d.error);
+    if (!d.success) return showToast(d.error, 'error');
     
     setEditingWtIndex(null);
     setWtStart('08:00 AM');
@@ -374,7 +390,7 @@ export default function AdminDashboard() {
     if (forgotNewPwd !== forgotConfirmPwd) { setError('Passwords do not match'); setLoading(false); return; }
     const d = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reset-forgot-password', otp: forgotOtp, newPassword: forgotNewPwd }) }).then(r => r.json());
     if (d.success) {
-      alert('Password reset successful! Please login with your new password.');
+      showToast('Password reset successful! Please login with your new password.');
       setStep('password');
       setForgotEmail(''); setForgotOtp(''); setForgotNewPwd(''); setForgotConfirmPwd('');
     } else {
@@ -395,7 +411,7 @@ export default function AdminDashboard() {
     e.preventDefault(); setLoading(true); setError('');
     const d = await api({ action: 'verify-password-change-otp', otp: pwdOtp });
     if (d.success) {
-      alert('Password changed successfully! Please log in again.');
+      showToast('Password changed successfully! Please log in again.');
       setShowPwdModal(false);
       logout();
     } else {
@@ -477,7 +493,7 @@ export default function AdminDashboard() {
           <h1 style={{ margin: 0, fontSize: '1.5em' }}><i className="fas fa-shield-alt" style={{ color: 'var(--gold)', marginRight: '10px' }}/> Admin Dashboard</h1>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
             {notifSupported && (
-              <button onClick={notifGranted ? () => alert('✅ Notifications already enabled!') : requestNotifPermission}
+              <button onClick={notifGranted ? () => showToast('Notifications already enabled!') : requestNotifPermission}
                 className="btn" style={{ background: notifGranted ? '#10b981' : 'var(--surface-2)', border: `1px solid ${notifGranted ? '#10b981' : 'var(--border)'}`, color: 'white', fontSize: '0.82em' }}>
                 <i className={`fas fa-bell${notifGranted ? '' : '-slash'}`}/> {notifGranted ? 'Notifs ON' : 'Enable Notifs'}
               </button>
@@ -1132,6 +1148,65 @@ export default function AdminDashboard() {
       {/* Tool Modals */}
       <CoverLetterGenerator isOpen={modals.clg} onClose={() => setModals(p => ({ ...p, clg: false }))} />
       <AIResumeBuilder isOpen={modals.resumeAI} onClose={() => setModals(p => ({ ...p, resumeAI: false }))} />
+
+      {/* ── TOAST NOTIFICATION ── */}
+      {toast && (
+        <div key={toast.id} style={{
+          position: 'fixed', bottom: '30px', right: '30px', zIndex: 10000,
+          background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : 'rgba(16, 185, 129, 0.95)',
+          color: 'white', padding: '14px 24px', borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', gap: '12px',
+          fontWeight: 600, fontSize: '0.95em', border: `1px solid ${toast.type === 'error' ? '#fca5a5' : '#6ee7b7'}`,
+          animation: 'toast-slide-up 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
+        }}>
+          <i className={`fas ${toast.type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}`} style={{ fontSize: '1.2em' }} />
+          {toast.message}
+          <button onClick={() => setToast(null)} style={{ background: 'none', border: 'none', color: 'white', marginLeft: '8px', cursor: 'pointer', opacity: 0.7 }}><i className="fas fa-times" /></button>
+        </div>
+      )}
+
+      {/* ── CONFIRMATION MODAL ── */}
+      {confirmDialog && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)',
+          zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fade-in 0.2s ease-out'
+        }}>
+          <div style={{
+            background: 'var(--surface)', padding: '30px', borderRadius: '16px',
+            border: '1px solid var(--border)', maxWidth: '400px', width: '90%',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)', textAlign: 'center'
+          }}>
+            <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(239,68,68,0.1)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8em', margin: '0 auto 20px' }}>
+              <i className="fas fa-exclamation-triangle" />
+            </div>
+            <h3 style={{ margin: '0 0 12px 0', color: 'white' }}>Are you sure?</h3>
+            <p style={{ margin: '0 0 24px 0', color: 'gray', fontSize: '0.95em', lineHeight: 1.5 }}>
+              {confirmDialog.message}
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button className="btn" onClick={() => setConfirmDialog(null)} style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'white', flex: 1 }}>
+                Cancel
+              </button>
+              <button className="btn" onClick={confirmDialog.onConfirm} style={{ background: '#ef4444', color: 'white', flex: 1, border: 'none' }}>
+                Yes, Do it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes toast-slide-up {
+          from { opacity: 0; transform: translateY(30px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
