@@ -3,7 +3,6 @@ import SplashCursor from './components/SplashCursor';
 import Sidebar from './components/Sidebar';
 import Preloader from './components/Preloader';
 import RightDock from './components/RightDock';
-import AvailabilityWidget from './components/AvailabilityWidget';
 
 import QRBusinessCard from './components/QRBusinessCard';
 import CollaborationForm from './components/CollaborationForm';
@@ -76,9 +75,6 @@ function App() {
 
       {/* Right Dock: Theme + Language + Back-to-top + Voice (left) + AI Chat (bottom-right) */}
       <RightDock />
-
-      {/* Availability Status Widget */}
-      <AvailabilityWidget />
 
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} onOpenTrack={() => openModal('track')} />
 

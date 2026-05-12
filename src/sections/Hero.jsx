@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
+import AvailabilityWidget from '../components/AvailabilityWidget';
 
 export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenHireKrishna, onOpenResumeAI, onOpenTrack }) {
   const nameRef = useRef(null);
@@ -45,6 +46,11 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
         />
         <h1 className="hero-name" ref={nameRef}>G. Krishna Teja</h1>
         <p className="hero-tagline">{t('hero_tagline')}</p>
+
+        {/* ── Availability Status ── */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+          <AvailabilityWidget />
+        </div>
 
         {/* ── Primary Action Buttons ── */}
         <div className="hero-btns">
