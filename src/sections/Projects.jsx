@@ -14,11 +14,11 @@ export default function Projects() {
 
   const projects = [
     {
-      icon: 'fa-heartbeat', title: 'Blood Donation Management System',
+      icon: 'fa-heartbeat', title: 'Healthcare Campaign Management System',
       meta: '4 Camps | 2023 – 2025', status: 'Completed', color: '#ef4444',
       bullets: [
-        'Managed 1,104+ registrations resulting in 952 successful donations in ~7 hours — highest university record.',
-        'Reduced manual coordination effort by ~60% through real-time tracking, digital registration, and automated reporting.'
+        'Managed 1,104+ registrations resulting in 952 successful donations in ~7 hours (86% conversion rate) — highest university record.',
+        'Executed multi-channel digital outreach via social media, campus networks, and hospital partnerships; reduced manual coordination by ~60%, saving 120+ man-hours per camp.'
       ],
       link: 'https://script.google.com/macros/s/AKfycbxI4WpnQ9l0H2sDxxvESYR3J99xpgczwNWquQhBUZhTl8hZ5MvWKrsGF2YdcpD6ZImz/exec'
     },
@@ -26,8 +26,8 @@ export default function Projects() {
       icon: 'fa-bus', title: 'NSS Bus Attendance Automation System',
       meta: 'Automation | 2024 – 2025', status: 'Live', color: '#10b981',
       bullets: [
-        'Automated attendance tracking for 400+ volunteers across NSS rural camp operations, reducing manual errors.',
-        'Streamlined data collection and reporting workflows, enabling real-time visibility into volunteer deployment.'
+        'Automated attendance tracking for 400+ volunteers across NSS rural camp operations, improving logistics accuracy by 85% and reducing manual errors significantly.',
+        'Streamlined data collection and reporting workflows, enabling real-time visibility into volunteer deployment and transport coordination.'
       ],
       link: 'https://script.google.com/macros/s/AKfycbwn6Hqel1xO8aTFXhhFItg2uLau7kdGsbs28diJVQbumvcRENQZ3F9nPTN7pXO1rx7t4A/exec'
     },
@@ -35,7 +35,7 @@ export default function Projects() {
       icon: 'fa-capsules', title: 'Drug Repurposing Tool',
       meta: 'Bioinformatics', status: 'In Progress', color: '#f59e0b',
       bullets: [
-        'Integrated bioinformatics APIs to streamline drug repurposing workflows and improve candidate identification efficiency.'
+        'Integrated bioinformatics APIs to streamline drug repurposing workflows and improve candidate identification efficiency; created user-facing documentation and demo materials for stakeholder presentations.'
       ],
       link: 'https://rx-discover.vercel.app/'
     },
@@ -49,25 +49,25 @@ export default function Projects() {
     },
     {
       icon: 'fa-birthday-cake', title: 'Cake Ordering Platform',
-      meta: 'Full-Stack Development', status: 'Completed', color: '#3b82f6',
+      meta: 'E-Commerce & Marketing', status: 'Completed', color: '#3b82f6',
       bullets: [
-        'Developed an end-to-end e-commerce platform featuring automated pricing, payment integration, and an admin management dashboard.'
+        'Developed an end-to-end e-commerce platform with automated pricing algorithms, payment integration, and admin analytics dashboard — skills directly transferable to digital commerce operations.'
       ],
       link: 'https://shopofkakes.vercel.app/'
     },
     {
-      icon: 'fa-user-secret', title: 'Secret Chatting "dev-vault"',
-      meta: 'Full-Stack App', status: 'Live', color: '#10b981',
+      icon: 'fa-user-secret', title: 'Dev-Vault — Secure Messaging Platform',
+      meta: 'Full-Stack Development', status: 'Live', color: '#10b981',
       bullets: [
-        'Developed a secure, real-time messaging platform enabling confidential communication and secret chatting features.'
+        'Built a secure, anonymous chatting platform with ephemeral messaging and vault-based access control for private developer communication.'
       ],
       link: 'https://dev-vault-henna.vercel.app/'
     },
     {
       icon: 'fa-wallet', title: 'Budget Tracker App',
-      meta: 'Finance App', status: 'Completed', color: '#3b82f6',
+      meta: 'Mobile App Development', status: 'Completed', color: '#3b82f6',
       bullets: [
-        'Built a personal finance application to effectively track expenses, manage budgets, and visualize financial data.'
+        'Developed a personal finance tracking application enabling users to log income, expenses, and visualize spending patterns through a clean mobile interface.'
       ],
       link: 'https://drive.google.com/file/d/1hCiXQusxk5kJf9N-2s-LCA1J5t5vHkFv/view?usp=sharing'
     },

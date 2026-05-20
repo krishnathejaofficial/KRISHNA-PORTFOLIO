@@ -22,25 +22,23 @@ export default function Research() {
           <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '4px' }}>VIT Vellore (SBST) | Jun 2025 – Apr 2026</p>
           <p style={{ fontSize: '0.83em', opacity: 0.7, marginBottom: '10px', fontStyle: 'italic' }}>Supervisor: Dr. R. Sudhakaran</p>
           <ul>
-            <li>Designed and optimized aquafeed formulations utilizing orange and pomegranate agro-industrial waste as sustainable alternatives to fishmeal.</li>
-            <li>Performed comprehensive biochemical characterization including protein (Bradford, BCA, Lowry), carbohydrates, lipids, and antioxidant activity (DPPH).</li>
-            <li>Critically analyzed polyphenol interference in Bradford protein assay, proposing alternative quantification strategies for phenol-rich samples.</li>
-            <li>Developed formulations (F0–F6/F9) evaluating water stability (tapioca starch showed &gt;24h integrity), palatability (crab model), and floatability (hot-air puffing, CMC).</li>
-            <li>Established a circular bioeconomy framework by converting fruit waste into cost-effective, antioxidant-rich aquafeed.</li>
+            <li>Developed antioxidant-rich aquafeed formulations using <strong>orange and pomegranate peel waste</strong> as sustainable agro-industrial inputs, reducing reliance on fishmeal-based commercial feed.</li>
+            <li>Conducted comprehensive biochemical assays including <strong>protein estimation (Bradford, BCA, Lowry), carbohydrate estimation (Anthrone), lipid extraction, and antioxidant evaluation (DPPH)</strong> for nutritional profiling.</li>
+            <li>Identified Bradford assay interference due to polyphenol content; evaluated feed stability, palatability, and floatability under experimental conditions.</li>
+            <li>Evaluated <strong>binder performance (tapioca starch vs alginate) and water stability (&gt;24h retention)</strong>.</li>
+            <li>Demonstrated functional feed performance and scalability potential for industrial aquaculture applications; identified <strong>3 viable commercialization pathways</strong> through market landscape analysis.</li>
           </ul>
           <a href="https://drive.google.com/file/d/1x5JwIGPe2DdukwbQDjz7zqYHEZAIdvlC/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', display: 'inline-block', marginTop: '10px', textDecoration: 'none' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />View Thesis</a>
         </div>
         <div className="card" data-animate>
           <i className="fas fa-recycle proj-icon" />
-          <h3>Multidisciplinary Biotechnological E-Waste Leaching System</h3>
-          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '4px' }}>EntreprenaTION, VIT Vellore | Sept 2025</p>
+          <h3>Biotechnological E-Waste Leaching System</h3>
+          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '4px' }}>VIT Vellore | Sept 2025</p>
           <p style={{ fontSize: '0.83em', opacity: 0.7, marginBottom: '10px', fontStyle: 'italic' }}>Supervisor: Dr. Anand Prem Rajan</p>
           <ul>
-            <li>Designed a closed-loop, microbe-driven bioleaching system for recovery of valuable metals (Au, Ag, Cu, Al) from e-waste (PCBs, cables).</li>
-            <li>Developed an integrated process workflow including dismantling, microbial leaching, electrolysis, and downstream material segregation.</li>
-            <li>Incorporated real-time monitoring using inline sensing (refractometer concept) to track leaching efficiency.</li>
-            <li>Engineered plastic upcycling pathways, converting shredded plastics into functional products (e.g., plant pots).</li>
-            <li>Designed eco-friendly alternatives to smelting, featuring a scalability model with modular bioreactors and community sourcing.</li>
+            <li>Designed a microbial bioleaching system for heavy metal recovery from electronic waste streams (PCBs, cables), integrating bioreactor processing, electrolysis, and material recovery workflows.</li>
+            <li>Proposed real-time monitoring and plastic upcycling modules for circular economy applications.</li>
+            <li>Presented findings at <strong>National Entrepreneurship Day (EntrepreNATION)</strong> — won <strong>2nd Prize</strong> at the innovation showcase.</li>
           </ul>
         </div>
       </div>

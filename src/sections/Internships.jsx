@@ -21,11 +21,9 @@ export default function Internships() {
           <h3>Industrial Intern — Glory Pharma Chem India Pvt Ltd</h3>
           <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Pharmaceutical Manufacturing | Jun–Jul 2025</p>
           <ul>
-            <li>Observed and assisted in GMP-compliant manufacturing of pharmaceutical intermediates (Rec SA Lamivudine) involving reactor processing, filtration, centrifugation, drying, and milling.</li>
-            <li>Participated in quality control (QC) testing, including moisture analysis, pH measurement, carbon residue testing, and exposure to gas chromatography.</li>
-            <li>Assisted in equipment cleaning and SOP-based operations, ensuring contamination control and batch consistency.</li>
-            <li>Gained exposure to QA documentation, batch records, warehouse operations, and EHS practices including waste management and effluent treatment systems.</li>
-            <li>Developed analytical skills in process monitoring and data interpretation, understanding inter-departmental coordination (Production–QC–QA–EHS).</li>
+            <li>Assisted in <strong>GMP-based API intermediate manufacturing</strong> workflows including reactor processing, filtration, centrifugation, and drying operations.</li>
+            <li>Performed QC analyses including moisture content, pH testing, and carbon testing; gained hands-on exposure to <strong>Gas Chromatography (GC)</strong> instrumentation.</li>
+            <li>Followed SOPs for equipment cleaning and batch documentation; gained experience in QA, EHS, and pharmaceutical compliance systems.</li>
           </ul>
           <div style={{ marginTop: '10px', display: 'flex', gap: '15px' }}>
             <a href="https://drive.google.com/file/d/1_mGYxm8XGHMKVEL42TdYm6siZdXtcj2E/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-file-alt" style={{ marginRight: '5px' }} />Internship Report</a>
@@ -37,11 +35,9 @@ export default function Internships() {
           <h3>Industrial Intern — GSK Technologies Pvt Ltd</h3>
           <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Paper Mill Division | May–Jun 2024</p>
           <ul>
-            <li>Observed and analyzed end-to-end paper manufacturing process including pulping, filtration, steam-based processing, paper formation, drying, rolling, and packaging.</li>
-            <li>Studied operation of key industrial equipment such as pulper machines, heat exchangers, boilers, paper-making machines, and rewinders.</li>
-            <li>Participated in quality control procedures, including GSM measurement, burst factor testing, pulp consistency, and contaminant analysis.</li>
-            <li>Examined waste management systems, including recycling of paper waste and water treatment/reuse processes.</li>
-            <li>Gained exposure to logistics and supply chain operations, including raw material handling and product dispatch systems.</li>
+            <li>Studied full-scale <strong>paper manufacturing processes</strong> from pulping through drying, rolling, and packaging; observed industrial equipment including pulper, boiler, heat exchanger, and paper machine.</li>
+            <li>Performed QC analyses including GSM measurement, burst factor testing, and pulp quality assessment.</li>
+            <li>Analyzed recycling and water reuse systems, identifying opportunities for sustainable production improvement.</li>
           </ul>
           <div style={{ marginTop: '10px', display: 'flex', gap: '15px' }}>
             <a href="https://drive.google.com/file/d/1drIGDmz9P0_0Jr45Ti9BIvV-h2sytori/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-file-alt" style={{ marginRight: '5px' }} />Internship Report</a>
@@ -74,6 +70,15 @@ export default function Internships() {
             <li>Acquired practical understanding of chemical manufacturing operations, warehouse management, and quality assurance protocols.</li>
           </ul>
           <a href="https://drive.google.com/file/d/14GNM2mWTy7VgPcyfnQZb3BGmjEtPb0mK/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', display: 'inline-block', marginTop: '10px', textDecoration: 'none' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />View Certificate</a>
+        </div>
+        <div className="card" data-animate>
+          <i className="fas fa-chart-line proj-icon" />
+          <h3>Industry Knowledge &amp; Market Awareness</h3>
+          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Self-Directed Learning</p>
+          <ul>
+            <li>Familiar with analytical instrumentation landscape: <strong>Agilent (GC, LC, MS)</strong>, Thermo Fisher, Waters, Shimadzu; understanding of pharma/biopharma QA/QC workflows and regulatory pathways.</li>
+            <li>Tracking industry trends in sustainable biotechnology, circular economy applications, and digital transformation in life sciences marketing.</li>
+          </ul>
         </div>
       </div>
     </section>

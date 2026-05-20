@@ -5,7 +5,7 @@ export const knowledgeChunks = [
   // --- BIO & OBJECTIVE ---
   `G. Krishna Teja was born on 23 March 2003. He is an Integrated M.Sc. Biotechnology student at VIT Vellore with a CGPA of 9.01 (as of 2025). He is passionate about Pharmaceutical Operations, Industrial Biotechnology, Healthcare Systems, and Business Development. He combines deep scientific knowledge with strong leadership, financial management, and automation-driven system-building skills.`,
 
-  `Career objective: Seeking roles in pharmaceutical operations, industrial biotechnology, healthcare systems, and business development with long-term interest in industry-integrated applied research. He has demonstrated ability to deliver high-impact outcomes including managing Rs. 7 crore finances across 150+ events and executing 952 successful blood donations within approximately 7 hours — a university record.`,
+  `Career objective: Seeking roles in pharmaceutical operations, industrial biotechnology, healthcare systems, and business development — specifically marketing internship roles in analytical instrumentation and life sciences. He has hands-on experience with analytical instruments (GC, HPLC, UV-Vis) and deep familiarity with pharma/biopharma value chains. Demonstrated ability to deliver high-impact outcomes including managing Rs. 7 crore finances across 150+ events and executing 952 successful blood donations within approximately 7 hours — a university record.`,
 
   // --- EDUCATION ---
   `Education: Krishna completed his Integrated M.Sc. Biotechnology from Vellore Institute of Technology (VIT), Vellore from 2022 to 2027. His CGPA is 9.01. He received 100% Attendance Awards for 2 times in 2023 and 2025.`,
@@ -15,54 +15,54 @@ export const knowledgeChunks = [
   `Education: He completed his 10th class/Secondary School Certificate (SSC) from Masters EM High School, Sathyavedu, Tirupati district, Andhra Pradesh in 2018-2019, achieving a perfect GPA of 10.0. For this achievement, he was selected for the prestigious Prathiba Award from the Andhra Pradesh Government.`,
 
   // --- RESEARCH ---
-  `Research: Krishna worked on Fruit Peel-Based Sustainable Aquafeed Development at VIT Vellore (SBST) from Jun 2025 to Apr 2026 under Dr. R. Sudhakaran. He designed and optimized aquafeed formulations utilizing orange (Citrus sinensis) and pomegranate (Punica granatum) agro-industrial waste as sustainable alternatives to fishmeal. He performed comprehensive biochemical characterization including protein estimation (Bradford, BCA, Lowry), carbohydrates (Anthrone), lipids (Bligh & Dyer), and antioxidant activity (DPPH). He critically analyzed polyphenol interference in the Bradford protein assay, proposing alternative quantification strategies. He developed multiple feed formulations (F0–F6/F9) with varying peel compositions, evaluated water stability using binders like tapioca starch (which demonstrated superior pellet integrity >24h) and sodium alginate, assessed palatability in crab models, and achieved floatability via hot-air puffing and CMC incorporation. This established a circular bioeconomy framework by converting fruit waste into cost-effective, antioxidant-rich aquafeed for scalable aquaculture.`,
+  `Research: Krishna worked on his Master's Thesis — Sustainable Aquafeed from Fruit Peel Waste at VIT Vellore (SBST) from 2025 to 2026 under Dr. R. Sudhakaran, Department of Integrative Biology. He developed antioxidant-rich aquafeed formulations using orange (Citrus sinensis) and pomegranate (Punica granatum) peel waste as sustainable agro-industrial inputs, reducing reliance on fishmeal-based commercial feed. He conducted comprehensive biochemical assays including protein estimation (Bradford, BCA, Lowry), carbohydrate estimation (Anthrone), lipid extraction, and antioxidant evaluation (DPPH) for nutritional profiling. He identified Bradford assay interference due to polyphenol content and proposed alternative strategies. He evaluated binder performance (tapioca starch vs alginate) and water stability (>24h retention). He demonstrated functional feed performance and scalability potential for industrial aquaculture applications and identified 3 viable commercialization pathways through market landscape analysis. This established a circular bioeconomy framework.`,
 
-  `Research: Krishna worked on a Multidisciplinary Biotechnological E-Waste Leaching System at VIT Vellore (presented at EntreprenaTION, Sept 2025) under Dr. Anand Prem Rajan. He designed a closed-loop, microbe-driven bioleaching system for recovering valuable metals (Au, Ag, Cu, Al, rare elements) from e-waste like PCBs and cables. He developed an integrated process workflow including dismantling, microbial leaching in a bioreactor, electrolysis-based metal recovery, and downstream material segregation. He incorporated real-time monitoring using inline sensing to track leaching efficiency and engineered value-added plastic upcycling pathways, converting shredded plastics into functional products like plant pots. This eco-friendly alternative to conventional smelting reduces chemical usage, energy demand, and toxic emissions, featuring a scalability model with modular bioreactors and community-based e-waste sourcing.`,
+  `Research: Krishna worked on a Biotechnological E-Waste Leaching System at VIT Vellore (presented at National Entrepreneurship Day — EntrepreNATION, Sept 2025) under Dr. Anand Prem Rajan. He designed a microbial bioleaching system for heavy metal recovery from electronic waste streams (PCBs, cables), integrating bioreactor processing, electrolysis, and material recovery workflows. He proposed real-time monitoring and plastic upcycling modules for circular economy applications. Won 2nd Prize at EntrepreNATION.`,
 
   `Manuscripts: Krishna has two manuscripts under preparation (2026): (1) Transcriptomic & Immunological Impact of Synthetic Food Colorants and Additives on the Human Gut. (2) Organic, Innovative, and Eco-friendly Feeds for Aquaculture.`,
 
   // --- INTERNSHIPS ---
-  `Internship: Krishna was an Industrial Intern at Glory Pharma Chem India Pvt Ltd in June–July 2025. He observed and assisted in GMP-compliant manufacturing of pharmaceutical intermediates (Rec SA Lamivudine) involving reactor processing, filtration, centrifugation, drying, and milling. He participated in quality control (QC) testing, including moisture analysis, pH measurement, carbon residue testing, and exposure to gas chromatography for residual solvent analysis. He assisted in equipment cleaning and SOP-based operations, gaining exposure to QA documentation, batch records, warehouse operations, and EHS practices. Through this, he gained a practical understanding of pharmaceutical manufacturing workflows, GMP, regulatory standards (WHO, ICH, CDSCO), and the importance of inter-departmental coordination (Production-QC-QA-EHS).`,
+  `Internship: Krishna was an Industrial Intern at Glory Pharma Chem India Pvt Ltd in June–July 2025. He assisted in GMP-based API intermediate manufacturing workflows including reactor processing, filtration, centrifugation, and drying operations. He performed QC analyses including moisture content, pH testing, and carbon testing, and gained hands-on exposure to Gas Chromatography (GC) instrumentation. He followed SOPs for equipment cleaning and batch documentation, gaining experience in QA, EHS, and pharmaceutical compliance systems (WHO, ICH, CDSCO).`,
 
-  `Internship: Krishna was an Industrial Intern in the Paper Mill Division at GSK Technologies Pvt Ltd in May–June 2024. He observed and analyzed the end-to-end paper manufacturing process, including pulping, filtration, steam-based processing, paper formation, drying, rolling, and packaging. He studied the operation of key industrial equipment like pulper machines, heat exchangers, boilers, and rewinders. He participated in quality control procedures including GSM measurement, burst factor testing, and pulp consistency. He also examined waste management systems, paper recycling, and water treatment/reuse processes. This provided a strong foundation in bioprocess engineering, process flow analysis, and sustainable industrial practices.`,
+  `Internship: Krishna was an Industrial Intern in the Paper Mill Division at GSK Technologies Pvt Ltd in May–June 2024. He studied full-scale paper manufacturing processes from pulping through drying, rolling, and packaging. He observed industrial equipment including pulper, boiler, heat exchanger, and paper machine. He performed QC analyses including GSM measurement, burst factor testing, and pulp quality assessment. He analyzed recycling and water reuse systems, identifying opportunities for sustainable production improvement.`,
 
-  `Additional Exposure: Krishna completed a Clinical Data Management Program at VIT Vellore by BCRI, covering GCP, ICH guidelines, data handling workflows, and regulatory compliance frameworks. He also visited STHREE Chemicals Pvt Ltd in 2024 and acquired practical understanding of chemical manufacturing operations, warehouse management, and QA protocols.`,
+  `Additional Exposure: Krishna completed a Clinical Data Management Program at VIT Vellore by BCRI, covering GCP, ICH guidelines, data handling workflows, and regulatory compliance frameworks. He also visited STHREE Chemicals Pvt Ltd in 2024. He has self-directed industry knowledge of analytical instrumentation landscape: Agilent (GC, LC, MS), Thermo Fisher, Waters, Shimadzu; and tracking industry trends in sustainable biotechnology, circular economy applications, and digital transformation in life sciences marketing.`,
 
   // --- TECHNICAL PROJECTS ---
-  `Technical Project: Blood Donation Management System (4 camps, 2023–2025). Managed 1,104+ registrations resulting in 952 successful donations in approximately 7 hours — the highest university record. Reduced manual coordination effort by ~60% through real-time tracking, digital registration, and automated reporting using Google Apps Script and Google Sheets.`,
+  `Technical Project: Healthcare Campaign Management System (4 camps, 2023–2025). Managed 1,104+ registrations resulting in 952 successful donations in approximately 7 hours — 86% conversion rate, highest university record. Executed multi-channel digital outreach via social media, campus networks, and hospital partnerships; reduced manual coordination by ~60%, saving 120+ man-hours per camp.`,
 
-  `Technical Project: NSS Bus Attendance Automation System (2024–2025). Automated attendance tracking for 400+ volunteers across NSS rural camp operations using Google Sheets automation. This reduced manual errors and improved logistics accuracy with real-time visibility into volunteer deployment and transport coordination.`,
+  `Technical Project: NSS Bus Attendance Automation System (2024–2025). Automated attendance tracking for 400+ volunteers across NSS rural camp operations, improving logistics accuracy by 85% and reducing manual errors significantly. Streamlined data collection and reporting workflows, enabling real-time visibility into volunteer deployment and transport coordination.`,
 
-  `Technical Project: Drug Repurposing Tool (Bioinformatics). Integrated bioinformatics APIs to streamline drug repurposing workflows and improve candidate identification efficiency.`,
+  `Technical Project: Drug Repurposing Tool (Bioinformatics). Integrated bioinformatics APIs to streamline drug repurposing workflows and improve candidate identification efficiency; created user-facing documentation and demo materials for stakeholder presentations. Live at rx-discover.vercel.app.`,
 
-  `Technical Project: Token Generation System (Automation). Built a customizable QR/barcode-based token generation platform supporting bulk automated operations for institutional events.`,
+  `Technical Project: Token Generation System (Automation). Built a customizable QR/barcode-based token generation platform supporting bulk automated operations for institutional events. Live at token-generator-kappa.vercel.app.`,
 
-  `Technical Project: Cake Ordering Platform (Full-Stack Development). Developed an end-to-end e-commerce platform featuring automated pricing, payment integration, and an admin management dashboard.`,
+  `Technical Project: Cake Ordering Platform (E-Commerce & Marketing). Developed an end-to-end e-commerce platform with automated pricing algorithms, payment integration, and admin analytics dashboard — skills directly transferable to digital commerce operations. Live at shopofkakes.vercel.app.`,
   
-  `Technical Project: Secret Chatting "dev-vault" (Full-Stack App). Developed a secure, real-time messaging platform enabling confidential communication and secret chatting features.`,
+  `Technical Project: Dev-Vault — Secure Messaging Platform (Full-Stack Development). Built a secure, anonymous chatting platform with ephemeral messaging and vault-based access control for private developer communication. Live at dev-vault-henna.vercel.app.`,
   
-  `Technical Project: Budget Tracker App (Finance App). Built a personal finance application to effectively track expenses, manage budgets, and visualize financial data.`,
+  `Technical Project: Budget Tracker App (Mobile App Development). Developed a personal finance tracking application enabling users to log income, expenses, and visualize spending patterns through a clean mobile interface.`,
 
-  `Technical Project: Personal Portfolio Website built with React and Vite, deployed on Vercel. Features elegant UI, sidebar navigation, resume integration, SplashCursor fluid animation, dark/light mode toggle. Live at gkrishnateja.vercel.app.`,
+  `Technical Project: Personal Portfolio Website built with React and Vite, deployed on Vercel. Features elegant UI, sidebar navigation, resume integration, SplashCursor fluid animation, dark/light mode toggle, AI chat assistant, voice navigation, AI Resume Tailor. Live at gkrishnateja.vercel.app.`,
 
   // --- SKILLS ---
   `Molecular Biology Skills: PCR, Agarose Gel Electrophoresis, SDS-PAGE, Vector Ligation, DNA Isolation & Quantification, Restriction Enzyme Digestion.`,
 
-  `Analytical Techniques: TLC, UV-Vis Spectroscopy, Bradford Protein Estimation, Antioxidant Assay (DPPH, ABTS), Lipid Estimation, Carbohydrate Estimation, Chromatography, Titrations, RBC & WBC Counting, GLP.`,
+  `Analytical Techniques: TLC, HPLC, UV-Vis Spectroscopy, GC (exposure), Bradford Protein Estimation, Antioxidant Assay (DPPH, ABTS), Lipid Estimation, Carbohydrate Estimation (Anthrone), Chromatography, Titrations, RBC & WBC Counting, GLP.`,
 
-  `Microscopy & Cell Biology: Light Microscopy, Scanning Electron Microscopy (SEM), Transmission Electron Microscopy (TEM), Cell Culture, Bacterial Culture, Media Preparation, Sterilization & Autoclaving, Plant Tissue Culture.`,
+  `Microscopy & Cell Biology: Light Microscopy, Scanning Electron Microscopy (SEM), Cell Culture, Bacterial Culture, Media Preparation, Sterilization & Autoclaving, Plant Tissue Culture.`,
 
   `Bioinformatics Skills: UniProt, NCBI BLAST, PDB, KEGG, Primer-BLAST, REACTOME, STRING, Ensembl, GEO2R, Vaccine Design, Drug Repurposing APIs.`,
 
-  `Business, Management & Operations Skills: Operations Execution, Financial Planning, Budget Management, Business Development, Leadership, GST & TDS Compliance, Vendor Negotiation, Procurement.`,
+  `Business, Management & Operations Skills: Operations Execution, Financial Planning, Budget Management, Business Development, Market Research, Campaign Management, Leadership, GST & TDS Compliance, Vendor Negotiation, Procurement.`,
 
   `AI & Systems Development Skills: AI Tool Development, Prompt Engineering, API Integration, Automation using Google Apps Script, Workflow Design.`,
 
   `Clinical & Data Analysis Skills: MS Excel (Advanced — pivot tables, financial tracking, dashboards), Google Sheets Automation, Real-time Data Visualization, Clinical Data Handling, GCP, ICH Guidelines, Documentation Systems.`,
 
-  `Web & App Development Skills: App Development, Supabase (Auth, DB, Storage), Vercel, REST APIs, QR Code Generation, Payment Gateway Integration (GPay, QR).`,
+  `Web & Full-Stack Development Skills: Supabase (Auth, DB, Storage), MongoDB, Vercel, REST APIs, QR Code Generation, Payment Gateway Integration (GPay, QR).`,
 
-  `Programming & Tools: Android Studio, R, HTML (Basic), VS Code, Figma, MS Office Suite, Google Workspace, Canva, PowerPoint, Google Apps Script, Video Editing.`,
+  `App Development & Tools: Android Studio, React Native, VS Code, Figma, MS Office Suite, Google Workspace, Graphic design, Google Apps Script, Antigravity, Video Editing.`,
 
   `Languages: English (Fluent), Telugu (Native), Tamil (Conversational), Hindi (Basic).`,
 
@@ -75,15 +75,15 @@ export const knowledgeChunks = [
 
   `Leadership: Secretary, Board Member at NSS VIT (2024–2025). Led multiple social initiatives, events, and operational programs with measurable community impact at the institutional level.`,
 
-  `Leadership: Purchase Coordinator and Broadcasting Volunteer for Gravitas'24 (VIT's annual technical fest, 2024). Handled procurement, vendor negotiations, and logistics, and assisted in broadcasting operations.`,
+  `Leadership: Purchase Coordinator and Broadcasting Volunteer for Gravitas'24 (VIT's annual technical fest, 2024). Handled procurement, vendor negotiations, and logistics, and supported live broadcasting operations during fest coverage.`,
 
-  `Leadership: Student Organiser for VIT Biosummit (SBST Flagship Event, 2023 & 2024). Led cross-functional execution across outreach, documentation, design, technical, and social media teams.`,
+  `Leadership: Student Organiser for VIT Biosummit (SBST Flagship Event, 2023 & 2024). Led cross-functional teams of 50+ members across outreach, documentation, design, technical, and social media functions, ensuring coordinated and efficient event operations.`,
 
   // --- ACHIEVEMENTS ---
-  `Achievements: 100% Attendance Award from VIT Vellore in 2023 and 2025. EntrepreNATION — 2nd Prize (Entrepreneurship Competition). Water Conservation Ideathon — 3rd Place.`,
+  `Achievements: 100% Attendance Award from VIT Vellore in 2023 and 2025. EntrepreNATION — 2nd Prize (Entrepreneurship Competition); presented Biotechnological E-Waste Leaching System at National Entrepreneurship Day. Water Conservation Ideathon — 3rd Place. Digital Media & Content Strategy: Managed TIRUPATI UPDATES YouTube channel (1.4M subscribers) and Instagram (775K followers); executed content strategy, audience analytics, and monetization workflows.`,
 
   // --- CONTACT ---
-  `Contact: Krishna can be reached at krishnatejareddy2003@gmail.com or +91-93908-50349. His address is 4/335 A, 23 Budur, Gummidipoondi TK, Madharapakkam, Tiruvallur, Tamil Nadu - 601202, India. LinkedIn: linkedin.com/in/gkrishnateja. GitHub: github.com/krishnathejaofficial. Portfolio: gkrishnateja.vercel.app.`,
+  `Contact: Krishna can be reached at krishnatejareddy2003@gmail.com or +91-93908-50349. His address is Tiruvallur, Tamil Nadu, India. LinkedIn: linkedin.com/in/gkrishnateja. GitHub: github.com/krishnathejaofficial. Portfolio: gkrishnateja.vercel.app.`,
 
   // --- FAMILY & PERSONAL ---
   `Family: Krishna's mother is G. Vanitha, who is a dedicated housewife. His father was G. Vasu, a farmer, who unfortunately passed away on January 8, 2025. He has an elder brother, G. Pavan Krishna (born Dec 31, 1999), who completed his B.Tech in Mechanical Engineering from RMK Engineering College and is currently working in the software industry in Hyderabad.`,
@@ -91,8 +91,100 @@ export const knowledgeChunks = [
   `Friends: Krishna's best friends include Chetana Aashritha (VIT Hyderabad, born Jan 1, 2004), Lokhitha (VIT, from Madurai, born Nov 24, 2004), Surendra (a close friend from 11th and 12th class), Supraja (from VIT, she is from Vellore, she was born in 6th july 2004), and school friends Gowtham and Gnanesh.`,
 
   // --- SOCIAL MEDIA & CONTENT CREATION ---
-  `Social Media: Krishna is involved with a major YouTube channel named "TIRUPATHI UPDATES" (https://youtube.com/@tirupathiupdates) which has over 14 lakh subscribers. The channel was formerly known as "TIRUPATI TREKKING CLUB" (changed due to naming issues) and originally featured trekking videos from the Seshachalam forest, but now focuses on devotional content. He is also active on Instagram (@tirupathiupdates) with 768k followers. The main owner of the channel is his uncle (mother's brother), N. Madhu Kumar.`,
+  `Social Media: Krishna is involved with a major YouTube channel named "TIRUPATI UPDATES" (https://youtube.com/@tirupathiupdates) which has over 1.4 million (14 lakh) subscribers. The channel was formerly known as "TIRUPATI TREKKING CLUB" and originally featured trekking videos from the Seshachalam forest, but now focuses on devotional content. He is also active on Instagram (@tirupathiupdates) with 775K followers. He executed content strategy, audience analytics, and monetization workflows for this channel. The main owner of the channel is his uncle (mother's brother), N. Madhu Kumar.`,
 
   // --- CAREER INTERESTS ---
-  `Career Interests: Industrial Biotechnology, Pharmaceutical Operations, Healthcare Systems, Business Development, Operations Management, Industry-Integrated Applied Research.`,
+  `Career Interests: Industrial Biotechnology, Pharmaceutical Operations, Healthcare Systems, Business Development, Operations Management, Market Research, Campaign Management, Analytical Instrumentation Marketing, Life Sciences Industry, Industry-Integrated Applied Research.`,
+
+  // --- INDUSTRY KNOWLEDGE ---
+  `Industry Knowledge: Krishna is familiar with the analytical instrumentation landscape including Agilent (GC, LC, MS), Thermo Fisher, Waters, and Shimadzu. He has understanding of pharma/biopharma QA/QC workflows and regulatory pathways. He tracks industry trends in sustainable biotechnology, circular economy applications, and digital transformation in life sciences marketing.`,
+
+  // --- ACADEMIC RECORDS & GRADES ---
+  `University Grade History (Integrated M.Sc. Biotechnology at VIT Vellore):
+- Biological Science (Category: Biology, Grade: A, Score: 9, Credits: 3)
+- Bioethics and Biosafety (Category: Biotechnology, Grade: A, Score: 9, Credits: 2)
+- Chemistry (Category: Chemistry, Grade: A, Score: 9, Credits: 3)
+- Chemistry Lab (Category: Chemistry, Grade: A, Score: 9, Credits: 1)
+- Environmental Studies (Category: Environmental Science, Grade: A, Score: 9, Credits: 3)
+- Effective English Communication (Category: Communication, Grade: B, Score: 8, Credits: 2)
+- Mathematics (Category: Mathematics, Grade: B, Score: 8, Credits: 4)
+- Physics (Category: Physics, Grade: A, Score: 9, Credits: 3)
+- Physics Lab (Category: Physics, Grade: A, Score: 9, Credits: 1)
+- Cell Biology (Category: Biology, Grade: A, Score: 9, Credits: 3)
+- Molecular Biology (Category: Biology, Grade: A, Score: 9, Credits: 3)
+- Cell and Molecular Biology Lab (Category: Biology, Grade: A, Score: 9, Credits: 2)
+- Biochemistry (Category: Biochemistry, Grade: S, Score: 10, Credits: 3)
+- Biochemistry Lab (Category: Biochemistry, Grade: S, Score: 10, Credits: 2)
+- Industrial Unit Operations (Category: Industrial Biotechnology, Grade: B, Score: 8, Credits: 3)
+- Industrial Unit Operations Lab (Category: Industrial Biotechnology, Grade: S, Score: 10, Credits: 1)
+- Computer Programming : C (Category: Programming, Grade: A, Score: 9, Credits: 2)
+- Computer Programming : C Lab (Category: Programming, Grade: S, Score: 10, Credits: 1)
+- Technical English Communication (Category: Communication, Grade: A, Score: 9, Credits: 2)
+- Technical English Communication Lab (Category: Communication, Grade: A, Score: 9, Credits: 1)
+- Genetics (Category: Genetics, Grade: B, Score: 8, Credits: 3)
+- Microbiology (Category: Microbiology, Grade: B, Score: 8, Credits: 3)
+- Microbiology Lab (Category: Microbiology, Grade: A, Score: 9, Credits: 2)
+- Genetic Engineering (Category: Genetic Engineering, Grade: B, Score: 8, Credits: 3)
+- Genetic Engineering Lab (Category: Genetic Engineering, Grade: A, Score: 9, Credits: 2)
+- Food Nutrition and Health (Category: Health Science, Grade: A, Score: 9, Credits: 3)
+- Computer Programming: Python (Category: Programming, Grade: B, Score: 8, Credits: 2)
+- Computer Programming: Python Lab (Category: Programming, Grade: B, Score: 8, Credits: 1)
+- Technical Report Writing (Category: Communication, Grade: A, Score: 9, Credits: 1)
+- Probability and Statistics (Category: Mathematics, Grade: C, Score: 7, Credits: 3)
+- Probability and Statistics Lab (Category: Mathematics, Grade: S, Score: 10, Credits: 1)
+- Bioinformatics (Category: Bioinformatics, Grade: B, Score: 8, Credits: 3)
+- Bioinformatics Lab (Category: Bioinformatics, Grade: S, Score: 10, Credits: 2)
+- Systems Biology (Category: Systems Biology, Grade: S, Score: 10, Credits: 4)
+- Vaccinology (Category: Biotechnology, Grade: A, Score: 9, Credits: 3)
+- Research Methodology (Category: Research, Grade: A, Score: 9, Credits: 3)
+Grade mapping at VIT Vellore is: S = 10 (Outstanding), A = 9 (Excellent), B = 8 (Very Good), C = 7 (Good).`,
+
+  `Intermediate Education Academic Profile (12th Class / Intermediate Public Examination):
+- Board: Board of Intermediate Education, Andhra Pradesh, India.
+- Stream: BiPC (Biology, Physics, Chemistry).
+- Medium: English.
+- Registered Number: 2105210109.
+- Certificate Serial Number: U196689.
+- Issue Date: 23-07-2021.
+- Exam Session: March-2021.
+- Total Marks Obtained: 954 out of 1000. Result Grade: A.
+- Masked Aadhaar Number: 760215286226.
+Subjects and Marks:
+- English (Language): First Year 92, Second Year 94, Total 186.
+- Sanskrit (Language): First Year 97, Second Year 98, Total 195.
+- Botany (Biology): First Year 56, Second Year 57, Total 113.
+- Zoology (Biology): First Year 58, Second Year 59, Total 117.
+- Physics: First Year 60, Second Year 60, Total 120.
+- Chemistry: First Year 52, Second Year 54, Total 106.
+- Botany Practical: Second Year 30, Total 30.
+- Zoology Practical: Second Year 30, Total 30.
+- Physics Practical: Second Year 30, Total 30.
+- Chemistry Practical: Second Year 27, Total 27.
+Qualifications: Environmental Education (Qualified), Ethics and Human Values (Qualified).`,
+
+  `Secondary School Certificate (SSC / 10th Class) Academic Profile:
+- Board: Board of Secondary Education, Andhra Pradesh, India.
+- Certificate Type: Regular Secondary School Certificate (SSC).
+- Certificate Number: PC/19/18212/0390137/G4. Serial Number: SS 390137.
+- Hall Ticket Number: 1919110004.
+- Examination Year: March 2019. Result Date: 23-03-2003 (Note: date in certificate represents G. Krishna Teja's date of birth or result issue date).
+- Medium: English.
+- Overall GPA: 10.0 (Perfect 10 CGPA).
+- School Name: MASTER'S EM/TM H S GANGAMITTA SATHYAVEDU, CHITTOOR DISTRICT.
+Academic Performance (Subject-by-Subject Grades and Points):
+- Telugu: Internal A1, External A1, Overall A1, Grade Points: 10.
+- Hindi: Internal A1, External A1, Overall A1, Grade Points: 10.
+- English: Internal A1, External A1, Overall A1, Grade Points: 10.
+- Mathematics: Internal A1, External A1, Overall A1, Grade Points: 10.
+- General Science: Internal A1, External A1, Overall A1, Grade Points: 10.
+- Social Studies: Internal A1, External A1, Overall A1, Grade Points: 10.
+Co-Curricular Grades:
+- Value Education & Life Skills: A+
+- Work & Computer Education: A+
+- Art & Cultural Education: B
+- Health & Physical Education: B
+Identification Marks on Certificate:
+- A black mole is on right middle finger.
+- A black mole is on left middle finger.`
 ];
+

@@ -13,8 +13,9 @@ export default function Certifications() {
   const achievements = [
     { icon: 'fa-trophy', text: '100% Attendance Award — VIT Vellore (2023)', link: 'https://drive.google.com/file/d/13hdaMD5yXOPebf-0RGLRmaXKOJ-66eTz/view?usp=sharing' },
     { icon: 'fa-trophy', text: '100% Attendance Award — VIT Vellore (2025)', link: 'https://drive.google.com/file/d/13ksrArjo8xcIlWzYurlscTiYHj1Xx6FB/view?usp=sharing' },
-    { icon: 'fa-medal', text: 'EntrepreNATION — 2nd Prize (Entrepreneurship Competition)', link: 'https://drive.google.com/file/d/1YpBVuZJjBDPGJlKpa15bsX9v6fv0g9cG/view?usp=drivesdk' },
+    { icon: 'fa-medal', text: 'EntrepreNATION — 2nd Prize (Entrepreneurship Competition); presented Biotechnological E-Waste Leaching System at National Entrepreneurship Day', link: 'https://drive.google.com/file/d/1YpBVuZJjBDPGJlKpa15bsX9v6fv0g9cG/view?usp=drivesdk' },
     { icon: 'fa-award', text: 'Water Conservation Ideathon — 3rd Place', link: 'https://drive.google.com/file/d/13tSKgQVm_-2kLm6Hb_Zvaamy0gZKc6Gx/view?usp=sharing' },
+    { icon: 'fa-play-circle', text: 'Digital Media & Content Strategy — TIRUPATI UPDATES YouTube (1.4M subscribers) & Instagram (775K followers); executed content strategy, audience analytics, and monetization workflows', link: 'https://youtube.com/@tirupathiupdates' },
   ];
 
   return (
