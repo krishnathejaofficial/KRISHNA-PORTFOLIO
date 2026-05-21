@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const LANGS = [
   { code: 'en', flag: '🇬🇧', name: 'English' },
@@ -29,8 +29,31 @@ const TRANSLATIONS = {
   nav_projects: "Projects", nav_contact: "Contact",
 };
 
+function getCookie(name) {
+  if (typeof document === 'undefined') return '';
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
+}
+
+function getGoogleTranslateLang() {
+  const cookieVal = decodeURIComponent(getCookie('googtrans') || '');
+  if (!cookieVal) return 'en';
+  const match = cookieVal.match(/\/en\/([^;]+)/);
+  return match ? match[1] : 'en';
+}
+
 export function useTranslation() {
-  return { lang: 'en', setLang: () => {}, t: (k) => TRANSLATIONS[k] || k };
+  const [lang, setLangState] = useState('en');
+
+  useEffect(() => {
+    setLangState(getGoogleTranslateLang());
+  }, []);
+
+  const t = (k) => TRANSLATIONS[k] || k;
+
+  return { lang, setLang: () => {}, t };
 }
 
 function setGoogleTranslateCookie(langCode) {
@@ -46,7 +69,11 @@ function setGoogleTranslateCookie(langCode) {
 
 export default function LanguageSwitcher() {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(LANGS[0]);
+  const [selected, setSelected] = useState(() => {
+    const code = getGoogleTranslateLang();
+    const foundCode = Object.keys(GTRANS).find(key => GTRANS[key] === code) || 'en';
+    return LANGS.find(l => l.code === foundCode) || LANGS[0];
+  });
 
   function selectLang(lang) {
     setSelected(lang);

@@ -23,6 +23,21 @@ const GTRANS_MAP = {
   de: 'de', fr: 'fr', zh: 'zh-CN', ja: 'ja', es: 'es', ar: 'ar',
 };
 
+function getCookie(name) {
+  if (typeof document === 'undefined') return '';
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
+}
+
+function getGoogleTranslateLang() {
+  const cookieVal = decodeURIComponent(getCookie('googtrans') || '');
+  if (!cookieVal) return 'en';
+  const match = cookieVal.match(/\/en\/([^;]+)/);
+  return match ? match[1] : 'en';
+}
+
 function setGoogleTranslateLang(code) {
   const val = code ? `/en/${code}` : '';
   const expire = code ? '' : 'expires=Thu, 01 Jan 1970 00:00:00 UTC; ';
@@ -34,7 +49,11 @@ function setGoogleTranslateLang(code) {
 export default function RightDock() {
   const [panel, setPanel] = useState(null);
   const [currentTheme, setCurrentTheme] = useState('dark');
-  const [selectedLang, setSelectedLang] = useState(LANGS[0]);
+  const [selectedLang, setSelectedLang] = useState(() => {
+    const code = getGoogleTranslateLang();
+    const foundCode = Object.keys(GTRANS_MAP).find(key => GTRANS_MAP[key] === code) || 'en';
+    return LANGS.find(l => l.code === foundCode) || LANGS[0];
+  });
   const [showTop, setShowTop] = useState(false);
   const dockRef = useRef(null);
 
