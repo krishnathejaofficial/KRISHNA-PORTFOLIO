@@ -78,19 +78,33 @@ export default function LanguageSwitcher() {
   function selectLang(lang) {
     setSelected(lang);
     setOpen(false);
-    const gtCode = GTRANS[lang.code];
+    const gtCode = GTRANS[lang.code] || '';
     if (gtCode) {
       setGoogleTranslateCookie(gtCode);
     } else {
       setGoogleTranslateCookie('');
     }
-    window.location.reload();
+    
+    // Smooth change without reloading
+    const selectEl = document.querySelector('.goog-te-combo');
+    if (selectEl) {
+      selectEl.value = gtCode;
+      selectEl.dispatchEvent(new Event('change'));
+    } else {
+      setTimeout(() => {
+        const retrySelect = document.querySelector('.goog-te-combo');
+        if (retrySelect) {
+          retrySelect.value = gtCode;
+          retrySelect.dispatchEvent(new Event('change'));
+        } else {
+          window.location.reload();
+        }
+      }, 300);
+    }
   }
 
   return (
     <div className="dock-lang-switcher" id="dock-lang-switcher">
-      {/* Hidden Google Translate element — will be initialized but hidden */}
-      <div id="google_translate_element" style={{ display: 'none' }}></div>
 
       <button
         className="dock-lang-btn"

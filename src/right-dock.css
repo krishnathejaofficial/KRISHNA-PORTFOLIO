@@ -268,18 +268,35 @@
 .rd-close-btn { background: none; border: none; color: var(--text); font-size: 1.1em; cursor: pointer; opacity: 0.6; transition: 0.2s; padding: 4px; }
 .rd-close-btn:hover { opacity: 1; color: #ef4444; }
 
-/* ── Hide Google Translate banner ── */
+/* ── Hide Google Translate banner & Tooltips completely ── */
 .goog-te-banner-frame.skiptranslate,
 .goog-te-banner-frame,
 #goog-gt-tt,
 .goog-te-balloon-frame,
 iframe.goog-te-menu-frame,
-.goog-te-menu-value {
+.goog-te-menu-value,
+.skiptranslate,
+iframe.skiptranslate {
   display: none !important;
+  visibility: hidden !important;
 }
-body { top: 0px !important; }
-.goog-tooltip, .goog-tooltip:hover { display: none !important; box-shadow: none !important; }
-.goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+body { 
+  top: 0px !important; 
+  position: static !important; 
+}
+html {
+  top: 0px !important;
+}
+.goog-tooltip, .goog-tooltip:hover { 
+  display: none !important; 
+  box-shadow: none !important; 
+}
+.goog-text-highlight { 
+  background-color: transparent !important; 
+  border: none !important; 
+  box-shadow: none !important; 
+}
+
 
 /* ═══════════════════════════════════════════
    MOBILE RESPONSIVE — max-width: 768px

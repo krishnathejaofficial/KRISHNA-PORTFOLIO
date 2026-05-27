@@ -82,9 +82,25 @@ export default function RightDock() {
   function selectLang(lang) {
     setSelectedLang(lang);
     setPanel(null);
-    const gtCode = GTRANS_MAP[lang.code];
+    const gtCode = GTRANS_MAP[lang.code] || '';
     setGoogleTranslateLang(gtCode);
-    setTimeout(() => window.location.reload(), 50);
+    
+    // Smooth change without reloading
+    const selectEl = document.querySelector('.goog-te-combo');
+    if (selectEl) {
+      selectEl.value = gtCode;
+      selectEl.dispatchEvent(new Event('change'));
+    } else {
+      setTimeout(() => {
+        const retrySelect = document.querySelector('.goog-te-combo');
+        if (retrySelect) {
+          retrySelect.value = gtCode;
+          retrySelect.dispatchEvent(new Event('change'));
+        } else {
+          window.location.reload();
+        }
+      }, 300);
+    }
   }
 
   const themeIcon = THEMES[currentTheme]?.icon || 'fa-moon';
@@ -93,7 +109,6 @@ export default function RightDock() {
     <>
       {/* ── RIGHT DOCK: Theme + Language + Back-to-top ── */}
       <div className="right-dock" id="right-dock" ref={dockRef}>
-        <div id="google_translate_element" style={{ display: 'none' }} />
 
         {/* THEME */}
         <div className={`rd-item-wrap ${panel === 'theme' ? 'rd-active' : ''}`}>
