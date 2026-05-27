@@ -23,51 +23,42 @@ const GTRANS_MAP = {
   de: 'de', fr: 'fr', zh: 'zh-CN', ja: 'ja', es: 'es', ar: 'ar',
 };
 
-/* ─── LANGUAGE HELPERS (localStorage — no cookie, no proxy redirect) ─── */
-function getSavedLang() {
-  try { return localStorage.getItem('portfolioLang') || 'en'; } catch { return 'en'; }
+function getCookie(name) {
+  if (typeof document === 'undefined') return '';
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
 }
 
-function saveLang(code) {
-  try { localStorage.setItem('portfolioLang', code); } catch {}
+function getGoogleTranslateLang() {
+  const cookieVal = decodeURIComponent(getCookie('googtrans') || '');
+  if (!cookieVal) return 'en';
+  const match = cookieVal.match(/\/en\/([^;]+)/);
+  return match ? match[1] : 'en';
 }
 
-/** Fire the GT combo-select change so GT translates inline (no redirect). */
-function applyGTTranslation(langCode, attempt) {
-  const n = attempt || 0;
-  const combo = document.querySelector('.goog-te-combo');
-  if (combo) {
-    combo.value = langCode || '';
-    combo.dispatchEvent(new Event('change', { bubbles: true }));
-    combo.dispatchEvent(new Event('input', { bubbles: true }));
-  } else if (n < 25) {
-    setTimeout(() => applyGTTranslation(langCode, n + 1), 500);
-  }
+function setGoogleTranslateLang(code) {
+  const val = code ? `/en/${code}` : '';
+  const expire = code ? '' : 'expires=Thu, 01 Jan 1970 00:00:00 UTC; ';
+  document.cookie = `googtrans=${val}; ${expire}path=/`;
+  document.cookie = `googtrans=${val}; ${expire}path=/; domain=${location.hostname}`;
 }
+
 
 /* ─── RIGHT DOCK (Theme + Language) ─── */
 export default function RightDock() {
   const [panel, setPanel] = useState(null);
   const [currentTheme, setCurrentTheme] = useState('dark');
   const [selectedLang, setSelectedLang] = useState(() => {
-    const saved = getSavedLang();
-    const foundCode = Object.keys(GTRANS_MAP).find(k => GTRANS_MAP[k] === saved) ||
-                      (LANGS.find(l => l.code === saved) ? saved : 'en');
+    const code = getGoogleTranslateLang();
+    const foundCode = Object.keys(GTRANS_MAP).find(key => GTRANS_MAP[key] === code) || 'en';
     return LANGS.find(l => l.code === foundCode) || LANGS[0];
   });
   const [showTop, setShowTop] = useState(false);
   const dockRef = useRef(null);
 
   useEffect(() => { const k = initTheme(); setCurrentTheme(k); }, []);
-
-  // Restore saved language via GT combo on mount (no cookie, no redirect)
-  useEffect(() => {
-    const saved = getSavedLang();
-    if (saved && saved !== 'en') {
-      // Give GT widget time to initialize, then apply
-      setTimeout(() => applyGTTranslation(saved), 1500);
-    }
-  }, []);
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 400);
@@ -93,10 +84,12 @@ export default function RightDock() {
     setSelectedLang(lang);
     setPanel(null);
     const gtCode = GTRANS_MAP[lang.code] || '';
-    saveLang(gtCode || 'en');
-    // Delay so React finishes unmounting the flyout BEFORE GT mutates DOM
-    // (prevents the removeChild crash on flyout text nodes)
-    setTimeout(() => applyGTTranslation(gtCode), 200);
+    setGoogleTranslateLang(gtCode);
+    
+    // Smooth transition before reloading
+    document.body.style.transition = 'opacity 0.35s ease';
+    document.body.style.opacity = '0';
+    setTimeout(() => window.location.reload(), 380);
   }
 
   const themeIcon = THEMES[currentTheme]?.icon || 'fa-moon';
