@@ -42,10 +42,11 @@ function applyGTTranslation(langCode, attempt) {
   const n = attempt || 0;
   const combo = document.querySelector('.goog-te-combo');
   if (combo) {
-    combo.value = langCode || 'en';
-    combo.dispatchEvent(new Event('change'));
-  } else if (n < 20) {
-    setTimeout(() => applyGTTranslation(langCode, n + 1), 400);
+    combo.value = langCode || '';
+    combo.dispatchEvent(new Event('change', { bubbles: true }));
+    combo.dispatchEvent(new Event('input', { bubbles: true }));
+  } else if (n < 25) {
+    setTimeout(() => applyGTTranslation(langCode, n + 1), 500);
   }
 }
 
@@ -78,7 +79,8 @@ export default function LanguageSwitcher() {
     setOpen(false);
     const gtCode = GTRANS[lang.code] || '';
     saveLang(gtCode || 'en');
-    applyGTTranslation(gtCode);
+    // Delay so React finishes closing dropdown BEFORE GT mutates DOM
+    setTimeout(() => applyGTTranslation(gtCode), 200);
   }
 
   return (
@@ -95,7 +97,7 @@ export default function LanguageSwitcher() {
       </button>
 
       {open && (
-        <div className="dock-lang-dropdown">
+        <div className="dock-lang-dropdown" translate="no">
           <div className="dock-lang-dropdown-title">Select Language</div>
           {LANGS.map(l => (
             <button

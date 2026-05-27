@@ -37,10 +37,11 @@ function applyGTTranslation(langCode, attempt) {
   const n = attempt || 0;
   const combo = document.querySelector('.goog-te-combo');
   if (combo) {
-    combo.value = langCode || 'en';
-    combo.dispatchEvent(new Event('change'));
-  } else if (n < 20) {
-    setTimeout(() => applyGTTranslation(langCode, n + 1), 400);
+    combo.value = langCode || '';
+    combo.dispatchEvent(new Event('change', { bubbles: true }));
+    combo.dispatchEvent(new Event('input', { bubbles: true }));
+  } else if (n < 25) {
+    setTimeout(() => applyGTTranslation(langCode, n + 1), 500);
   }
 }
 
@@ -93,7 +94,9 @@ export default function RightDock() {
     setPanel(null);
     const gtCode = GTRANS_MAP[lang.code] || '';
     saveLang(gtCode || 'en');
-    applyGTTranslation(gtCode);
+    // Delay so React finishes unmounting the flyout BEFORE GT mutates DOM
+    // (prevents the removeChild crash on flyout text nodes)
+    setTimeout(() => applyGTTranslation(gtCode), 200);
   }
 
   const themeIcon = THEMES[currentTheme]?.icon || 'fa-moon';
@@ -110,7 +113,7 @@ export default function RightDock() {
             title="Change Theme" aria-label="Change Theme">
             <i className={`fas ${themeIcon}`} />
           </button>
-          <div className="rd-flyout">
+          <div className="rd-flyout" translate="no">
             <div className="rd-flyout-title"><i className="fas fa-palette" /> Theme</div>
             {Object.entries(THEMES).map(([key, t]) => (
               <button key={key}
@@ -131,7 +134,7 @@ export default function RightDock() {
             title="Language" aria-label="Language">
             <span style={{ fontSize: '1.3em', lineHeight: 1 }}>{selectedLang.flag}</span>
           </button>
-          <div className="rd-flyout rd-flyout-lang">
+          <div className="rd-flyout rd-flyout-lang" translate="no">
             <div className="rd-flyout-title"><i className="fas fa-language" /> Language</div>
             {LANGS.map(l => (
               <button key={l.code}
