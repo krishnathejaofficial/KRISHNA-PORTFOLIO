@@ -29,49 +29,47 @@ const TRANSLATIONS = {
   nav_projects: "Projects", nav_contact: "Contact",
 };
 
-function getCookie(name) {
-  if (typeof document === 'undefined') return '';
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return '';
+/* ─── localStorage helpers (no cookie = no proxy redirect) ─── */
+function getSavedLang() {
+  try { return localStorage.getItem('portfolioLang') || ''; } catch { return ''; }
+}
+function saveLang(code) {
+  try { localStorage.setItem('portfolioLang', code); } catch {}
 }
 
-function getGoogleTranslateLang() {
-  const cookieVal = decodeURIComponent(getCookie('googtrans') || '');
-  if (!cookieVal) return 'en';
-  const match = cookieVal.match(/\/en\/([^;]+)/);
-  return match ? match[1] : 'en';
+/** Apply GT inline translation via combo box — retries until widget is ready */
+function applyGTTranslation(langCode, attempt) {
+  const n = attempt || 0;
+  const combo = document.querySelector('.goog-te-combo');
+  if (combo) {
+    combo.value = langCode || 'en';
+    combo.dispatchEvent(new Event('change'));
+  } else if (n < 20) {
+    setTimeout(() => applyGTTranslation(langCode, n + 1), 400);
+  }
 }
 
 export function useTranslation() {
   const [lang, setLangState] = useState('en');
 
   useEffect(() => {
-    setLangState(getGoogleTranslateLang());
+    const saved = getSavedLang();
+    if (saved) {
+      const code = Object.keys(GTRANS).find(k => GTRANS[k] === saved) || 'en';
+      setLangState(code);
+    }
   }, []);
 
   const t = (k) => TRANSLATIONS[k] || k;
-
   return { lang, setLang: () => {}, t };
-}
-
-function setGoogleTranslateCookie(langCode) {
-  if (!langCode) {
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname;
-    return;
-  }
-  const val = `/en/${langCode}`;
-  document.cookie = `googtrans=${val}; path=/`;
-  document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}`;
 }
 
 export default function LanguageSwitcher() {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(() => {
-    const code = getGoogleTranslateLang();
-    const foundCode = Object.keys(GTRANS).find(key => GTRANS[key] === code) || 'en';
+    const saved = getSavedLang();
+    const foundCode = Object.keys(GTRANS).find(k => GTRANS[k] === saved) ||
+                      (LANGS.find(l => l.code === saved) ? saved : 'en');
     return LANGS.find(l => l.code === foundCode) || LANGS[0];
   });
 
@@ -79,22 +77,12 @@ export default function LanguageSwitcher() {
     setSelected(lang);
     setOpen(false);
     const gtCode = GTRANS[lang.code] || '';
-    if (gtCode) {
-      setGoogleTranslateCookie(gtCode);
-    } else {
-      setGoogleTranslateCookie('');
-    }
-
-    // Fade out smoothly, then reload so Google Translate can apply
-    // (direct DOM manipulation via .goog-te-combo crashes React's reconciler)
-    document.body.style.transition = 'opacity 0.35s ease';
-    document.body.style.opacity = '0';
-    setTimeout(() => window.location.reload(), 380);
+    saveLang(gtCode || 'en');
+    applyGTTranslation(gtCode);
   }
 
   return (
     <div className="dock-lang-switcher" id="dock-lang-switcher">
-
       <button
         className="dock-lang-btn"
         onClick={() => setOpen(p => !p)}
