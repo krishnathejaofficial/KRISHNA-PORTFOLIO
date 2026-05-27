@@ -84,23 +84,12 @@ export default function RightDock() {
     setPanel(null);
     const gtCode = GTRANS_MAP[lang.code] || '';
     setGoogleTranslateLang(gtCode);
-    
-    // Smooth change without reloading
-    const selectEl = document.querySelector('.goog-te-combo');
-    if (selectEl) {
-      selectEl.value = gtCode;
-      selectEl.dispatchEvent(new Event('change'));
-    } else {
-      setTimeout(() => {
-        const retrySelect = document.querySelector('.goog-te-combo');
-        if (retrySelect) {
-          retrySelect.value = gtCode;
-          retrySelect.dispatchEvent(new Event('change'));
-        } else {
-          window.location.reload();
-        }
-      }, 300);
-    }
+
+    // Fade out smoothly, then reload so Google Translate can apply
+    // (direct DOM manipulation via .goog-te-combo crashes React's reconciler)
+    document.body.style.transition = 'opacity 0.35s ease';
+    document.body.style.opacity = '0';
+    setTimeout(() => window.location.reload(), 380);
   }
 
   const themeIcon = THEMES[currentTheme]?.icon || 'fa-moon';

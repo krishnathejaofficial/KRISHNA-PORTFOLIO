@@ -298,6 +298,10 @@ html {
 }
 
 
+/* ── Page fade-in on load (makes language reload feel like a smooth transition) ── */
+@keyframes pageLoad { from { opacity: 0; } to { opacity: 1; } }
+body { animation: pageLoad 0.4s ease forwards; }
+
 /* ═══════════════════════════════════════════
    MOBILE RESPONSIVE — max-width: 768px
 ═══════════════════════════════════════════ */
