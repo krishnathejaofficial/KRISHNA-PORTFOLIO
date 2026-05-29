@@ -29,10 +29,11 @@ import Contact from './sections/Contact';
 import Testimonials from './sections/Testimonials';
 import AdminDashboard from './components/AdminDashboard';
 import TrackingWidget from './components/TrackingWidget';
+import SuperToolsModal from './components/SuperToolsModal';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, hireKrishna: false, resumeAI: false, track: false });
+  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, hireKrishna: false, resumeAI: false, track: false, tools: false });
 
   const isAdmin = typeof window !== 'undefined' && window.location.pathname === '/admin';
 
@@ -80,7 +81,7 @@ function App() {
       {/* Right Dock: Theme + Language + Back-to-top + Voice (left) + AI Chat (bottom-right) */}
       <RightDock />
 
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} onOpenTrack={() => openModal('track')} />
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} onOpenTrack={() => openModal('track')} onOpenTools={() => openModal('tools')} />
 
       <main>
         <Hero
@@ -92,6 +93,7 @@ function App() {
           onOpenTrack={() => openModal('track')}
           onOpenCoverLetter={() => openModal('clg')}
           onOpenResumeAI={() => openModal('resumeAI')}
+          onOpenTools={() => openModal('tools')}
         />
         <About />
         <Career />
@@ -124,6 +126,7 @@ function App() {
       {modals.hire && <HireMeButton initialOpen onClose={() => closeModal('hire')} />}
       <HireKrishnaModal isOpen={modals.hireKrishna} onClose={() => closeModal('hireKrishna')} />
       <TrackingWidget isOpen={modals.track} onClose={() => closeModal('track')} />
+      <SuperToolsModal isOpen={modals.tools} onClose={() => closeModal('tools')} />
     </div>
   );
 }

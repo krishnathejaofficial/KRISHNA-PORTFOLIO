@@ -60,6 +60,13 @@ export default async function handler(req, res) {
     const db = client.db('trackingDB');
 
     // ── AUTH ──────────────────────────────────────────────────────────────────
+    if (action === 'verify-only-password') {
+      const authDoc = await db.collection('auth').findOne({ role: 'admin' });
+      const activePassword = authDoc?.password || DEFAULT_PASSWORD;
+      if (password !== activePassword) return res.status(401).json({ error: 'Invalid password' });
+      return res.status(200).json({ success: true });
+    }
+
     if (action === 'request-otp') {
       const authDoc = await db.collection('auth').findOne({ role: 'admin' });
       const activePassword = authDoc?.password || DEFAULT_PASSWORD;

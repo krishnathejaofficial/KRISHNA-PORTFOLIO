@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 
-export default function Sidebar({ isOpen, onClose, onOpenQR }) {
+export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpenTools }) {
   const { t } = useTranslation();
   
   const navLinks = [
@@ -73,6 +73,9 @@ export default function Sidebar({ isOpen, onClose, onOpenQR }) {
           </button>
           <button className="btn" onClick={() => { onClose(); onOpenTrack(); }} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)', fontSize: '0.85em', padding: '10px', marginTop: '10px' }}>
             <i className="fas fa-search-location" style={{ marginRight: '8px' }} /> Track Request
+          </button>
+          <button className="btn" onClick={() => { onClose(); onOpenTools(); }} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)', fontSize: '0.85em', padding: '10px', marginTop: '10px' }}>
+            <i className="fas fa-tools" style={{ marginRight: '8px' }} /> Super Tools
           </button>
         </div>
         <div className="sidebar-footer">
