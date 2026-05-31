@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
+import QRCode from 'qrcode';
 
 /* ──────────────────────────────────────────────
    GPS Map Camera — like a real GPS cam app
@@ -131,18 +132,46 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
       const scale = W / 1080;
       const pad = Math.round(W * 0.04);
       const padBottom = Math.round(W * 0.04);
-      const mapSize = Math.round(W * 0.28);
+      const panelH = Math.round(W * 0.24);
 
-      // Positioning coordinates
-      const mapX = pad;
-      const mapY = H - mapSize - padBottom;
+      // Positioning coordinates for the main unified panel
+      const panelX = pad;
+      const panelY = H - panelH - padBottom;
+      const panelW = W - 2 * pad;
 
-      const boxX = mapSize + 2 * pad;
-      const boxY = mapY;
-      const boxWidth = W - boxX - pad;
-      const boxHeight = mapSize;
+      // ── Semi-transparent background panel ──
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.beginPath();
+      ctx.roundRect(panelX, panelY, panelW, panelH, Math.round(W * 0.015));
+      ctx.fill();
 
-      // ── Map thumbnail (bottom-left corner) ──
+      // ── Floating Branding Badge (just above the panel on the top-right) ──
+      const badgeH = Math.round(W * 0.045);
+      const badgeY = panelY - badgeH - Math.round(W * 0.012);
+      const badgeFontSize = Math.round(W * 0.015);
+      ctx.font = `bold ${badgeFontSize}px Arial`;
+      const badgeText = '📷 krishnateja.vercel.app';
+      const badgeTextW = ctx.measureText(badgeText).width;
+      const badgePadX = Math.round(W * 0.02);
+      const badgeW = badgeTextW + 2 * badgePadX;
+      const badgeX = panelX + panelW - badgeW - Math.round(W * 0.005);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.beginPath();
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, Math.round(W * 0.008));
+      ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${badgeFontSize}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2 + Math.round(badgeFontSize * 0.32));
+
+      // ── Map thumbnail (bottom-left inside the panel) ──
+      const mapPad = Math.round(W * 0.015);
+      const mapSize = panelH - 2 * mapPad;
+      const mapX = panelX + mapPad;
+      const mapY = panelY + mapPad;
+
       try {
         const tileUrl = TILE(gpsData.lat, gpsData.lon, 14);
         const tileImg = new Image();
@@ -159,7 +188,7 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
 
             // Map border
             ctx.strokeStyle = '#D4AF37';
-            ctx.lineWidth = Math.round(W * 0.003 + 1);
+            ctx.lineWidth = Math.round(W * 0.002 + 1);
             ctx.beginPath();
             ctx.roundRect(mapX, mapY, mapSize, mapSize, Math.round(W * 0.015));
             ctx.stroke();
@@ -176,7 +205,7 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
             ctx.arc(cx, cy - Math.round(W * 0.004), Math.round(W * 0.0025 + 1), 0, Math.PI * 2);
             ctx.fill();
 
-            // Google Maps logo area
+            // Google Maps watermark logo
             ctx.fillStyle = 'rgba(255,255,255,0.9)';
             const watermarkH = Math.round(W * 0.018 + 6);
             const watermarkW = Math.round(W * 0.05 + 20);
@@ -188,13 +217,13 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
             res();
           };
           tileImg.onerror = () => {
-            // Fallback: draw a placeholder map
+            // Fallback placeholder map
             ctx.fillStyle = '#1a1a2e';
             ctx.beginPath();
             ctx.roundRect(mapX, mapY, mapSize, mapSize, Math.round(W * 0.015));
             ctx.fill();
             ctx.strokeStyle = '#D4AF37';
-            ctx.lineWidth = Math.round(W * 0.003 + 1);
+            ctx.lineWidth = Math.round(W * 0.002 + 1);
             ctx.stroke();
 
             ctx.fillStyle = '#D4AF37';
@@ -210,39 +239,79 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
         // ignore
       }
 
-      // ── Semi-transparent background box on bottom-right ──
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-      ctx.beginPath();
-      ctx.roundRect(boxX, boxY, boxWidth, boxHeight, Math.round(W * 0.015));
-      ctx.fill();
+      // ── QR Code (bottom-right inside the panel) ──
+      const qrBoxSize = panelH - 2 * mapPad;
+      const qrX = panelX + panelW - qrBoxSize - mapPad;
+      const qrY = panelY + mapPad;
 
-      // ── Branding logo (top-right corner of box) ──
-      const boxPadX = Math.round(W * 0.035);
-      const boxPadY = Math.round(W * 0.035);
-      const logoFontSize = Math.round(W * 0.016);
-      const logoX = boxX + boxWidth - boxPadX;
-      const logoY = boxY + boxPadY + Math.round(logoFontSize * 0.4);
+      try {
+        const mapsUrl = `https://maps.google.com/?q=${gpsData.lat},${gpsData.lon}`;
+        const qrDataUrl = await QRCode.toDataURL(mapsUrl, {
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#ffffff'
+          }
+        });
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = `bold ${logoFontSize}px Arial`;
-      ctx.textAlign = 'right';
-      ctx.fillText('📷 krishnateja.vercel.app', logoX, logoY);
+        const qrImg = new Image();
+        await new Promise((res) => {
+          qrImg.onload = () => {
+            // Draw white background card for QR Code
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.roundRect(qrX, qrY, qrBoxSize, qrBoxSize, Math.round(W * 0.015));
+            ctx.fill();
+
+            // Clip and draw QR code
+            ctx.save();
+            ctx.beginPath();
+            ctx.roundRect(qrX, qrY, qrBoxSize, qrBoxSize, Math.round(W * 0.015));
+            ctx.clip();
+            const qrPadding = Math.round(qrBoxSize * 0.06);
+            ctx.drawImage(
+              qrImg, 
+              qrX + qrPadding, 
+              qrY + qrPadding, 
+              qrBoxSize - 2 * qrPadding, 
+              qrBoxSize - 2 * qrPadding
+            );
+            ctx.restore();
+            res();
+          };
+          qrImg.src = qrDataUrl;
+        });
+      } catch (err) {
+        // fallback in case QR fails
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.roundRect(qrX, qrY, qrBoxSize, qrBoxSize, Math.round(W * 0.015));
+        ctx.fill();
+        ctx.fillStyle = '#333';
+        ctx.font = `${Math.round(W * 0.012)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('QR Error', qrX + qrBoxSize / 2, qrY + qrBoxSize / 2);
+        ctx.textAlign = 'left';
+      }
 
       // ── Dynamic text rendering inside box ──
-      const cityFontSize = Math.round(W * 0.024);
-      const addrFontSize = Math.round(W * 0.017);
-      const coordFontSize = Math.round(W * 0.015);
-      const dtFontSize = Math.round(W * 0.015);
+      const cityFontSize = Math.round(W * 0.021);
+      const addrFontSize = Math.round(W * 0.016);
+      const coordFontSize = Math.round(W * 0.014);
+      const dtFontSize = Math.round(W * 0.014);
 
-      const gap1 = Math.round(W * 0.008);
+      const gap1 = Math.round(W * 0.007);
       const gap2 = Math.round(W * 0.004);
-      const gap3 = Math.round(W * 0.008);
+      const gap3 = Math.round(W * 0.007);
       const gap4 = Math.round(W * 0.004);
 
       const totalTextHeight = cityFontSize + gap1 + addrFontSize + gap2 + addrFontSize + gap3 + coordFontSize + gap4 + dtFontSize;
 
       // Text truncation helper to prevent overflow
-      const maxW = boxWidth - 2 * boxPadX;
+      const txtX = mapX + mapSize + Math.round(W * 0.025);
+      const txtMaxX = qrX - Math.round(W * 0.025);
+      const maxW = txtMaxX - txtX;
+
       const truncateText = (text, maxAllowedWidth, fontSpec) => {
         ctx.font = fontSpec;
         if (ctx.measureText(text).width <= maxAllowedWidth) return text;
@@ -286,15 +355,14 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
       const coordLine = `Lat ${gpsData.lat.toFixed(6)}° Long ${gpsData.lon.toFixed(6)}°` + (gpsData.accuracy ? ` (±${Math.round(gpsData.accuracy)}m)` : '');
       const dtLine = `${gpsData.dateStr} ${gpsData.timeStr}`;
 
-      const truncatedCity = truncateText(cityLine, maxW - Math.round(W * 0.22), `bold ${cityFontSize}px Arial`);
+      const truncatedCity = truncateText(cityLine, maxW, `bold ${cityFontSize}px Arial`);
       const truncatedAddr1 = truncateText(addrLine1, maxW, `${addrFontSize}px Arial`);
       const truncatedAddr2 = truncateText(addrLine2, maxW, `${addrFontSize}px Arial`);
       const truncatedCoord = truncateText(coordLine, maxW, `${coordFontSize}px Arial`);
       const truncatedDt = truncateText(dtLine, maxW, `${dtFontSize}px Arial`);
 
       // Center vertically
-      let txtY = boxY + (boxHeight - totalTextHeight) / 2 + cityFontSize;
-      const txtX = boxX + boxPadX;
+      let txtY = panelY + (panelH - totalTextHeight) / 2 + cityFontSize;
 
       // Line 1: City & Country Flag
       ctx.fillStyle = '#FFFFFF';
@@ -393,8 +461,13 @@ export default function GPSMapCamera({ isOpen, onClose }) {
 
         try {
           const res = await fetch(
-            `${NOMINATIM}?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
-            { headers: { 'Accept-Language': 'en' } }
+            `${NOMINATIM}?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`,
+            { 
+              headers: { 
+                'Accept-Language': 'en',
+                'User-Agent': 'KrishnaPortfolioGPSCam/1.0 (krishnatejareddy2003@gmail.com)'
+              } 
+            }
           );
           const data = await res.json();
           const a = data.address || {};
