@@ -30,10 +30,11 @@ import Testimonials from './sections/Testimonials';
 import AdminDashboard from './components/AdminDashboard';
 import TrackingWidget from './components/TrackingWidget';
 import SuperToolsModal from './components/SuperToolsModal';
+import GPSMapCamera from './components/GPSMapCamera';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, hireKrishna: false, resumeAI: false, track: false, tools: false });
+  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, hireKrishna: false, resumeAI: false, track: false, tools: false, gps: false });
 
   const isAdmin = typeof window !== 'undefined' && window.location.pathname === '/admin';
 
@@ -94,6 +95,7 @@ function App() {
           onOpenCoverLetter={() => openModal('clg')}
           onOpenResumeAI={() => openModal('resumeAI')}
           onOpenTools={() => openModal('tools')}
+          onOpenGPS={() => openModal('gps')}
         />
         <About />
         <Career />
@@ -127,6 +129,7 @@ function App() {
       <HireKrishnaModal isOpen={modals.hireKrishna} onClose={() => closeModal('hireKrishna')} />
       <TrackingWidget isOpen={modals.track} onClose={() => closeModal('track')} />
       <SuperToolsModal isOpen={modals.tools} onClose={() => closeModal('tools')} />
+      <GPSMapCamera isOpen={modals.gps} onClose={() => closeModal('gps')} />
     </div>
   );
 }

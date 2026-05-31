@@ -233,3 +233,304 @@ body.light { --hm-0: #ebedf0; --hm-1: #9be9a8; --hm-2: #40c463; --hm-3: #30a14e;
 .sched-confirm-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .sched-confirm-row { display: flex; align-items: center; gap: 12px; color: var(--text-bright); font-size: 0.9em; }
 .sched-confirm-row i { color: var(--gold); width: 16px; text-align: center; }
+
+/* ══════════════════════════════════════════════════
+   GPS MAP CAMERA — Full-featured Geotagged Camera
+══════════════════════════════════════════════════ */
+.gps-cam-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; animation: fadeIn 0.2s ease-out;
+}
+
+.gps-cam-modal {
+  background: #0a0a0a;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 22px;
+  width: 100%; max-width: 500px;
+  max-height: 92vh; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(212,175,55,0.1);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gps-cam-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04));
+  border-bottom: 1px solid rgba(212,175,55,0.2);
+  flex-shrink: 0;
+}
+
+.gps-cam-title {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2em; font-weight: 700; color: #D4AF37;
+  letter-spacing: 0.02em;
+}
+
+.gps-cam-close {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: #999; cursor: pointer; font-size: 1em;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.gps-cam-close:hover { color: #ef4444; border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.1); transform: rotate(90deg); }
+
+.gps-cam-body {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: thin; scrollbar-color: rgba(212,175,55,0.2) transparent;
+}
+.gps-cam-body::-webkit-scrollbar { width: 4px; }
+.gps-cam-body::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); border-radius: 4px; }
+
+/* ── Start Screen ── */
+.gps-cam-start {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 36px 28px; text-align: center; gap: 18px;
+}
+
+.gps-cam-icon-ring {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.04) 70%);
+  border: 2px solid rgba(212,175,55,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2em; color: #D4AF37;
+  animation: gps-pulse-ring 3s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(212,175,55,0.15);
+}
+@keyframes gps-pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.3), 0 0 30px rgba(212,175,55,0.15); }
+  50% { box-shadow: 0 0 0 16px rgba(212,175,55,0), 0 0 40px rgba(212,175,55,0.25); }
+}
+
+.gps-cam-start h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6em; color: #f0f0f0; margin: 0;
+}
+.gps-cam-start p {
+  font-size: 0.88em; color: #888; line-height: 1.65; max-width: 360px; margin: 0;
+}
+
+.gps-cam-features {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+}
+.gps-cam-features span {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.2);
+  padding: 5px 12px; border-radius: 20px; font-size: 0.78em; color: #D4AF37;
+}
+.gps-cam-features span i { font-size: 0.9em; }
+
+/* ── Locating / Processing Screen ── */
+.gps-cam-locating {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 52px 28px; text-align: center; gap: 20px;
+}
+
+.gps-cam-pulse-ring {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(212,175,55,0.1);
+  border: 2px solid rgba(212,175,55,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2em; color: #D4AF37;
+  animation: gps-pulse-ring 2s ease-in-out infinite;
+  position: relative;
+}
+.gps-cam-pulse-ring.error { border-color: rgba(239,68,68,0.4); color: #ef4444; background: rgba(239,68,68,0.08); animation: none; }
+
+.gps-loc-status {
+  font-size: 0.95em; color: #D4AF37; font-weight: 500; line-height: 1.5;
+}
+.gps-loc-hint {
+  font-size: 0.78em; color: #666; line-height: 1.55; max-width: 300px;
+}
+
+/* ── Viewfinder (Camera) Screen ── */
+.gps-cam-viewfinder {
+  display: flex; flex-direction: column;
+  background: #000;
+}
+
+.gps-cam-video-wrap {
+  position: relative; width: 100%;
+  aspect-ratio: 4/3; background: #111;
+  overflow: hidden;
+}
+
+.gps-cam-video {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block;
+}
+
+.gps-cam-flash {
+  position: absolute; inset: 0; background: white;
+  animation: flash-fade 0.2s ease-out;
+  pointer-events: none; z-index: 10;
+}
+@keyframes flash-fade { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Crosshair corners */
+.gps-cam-corner {
+  position: absolute; width: 22px; height: 22px;
+  border-color: rgba(212,175,55,0.9); border-style: solid; z-index: 5;
+}
+.gps-cam-corner.tl { top: 12px; left: 12px; border-width: 2.5px 0 0 2.5px; }
+.gps-cam-corner.tr { top: 12px; right: 12px; border-width: 2.5px 2.5px 0 0; }
+.gps-cam-corner.bl { bottom: 60px; left: 12px; border-width: 0 0 2.5px 2.5px; }
+.gps-cam-corner.br { bottom: 60px; right: 12px; border-width: 0 2.5px 2.5px 0; }
+
+/* Live GPS info overlay on viewfinder */
+.gps-cam-live-info {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 70%, transparent 100%);
+  padding: 20px 14px 10px;
+  z-index: 5; pointer-events: none;
+}
+.gps-live-city {
+  font-size: 0.95em; font-weight: 700; color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  margin-bottom: 3px;
+}
+.gps-live-coords {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75em; color: #D4AF37; font-weight: 600;
+  margin-bottom: 2px;
+}
+.gps-live-addr {
+  font-size: 0.72em; color: rgba(255,255,255,0.7);
+  line-height: 1.3;
+}
+
+/* Camera controls row */
+.gps-cam-controls {
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 16px 24px 20px;
+  background: #000;
+}
+
+.gps-cam-ctrl-btn {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  color: #fff; font-size: 1.1em; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.gps-cam-ctrl-btn:hover { background: rgba(212,175,55,0.15); border-color: #D4AF37; color: #D4AF37; }
+
+/* Shutter button */
+.gps-cam-shutter {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: transparent; border: 3px solid #fff;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; padding: 0;
+}
+.gps-cam-shutter:hover { border-color: #D4AF37; transform: scale(1.05); }
+.gps-cam-shutter:active { transform: scale(0.93); }
+.gps-shutter-inner {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #fff; display: block;
+  transition: background 0.15s;
+}
+.gps-cam-shutter:hover .gps-shutter-inner { background: #D4AF37; }
+
+/* ── Result Screen ── */
+.gps-cam-result {
+  display: flex; flex-direction: column; gap: 0;
+}
+
+.gps-cam-preview-wrap {
+  width: 100%; background: #000;
+  max-height: 350px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.gps-cam-preview {
+  width: 100%; height: auto;
+  object-fit: contain; display: block;
+  max-height: 350px;
+}
+
+.gps-result-card {
+  margin: 0; padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(10,10,10,0.98), rgba(15,15,15,0.98));
+  border-top: 2px solid #D4AF37;
+}
+
+.gps-result-header {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-bottom: 12px;
+}
+.gps-result-header i { font-size: 1.3em; margin-top: 2px; flex-shrink: 0; }
+.gps-result-city {
+  font-size: 1.0em; font-weight: 700; color: #fff; margin-bottom: 3px;
+}
+.gps-result-addr {
+  font-size: 0.78em; color: #aaa; line-height: 1.45;
+}
+
+.gps-result-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.gps-meta-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.78em; color: #ccc; background: rgba(255,255,255,0.04);
+  padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);
+}
+.gps-meta-item i { flex-shrink: 0; width: 14px; text-align: center; }
+
+/* Result action buttons */
+.gps-result-actions {
+  display: flex; gap: 8px; padding: 14px 16px;
+  background: #0a0a0a; border-top: 1px solid rgba(212,175,55,0.15);
+  flex-wrap: wrap;
+}
+
+/* Shared button styles */
+.gps-cam-btn-primary {
+  flex: 1; min-width: 130px;
+  background: linear-gradient(135deg, #D4AF37, #f0c14b);
+  color: #000; border: none; padding: 12px 20px; border-radius: 40px;
+  font-size: 0.88em; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all 0.25s; letter-spacing: 0.02em;
+  box-shadow: 0 4px 16px rgba(212,175,55,0.3);
+}
+.gps-cam-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,55,0.45); }
+
+.gps-cam-btn-secondary {
+  flex: 1; min-width: 90px;
+  background: rgba(255,255,255,0.06); color: #ccc;
+  border: 1px solid rgba(255,255,255,0.12); padding: 12px 16px; border-radius: 40px;
+  font-size: 0.85em; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.2s;
+}
+.gps-cam-btn-secondary:hover { background: rgba(212,175,55,0.12); color: #D4AF37; border-color: rgba(212,175,55,0.3); }
+
+/* Hero action chip for GPS camera */
+.hero-action-chip.gps-chip {
+  background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(212,175,55,0.1));
+  border-color: rgba(239,68,68,0.4);
+  color: #fca5a5;
+}
+.hero-action-chip.gps-chip:hover {
+  background: rgba(239,68,68,0.25) !important;
+  border-color: #ef4444;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(239,68,68,0.25);
+}
+.hero-action-chip.gps-chip i { color: #ef4444; }
+
+/* Responsive */
+@media (max-width: 520px) {
+  .gps-cam-modal { max-width: 100%; border-radius: 18px 18px 0 0; max-height: 100vh; }
+  .gps-cam-overlay { padding: 0; align-items: flex-end; }
+  .gps-result-meta { grid-template-columns: 1fr; }
+  .gps-result-actions { gap: 6px; }
+  .gps-cam-btn-primary, .gps-cam-btn-secondary { padding: 11px 12px; font-size: 0.82em; }
+}
+
