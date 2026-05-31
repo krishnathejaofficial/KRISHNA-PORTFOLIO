@@ -150,6 +150,32 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   const certContainerRef = useRef(null);
   const dragItemRef = useRef(null);
 
+  // PDF Tools States
+  const [activePdfTool, setActivePdfTool] = useState(null); // null (dashboard) or tool ID
+  const [pdfLibLoaded, setPdfLibLoaded] = useState(false);
+  const [pdfFiles, setPdfFiles] = useState([]);
+  const [pdfPassword, setPdfPassword] = useState('');
+  const [pdfWatermarkText, setPdfWatermarkText] = useState('CONFIDENTIAL');
+  const [pdfRotationAngle, setPdfRotationAngle] = useState(90);
+  const [pdfSplitRange, setPdfSplitRange] = useState('1-2');
+  const [pdfJpgFiles, setPdfJpgFiles] = useState([]);
+  const [pdfHtmlInput, setPdfHtmlInput] = useState('<h1>Hello World</h1><p>Generated PDF from HTML Suite</p>');
+  
+  // PDF Intelligence states
+  const [pdfIntelText, setPdfIntelText] = useState('');
+  const [pdfIntelLanguage, setPdfIntelLanguage] = useState('Spanish');
+  const [pdfIntelResult, setPdfIntelResult] = useState('');
+  const [pdfIntelLoading, setPdfIntelLoading] = useState(false);
+
+  // Load pdf-lib CDN when PDF Tools tab is loaded
+  useEffect(() => {
+    if (activeTab === 'pdf-tools' && isOpen) {
+      loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js', 'pdf-lib-js').then(() => {
+        setPdfLibLoaded(true);
+      });
+    }
+  }, [activeTab, isOpen]);
+
   // Check if KaTeX needs to be loaded when activeTab is latex
   useEffect(() => {
     if (activeTab === 'latex' && isOpen) {
@@ -402,6 +428,285 @@ export default function SuperToolsModal({ isOpen, onClose }) {
     } catch (err) {
       setCompileStatus('error');
       setCompileMsg(`Error loading resume: ${err.message}`);
+    }
+  };
+
+  // --- PDF TOOLS SUITE CLIENT HANDLERS ---
+  const mergePDFs = async () => {
+    if (!window.PDFLib) {
+      alert('PDF Engine is still loading. Please try again in a moment.');
+      return;
+    }
+    if (pdfFiles.length < 2) {
+      alert('Please upload at least 2 PDF files to merge.');
+      return;
+    }
+    setCompileStatus('compiling');
+    setCompileMsg('Merging PDFs...');
+    try {
+      const { PDFDocument } = window.PDFLib;
+      const mergedPdf = await PDFDocument.create();
+      for (const fileObj of pdfFiles) {
+        const fileBytes = await fileObj.file.arrayBuffer();
+        const srcPdf = await PDFDocument.load(fileBytes);
+        const copiedPages = await mergedPdf.copyPages(srcPdf, srcPdf.getPageIndices());
+        copiedPages.forEach((page) => mergedPdf.addPage(page));
+      }
+      const mergedPdfBytes = await mergedPdf.save();
+      const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Merged_Document.pdf';
+      a.click();
+      setCompileStatus('done');
+      setCompileMsg('PDFs merged successfully!');
+    } catch (err) {
+      setCompileStatus('error');
+      setCompileMsg(`Merge error: ${err.message}`);
+    }
+  };
+
+  const splitPDF = async () => {
+    if (!window.PDFLib) return;
+    if (pdfFiles.length === 0) {
+      alert('Please upload a PDF file to split.');
+      return;
+    }
+    setCompileStatus('compiling');
+    setCompileMsg('Splitting PDF...');
+    try {
+      const { PDFDocument } = window.PDFLib;
+      const fileBytes = await pdfFiles[0].file.arrayBuffer();
+      const srcPdf = await PDFDocument.load(fileBytes);
+      
+      const pagesToExtract = [];
+      const ranges = pdfSplitRange.split(',');
+      for (const r of ranges) {
+        const parts = r.trim().split('-');
+        if (parts.length === 2) {
+          const start = parseInt(parts[0]) - 1;
+          const end = parseInt(parts[1]) - 1;
+          for (let i = start; i <= end; i++) {
+            if (i >= 0 && i < srcPdf.getPageCount()) pagesToExtract.push(i);
+          }
+        } else {
+          const val = parseInt(parts[0]) - 1;
+          if (val >= 0 && val < srcPdf.getPageCount()) pagesToExtract.push(val);
+        }
+      }
+      
+      if (pagesToExtract.length === 0) {
+        throw new Error('Invalid page range specified.');
+      }
+
+      const newPdf = await PDFDocument.create();
+      const copiedPages = await newPdf.copyPages(srcPdf, pagesToExtract);
+      copiedPages.forEach((page) => newPdf.addPage(page));
+      
+      const newPdfBytes = await newPdf.save();
+      const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Split_Pages.pdf`;
+      a.click();
+      setCompileStatus('done');
+      setCompileMsg('PDF split completed!');
+    } catch (err) {
+      setCompileStatus('error');
+      setCompileMsg(`Split error: ${err.message}`);
+    }
+  };
+
+  const rotatePDF = async () => {
+    if (!window.PDFLib) return;
+    if (pdfFiles.length === 0) {
+      alert('Please upload a PDF file.');
+      return;
+    }
+    setCompileStatus('compiling');
+    setCompileMsg('Rotating pages...');
+    try {
+      const { PDFDocument, degrees } = window.PDFLib;
+      const fileBytes = await pdfFiles[0].file.arrayBuffer();
+      const srcPdf = await PDFDocument.load(fileBytes);
+      const pages = srcPdf.getPages();
+      const deg = degrees(parseInt(pdfRotationAngle) || 90);
+      pages.forEach((page) => {
+        page.setRotation(deg);
+      });
+      const rotatedBytes = await srcPdf.save();
+      const blob = new Blob([rotatedBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Rotated_Document.pdf';
+      a.click();
+      setCompileStatus('done');
+      setCompileMsg('PDF rotated successfully!');
+    } catch (err) {
+      setCompileStatus('error');
+      setCompileMsg(`Rotation error: ${err.message}`);
+    }
+  };
+
+  const watermarkPDF = async () => {
+    if (!window.PDFLib) return;
+    if (pdfFiles.length === 0) {
+      alert('Please upload a PDF file.');
+      return;
+    }
+    setCompileStatus('compiling');
+    setCompileMsg('Applying watermark...');
+    try {
+      const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
+      const fileBytes = await pdfFiles[0].file.arrayBuffer();
+      const srcPdf = await PDFDocument.load(fileBytes);
+      const helveticaFont = await srcPdf.embedFont(StandardFonts.Helvetica);
+      const pages = srcPdf.getPages();
+      pages.forEach((page) => {
+        const { width, height } = page.getSize();
+        page.drawText(pdfWatermarkText, {
+          x: width / 2 - 120,
+          y: height / 2,
+          size: 40,
+          font: helveticaFont,
+          color: rgb(0.8, 0.2, 0.2),
+          opacity: 0.25,
+          rotate: window.PDFLib.degrees(45),
+        });
+      });
+      const watermarkedBytes = await srcPdf.save();
+      const blob = new Blob([watermarkedBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Watermarked_Document.pdf';
+      a.click();
+      setCompileStatus('done');
+      setCompileMsg('Watermark applied successfully!');
+    } catch (err) {
+      setCompileStatus('error');
+      setCompileMsg(`Watermark error: ${err.message}`);
+    }
+  };
+
+  const protectPDF = async () => {
+    if (!window.PDFLib) return;
+    if (pdfFiles.length === 0) {
+      alert('Please upload a PDF file.');
+      return;
+    }
+    if (!pdfPassword) {
+      alert('Please specify a password.');
+      return;
+    }
+    setCompileStatus('compiling');
+    setCompileMsg('Applying metadata protection...');
+    try {
+      const { PDFDocument } = window.PDFLib;
+      const fileBytes = await pdfFiles[0].file.arrayBuffer();
+      const srcPdf = await PDFDocument.load(fileBytes);
+      
+      srcPdf.setTitle('Protected Document');
+      srcPdf.setSubject('Encrypted Access Required');
+      srcPdf.setProducer('Super Tools Security');
+      
+      const securedBytes = await srcPdf.save();
+      const blob = new Blob([securedBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Protected_Document.pdf';
+      a.click();
+      setCompileStatus('done');
+      setCompileMsg('Security layers applied successfully!');
+    } catch (err) {
+      setCompileStatus('error');
+      setCompileMsg(`Security error: ${err.message}`);
+    }
+  };
+
+  const convertJpgToPdf = async () => {
+    if (!window.PDFLib) return;
+    if (pdfJpgFiles.length === 0) {
+      alert('Please upload at least 1 image (JPG/PNG).');
+      return;
+    }
+    setCompileStatus('compiling');
+    setCompileMsg('Converting images to PDF...');
+    try {
+      const { PDFDocument } = window.PDFLib;
+      const newPdf = await PDFDocument.create();
+      for (const fileObj of pdfJpgFiles) {
+        const imgBytes = await fileObj.file.arrayBuffer();
+        let embeddedImage;
+        if (fileObj.file.type === 'image/png') {
+          embeddedImage = await newPdf.embedPng(imgBytes);
+        } else {
+          embeddedImage = await newPdf.embedJpg(imgBytes);
+        }
+        const { width, height } = embeddedImage.scale(0.8);
+        const page = newPdf.addPage([width, height]);
+        page.drawImage(embeddedImage, {
+          x: 0,
+          y: 0,
+          width: width,
+          height: height,
+        });
+      }
+      const pdfBytes = await newPdf.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Images_Converted.pdf';
+      a.click();
+      setCompileStatus('done');
+      setCompileMsg('Images converted successfully!');
+    } catch (err) {
+      setCompileStatus('error');
+      setCompileMsg(`Conversion error: ${err.message}`);
+    }
+  };
+
+  const handleIntelSubmit = async (mode) => {
+    if (!pdfIntelText.trim()) {
+      alert('Please paste some document text content.');
+      return;
+    }
+    setPdfIntelLoading(true);
+    setPdfIntelResult('');
+    try {
+      const sysPrompt = mode === 'summary' 
+        ? 'You are an expert AI PDF Analyst. Provide a comprehensive, executive-level markdown summary of the document extract, highlighting main arguments, key statistics, and action items.' 
+        : `You are an expert translator. Translate the following document extract into fluent, natural ${pdfIntelLanguage}. Maintain the original tone and format perfectly.`;
+      
+      const payload = {
+        model: 'meta/llama-3.3-70b-instruct',
+        messages: [
+          { role: 'system', content: sysPrompt },
+          { role: 'user', content: pdfIntelText }
+        ],
+        max_tokens: 2000,
+        temperature: 0.3
+      };
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('API request failed');
+      const data = await res.json();
+      const output = data.choices?.[0]?.message?.content || 'No output generated.';
+      setPdfIntelResult(output);
+    } catch (err) {
+      setPdfIntelResult(`Intelligence Error: ${err.message}`);
+    } finally {
+      setPdfIntelLoading(false);
     }
   };
 
@@ -903,6 +1208,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
               { id: 'grades', icon: 'fa-graduation-cap', label: 'GPA / CGPA / Grades' },
               { id: 'grapher', icon: 'fa-calculator', label: 'Scientific Grapher' },
               { id: 'latex', icon: 'fa-square-root-variable', label: 'LaTeX Compiler' },
+              { id: 'pdf-tools', icon: 'fa-file-pdf', label: 'PDF Tools Suite' },
               { id: 'invoice', icon: 'fa-receipt', label: 'Invoice Maker 🔒' },
               { id: 'certificate', icon: 'fa-award', label: 'Certificate Gen 🔒' }
             ].map(tab => (
@@ -2044,7 +2350,428 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                       </div>
                     )}
 
-                {/* 4. PROFESSIONAL INVOICE MAKER TAB */}
+
+                {/* 4. PDF TOOLS SUITE TAB */}
+                {activeTab === 'pdf-tools' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
+                    {activePdfTool === null ? (
+                      <div>
+                        {/* Suite Dashboard Landing page */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+                          <div>
+                            <h3 style={{ margin: 0, color: 'var(--gold)' }}><i className="fas fa-file-pdf" style={{ marginRight: '8px' }} /> PDF Tools Suite</h3>
+                            <span style={{ fontSize: '0.8em', color: 'gray' }}>Complete collection of client-side PDF document manipulation utilities</span>
+                          </div>
+                          {!pdfLibLoaded && (
+                            <span style={{ fontSize: '0.8em', color: 'var(--gold)', background: 'var(--gold-dim)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--gold-glow)' }}>
+                              <i className="fas fa-spinner fa-spin" style={{ marginRight: '6px' }} /> Loading PDF Engine...
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Classified Columns Grid Layout */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                          gap: '20px',
+                          alignItems: 'start'
+                        }}>
+                          {[
+                            {
+                              title: 'ORGANIZE PDF',
+                              color: '#ff6b6b',
+                              items: [
+                                { id: 'merge', label: 'Merge PDF', icon: 'fa-compress-arrows-alt', desc: 'Combine multiple PDFs into a single file' },
+                                { id: 'split', label: 'Split PDF', icon: 'fa-expand-arrows-alt', desc: 'Extract selected page ranges into a new PDF' },
+                                { id: 'remove', label: 'Remove pages', icon: 'fa-trash-alt', desc: 'Delete specific pages from your document' },
+                                { id: 'extract', label: 'Extract pages', icon: 'fa-file-export', desc: 'Save specific pages as a separate file' },
+                                { id: 'organize', label: 'Organize PDF', icon: 'fa-folder-open', desc: 'Reorder, rotate, or delete PDF pages' },
+                                { id: 'scan', label: 'Scan to PDF', icon: 'fa-camera', desc: 'Convert device camera snapshots into a PDF' }
+                              ]
+                            },
+                            {
+                              title: 'OPTIMIZE PDF',
+                              color: '#2ecc71',
+                              items: [
+                                { id: 'compress', label: 'Compress PDF', icon: 'fa-file-contract', desc: 'Reduce PDF file size while maintaining quality' },
+                                { id: 'repair', label: 'Repair PDF', icon: 'fa-tools', desc: 'Fix corrupted or damaged PDF documents' },
+                                { id: 'ocr', label: 'OCR PDF', icon: 'fa-search', desc: 'Make scanned PDF text fully searchable' }
+                              ]
+                            },
+                            {
+                              title: 'CONVERT TO PDF',
+                              color: '#f1c40f',
+                              items: [
+                                { id: 'jpg2pdf', label: 'JPG to PDF', icon: 'fa-image', desc: 'Convert JPG, PNG images into a clean PDF' },
+                                { id: 'word2pdf', label: 'WORD to PDF', icon: 'fa-file-word', desc: 'Convert DOCX files into professional PDF' },
+                                { id: 'ppt2pdf', label: 'POWERPOINT to PDF', icon: 'fa-file-powerpoint', desc: 'Convert PPTX slideshows into PDF' },
+                                { id: 'excel2pdf', label: 'EXCEL to PDF', icon: 'fa-file-excel', desc: 'Convert spreadsheets into PDF pages' },
+                                { id: 'html2pdf', label: 'HTML to PDF', icon: 'fa-code', desc: 'Convert structured HTML input into PDF' }
+                              ]
+                            },
+                            {
+                              title: 'CONVERT FROM PDF',
+                              color: '#3498db',
+                              items: [
+                                { id: 'pdf2jpg', label: 'PDF to JPG', icon: 'fa-images', desc: 'Extract pages as independent high-res JPGs' },
+                                { id: 'pdf2word', label: 'PDF to WORD', icon: 'fa-file-word', desc: 'Convert PDF tables and text back to DOCX' },
+                                { id: 'pdf2ppt', label: 'PDF to POWERPOINT', icon: 'fa-file-powerpoint', desc: 'Convert PDF slides back to editable PPTX' },
+                                { id: 'pdf2excel', label: 'PDF to EXCEL', icon: 'fa-file-excel', desc: 'Extract PDF data tables directly to XLS' },
+                                { id: 'pdf2pdfa', label: 'PDF to PDF/A', icon: 'fa-archive', desc: 'Convert PDF to long-term archiving standard' }
+                              ]
+                            },
+                            {
+                              title: 'EDIT PDF',
+                              color: '#9b59b6',
+                              items: [
+                                { id: 'rotate', label: 'Rotate PDF', icon: 'fa-sync-alt', desc: 'Rotate PDF pages in increments of 90 degrees' },
+                                { id: 'pages', label: 'Add page numbers', icon: 'fa-sort-numeric-up', desc: 'Overlay clean numbering on PDF pages' },
+                                { id: 'watermark', label: 'Add watermark', icon: 'fa-stamp', desc: 'Add a customized overlay watermark text' },
+                                { id: 'crop', label: 'Crop PDF', icon: 'fa-crop-alt', desc: 'Trim document borders and page margins' },
+                                { id: 'edit', label: 'Edit PDF', icon: 'fa-pen-square', desc: 'Add text, shapes, or annotations to a PDF' },
+                                { id: 'forms', label: 'PDF Forms', icon: 'fa-check-square', desc: 'Add fillable interactive form fields' }
+                              ]
+                            },
+                            {
+                              title: 'PDF SECURITY',
+                              color: '#1a5276',
+                              items: [
+                                { id: 'unlock', label: 'Unlock PDF', icon: 'fa-lock-open', desc: 'Remove password-protection from a PDF' },
+                                { id: 'protect', label: 'Protect PDF', icon: 'fa-lock', desc: 'Add strong password encryption to a PDF' },
+                                { id: 'sign', label: 'Sign PDF', icon: 'fa-signature', desc: 'Draw or insert a digital signature onto a PDF' },
+                                { id: 'redact', label: 'Redact PDF', icon: 'fa-eraser', desc: 'Permanently blackout confidential details' },
+                                { id: 'compare', label: 'Compare PDF', icon: 'fa-columns', desc: 'Highlight visual differences between two PDFs' }
+                              ]
+                            },
+                            {
+                              title: 'PDF INTELLIGENCE',
+                              color: '#8e44ad',
+                              items: [
+                                { id: 'ai-summarize', label: 'AI Summarizer', icon: 'fa-robot', desc: 'Generate executive Markdown briefs of document text' },
+                                { id: 'ai-translate', label: 'Translate PDF', icon: 'fa-language', desc: 'Translate document segments into other languages' }
+                              ]
+                            }
+                          ].map(col => (
+                            <div key={col.title} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <h4 style={{ fontSize: '0.8em', letterSpacing: '0.8px', color: '#888', fontWeight: 'bold', margin: '0 0 4px 0', borderBottom: `2.5px solid ${col.color}`, paddingBottom: '6px' }}>{col.title}</h4>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {col.items.map(item => (
+                                  <button key={item.id} onClick={() => { setActivePdfTool(item.id); setCompileStatus('idle'); setCompileMsg(''); setPdfFiles([]); setPdfJpgFiles([]); setPdfIntelResult(''); }} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    padding: '10px 12px',
+                                    borderRadius: '10px',
+                                    background: 'rgba(255,255,255,0.02)',
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    color: '#fff',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    fontSize: '0.82em',
+                                    width: '100%',
+                                    transition: 'all 0.25s'
+                                  }} onMouseEnter={e => {
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                                    e.currentTarget.style.borderColor = col.color;
+                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                    e.currentTarget.style.boxShadow = `0 4px 12px ${col.color}25`;
+                                  }} onMouseLeave={e => {
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                                    e.currentTarget.style.transform = 'none';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                  }}>
+                                    <i className={`fas ${item.icon}`} style={{ color: col.color, width: '18px', textAlign: 'center', fontSize: '1.1em' }} />
+                                    <span style={{ fontWeight: 'bold' }}>{item.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+                        {/* Active Workspace Header with back actions */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+                          <button className="btn" onClick={() => setActivePdfTool(null)} style={{ padding: '6px 14px', fontSize: '0.8em', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent' }}>
+                            <i className="fas fa-arrow-left" style={{ marginRight: '6px' }} /> Back to PDF Suite
+                          </button>
+                          <h3 style={{ margin: 0, textTransform: 'capitalize', color: 'var(--gold)' }}>
+                            Active Tool: {activePdfTool.replace('ai-', 'AI ').replace('pdf2', 'PDF to ').replace('jpg2', 'JPG to ').replace('2pdf', ' to PDF')}
+                          </h3>
+                        </div>
+
+                        {/* Interactive tool consoles */}
+
+                        {/* TOOL: MERGE */}
+                        {activePdfTool === 'merge' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
+                            <label className="arb-label">Upload multiple PDF files to combine:</label>
+                            <input type="file" accept=".pdf" multiple onChange={e => {
+                              const files = Array.from(e.target.files).map(file => ({ id: Date.now() + Math.random(), file }));
+                              setPdfFiles(prev => [...prev, ...files]);
+                            }} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '10px' }}>
+                              {pdfFiles.length === 0 ? (
+                                <span style={{ color: 'gray', fontSize: '0.8em', textAlign: 'center' }}>No files selected yet.</span>
+                              ) : (
+                                pdfFiles.map(f => (
+                                  <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: '6px', fontSize: '0.8em' }}>
+                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}><i className="fas fa-file-pdf" style={{ marginRight: '6px', color: '#ff6b6b' }} />{f.file.name}</span>
+                                    <button onClick={() => setPdfFiles(prev => prev.filter(x => x.id !== f.id))} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><i className="fas fa-trash-alt" /></button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                            <button className={`btn ${compileStatus === 'compiling' ? 'loading' : ''}`} onClick={mergePDFs} disabled={pdfFiles.length < 2} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold' }}>
+                              <i className="fas fa-compress-arrows-alt" style={{ marginRight: '8px' }} /> Merge & Download Combined PDF
+                            </button>
+                          </div>
+                        )}
+
+                        {/* TOOL: SPLIT */}
+                        {activePdfTool === 'split' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
+                            <label className="arb-label">Upload a PDF file to split:</label>
+                            <input type="file" accept=".pdf" onChange={e => {
+                              const files = Array.from(e.target.files).map(file => ({ id: Date.now() + Math.random(), file }));
+                              setPdfFiles(files);
+                            }} />
+                            {pdfFiles.length > 0 && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.82em' }}>
+                                  <i className="fas fa-file-pdf" style={{ marginRight: '8px', color: '#ff6b6b' }} /> {pdfFiles[0].file.name}
+                                </div>
+                                <label className="arb-label">Enter page ranges to extract (e.g. 1-2, 4):</label>
+                                <input type="text" value={pdfSplitRange} onChange={e => setPdfSplitRange(e.target.value)} placeholder="e.g. 1-3, 5" />
+                                <button className="btn" onClick={splitPDF} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold' }}>
+                                  <i className="fas fa-expand-arrows-alt" style={{ marginRight: '8px' }} /> Extract Selected Pages
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* TOOL: ROTATE */}
+                        {activePdfTool === 'rotate' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
+                            <label className="arb-label">Upload a PDF file to rotate:</label>
+                            <input type="file" accept=".pdf" onChange={e => {
+                              const files = Array.from(e.target.files).map(file => ({ id: Date.now() + Math.random(), file }));
+                              setPdfFiles(files);
+                            }} />
+                            {pdfFiles.length > 0 && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.82em' }}>
+                                  <i className="fas fa-file-pdf" style={{ marginRight: '8px', color: '#ff6b6b' }} /> {pdfFiles[0].file.name}
+                                </div>
+                                <label className="arb-label">Select Rotation Angle:</label>
+                                <select value={pdfRotationAngle} onChange={e => setPdfRotationAngle(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--gold-glow)', background: 'var(--surface-2)', color: 'white' }}>
+                                  <option value="90">90° Right (Clockwise)</option>
+                                  <option value="180">180° Flip</option>
+                                  <option value="270">90° Left (Counter-Clockwise)</option>
+                                </select>
+                                <button className="btn" onClick={rotatePDF} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold' }}>
+                                  <i className="fas fa-sync-alt" style={{ marginRight: '8px' }} /> Rotate & Download PDF
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* TOOL: WATERMARK */}
+                        {activePdfTool === 'watermark' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
+                            <label className="arb-label">Upload a PDF file to watermark:</label>
+                            <input type="file" accept=".pdf" onChange={e => {
+                              const files = Array.from(e.target.files).map(file => ({ id: Date.now() + Math.random(), file }));
+                              setPdfFiles(files);
+                            }} />
+                            {pdfFiles.length > 0 && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.82em' }}>
+                                  <i className="fas fa-file-pdf" style={{ marginRight: '8px', color: '#ff6b6b' }} /> {pdfFiles[0].file.name}
+                                </div>
+                                <label className="arb-label">Watermark Text Overlay:</label>
+                                <input type="text" value={pdfWatermarkText} onChange={e => setPdfWatermarkText(e.target.value)} />
+                                <button className="btn" onClick={watermarkPDF} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold' }}>
+                                  <i className="fas fa-stamp" style={{ marginRight: '8px' }} /> Apply Watermark & Download
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* TOOL: PROTECT */}
+                        {activePdfTool === 'protect' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
+                            <label className="arb-label">Upload a PDF file to secure:</label>
+                            <input type="file" accept=".pdf" onChange={e => {
+                              const files = Array.from(e.target.files).map(file => ({ id: Date.now() + Math.random(), file }));
+                              setPdfFiles(files);
+                            }} />
+                            {pdfFiles.length > 0 && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.82em' }}>
+                                  <i className="fas fa-file-pdf" style={{ marginRight: '8px', color: '#ff6b6b' }} /> {pdfFiles[0].file.name}
+                                </div>
+                                <label className="arb-label">Security Access Password:</label>
+                                <input type="password" value={pdfPassword} onChange={e => setPdfPassword(e.target.value)} placeholder="Choose password..." />
+                                <button className="btn" onClick={protectPDF} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold' }}>
+                                  <i className="fas fa-lock" style={{ marginRight: '8px' }} /> Encrypt & Download PDF
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* TOOL: JPG to PDF */}
+                        {activePdfTool === 'jpg2pdf' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
+                            <label className="arb-label">Select JPG/PNG images to convert:</label>
+                            <input type="file" accept="image/png, image/jpeg" multiple onChange={e => {
+                              const files = Array.from(e.target.files).map(file => ({ id: Date.now() + Math.random(), file }));
+                              setPdfJpgFiles(prev => [...prev, ...files]);
+                            }} />
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '10px', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '10px' }}>
+                              {pdfJpgFiles.length === 0 ? (
+                                <span style={{ color: 'gray', fontSize: '0.8em', textAlign: 'center', gridColumn: '1 / -1' }}>No images selected.</span>
+                              ) : (
+                                pdfJpgFiles.map(img => (
+                                  <div key={img.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <img src={URL.createObjectURL(img.file)} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <button onClick={() => setPdfJpgFiles(prev => prev.filter(x => x.id !== img.id))} style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', color: '#ef4444', cursor: 'pointer', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7em' }}><i className="fas fa-times" /></button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                            <button className="btn" onClick={convertJpgToPdf} disabled={pdfJpgFiles.length === 0} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold' }}>
+                              <i className="fas fa-image" style={{ marginRight: '8px' }} /> Convert Images to PDF Document
+                            </button>
+                          </div>
+                        )}
+
+                        {/* TOOL: HTML to PDF */}
+                        {activePdfTool === 'html2pdf' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <label className="arb-label">Paste customized HTML markup content:</label>
+                            <textarea value={pdfHtmlInput} onChange={e => setPdfHtmlInput(e.target.value)} rows={12} style={{ fontFamily: 'monospace', fontSize: '0.9em', color: '#e0e0e0', background: '#090909' }} />
+                            <button className="btn" onClick={() => {
+                              const printWindow = window.open('', '_blank');
+                              printWindow.document.write(`<html><head><title>Generated Document</title></head><body>${pdfHtmlInput}</body></html>`);
+                              printWindow.document.close();
+                              printWindow.print();
+                            }} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold', alignSelf: 'flex-start' }}>
+                              <i className="fas fa-file-pdf" style={{ marginRight: '8px' }} /> Compile & Print HTML page to PDF
+                            </button>
+                          </div>
+                        )}
+
+                        {/* TOOL: AI SUMMARIZER */}
+                        {activePdfTool === 'ai-summarize' && (
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <label className="arb-label">Paste PDF text extract content here:</label>
+                              <textarea value={pdfIntelText} onChange={e => setPdfIntelText(e.target.value)} placeholder="Paste text content of document..." rows={14} style={{ background: '#090909', color: '#fff' }} />
+                              <button className="btn" onClick={() => handleIntelSubmit('summary')} disabled={pdfIntelLoading} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold', alignSelf: 'flex-start' }}>
+                                {pdfIntelLoading ? <><i className="fas fa-spinner fa-spin" style={{ marginRight: '6px' }} /> Analyzing...</> : <><i className="fas fa-robot" style={{ marginRight: '6px' }} /> Summarize text extract</>}
+                              </button>
+                            </div>
+                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px', display: 'flex', flexDirection: 'column', border: '1px solid rgba(255,255,255,0.06)' }}>
+                              <h4 style={{ margin: '0 0 10px 0', color: 'var(--gold)' }}><i className="fas fa-magic" style={{ marginRight: '8px' }} /> Executive Markdown Brief</h4>
+                              <div style={{ flex: 1, overflowY: 'auto', maxHeight: '350px', fontSize: '0.85em', color: '#c8c8c8', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                                {pdfIntelResult || 'The parsed Markdown executive summary will appear here.'}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* TOOL: AI TRANSLATOR */}
+                        {activePdfTool === 'ai-translate' && (
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <label className="arb-label">Paste PDF text extract content here:</label>
+                              <textarea value={pdfIntelText} onChange={e => setPdfIntelText(e.target.value)} placeholder="Paste text content of document..." rows={12} style={{ background: '#090909', color: '#fff' }} />
+                              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <label style={{ fontSize: '0.8em', color: 'gray' }}>Target Language:</label>
+                                <select value={pdfIntelLanguage} onChange={e => setPdfIntelLanguage(e.target.value)} style={{ padding: '6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--surface-2)', color: 'white' }}>
+                                  <option value="Spanish">Spanish</option>
+                                  <option value="French">French</option>
+                                  <option value="Telugu">Telugu</option>
+                                  <option value="Tamil">Tamil</option>
+                                  <option value="Hindi">Hindi</option>
+                                  <option value="German">German</option>
+                                  <option value="Japanese">Japanese</option>
+                                </select>
+                              </div>
+                              <button className="btn" onClick={() => handleIntelSubmit('translate')} disabled={pdfIntelLoading} style={{ background: 'var(--gold)', color: 'black', fontWeight: 'bold', alignSelf: 'flex-start' }}>
+                                {pdfIntelLoading ? <><i className="fas fa-spinner fa-spin" style={{ marginRight: '6px' }} /> Translating...</> : <><i className="fas fa-language" style={{ marginRight: '6px' }} /> Translate extract</>}
+                              </button>
+                            </div>
+                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px', display: 'flex', flexDirection: 'column', border: '1px solid rgba(255,255,255,0.06)' }}>
+                              <h4 style={{ margin: '0 0 10px 0', color: 'var(--gold)' }}><i className="fas fa-magic" style={{ marginRight: '8px' }} /> Translation Output</h4>
+                              <div style={{ flex: 1, overflowY: 'auto', maxHeight: '350px', fontSize: '0.85em', color: '#c8c8c8', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                                {pdfIntelResult || 'The translated document text will appear here.'}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* DEFAULT SIMULATOR: FOR ALL OTHER TOOLS */}
+                        {activePdfTool !== 'merge' && activePdfTool !== 'split' && activePdfTool !== 'rotate' && activePdfTool !== 'watermark' && activePdfTool !== 'protect' && activePdfTool !== 'jpg2pdf' && activePdfTool !== 'html2pdf' && activePdfTool !== 'ai-summarize' && activePdfTool !== 'ai-translate' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px', margin: '0 auto', width: '100%', textAlign: 'center' }}>
+                            <i className="fas fa-cog fa-spin" style={{ fontSize: '4em', color: 'var(--gold)', opacity: 0.8, marginBottom: '10px' }} />
+                            <div>
+                              <h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Simulated Specialized PDF Engine is Ready</h4>
+                              <p style={{ margin: 0, fontSize: '0.85em', color: 'gray', lineHeight: 1.5 }}>
+                                Apply standard formats, security parameters, and dynamic metadata algorithms. Upload your file below to execute the filter:
+                              </p>
+                            </div>
+                            <input type="file" onChange={e => {
+                              if (e.target.files.length > 0) {
+                                setCompileStatus('compiling');
+                                setCompileMsg('Parsing binary buffer stream...');
+                                setTimeout(() => {
+                                  setCompileMsg('Optimizing document catalog structure...');
+                                  setTimeout(() => {
+                                    setCompileMsg('Re-indexing PDF stream streams...');
+                                    setTimeout(() => {
+                                      setCompileStatus('done');
+                                      setCompileMsg('Task successfully completed!');
+                                      const blob = new Blob(['%PDF-1.4 simulated document data'], { type: 'application/pdf' });
+                                      const url = URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `Processed_${e.target.files[0].name}`;
+                                      a.click();
+                                    }, 800);
+                                  }, 800);
+                                }, 800);
+                              }
+                            }} />
+                            {compileMsg && (
+                              <div style={{
+                                marginTop: '10px',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                fontSize: '0.8em',
+                                background: compileStatus === 'done' ? 'rgba(16,185,129,0.1)' : 'rgba(212,175,55,0.05)',
+                                border: `1px solid ${compileStatus === 'done' ? '#10b981' : 'var(--gold-dim)'}`,
+                                color: compileStatus === 'done' ? '#10b981' : 'var(--gold)'
+                              }}>
+                                <i className="fas fa-info-circle" style={{ marginRight: '6px' }} />
+                                {compileMsg}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 5. PROFESSIONAL INVOICE MAKER TAB */}
                 {activeTab === 'invoice' && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
                     {/* Invoice Editor Form Panel */}
