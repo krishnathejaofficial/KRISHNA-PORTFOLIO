@@ -82,15 +82,17 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   const [interestTime, setInterestTime] = useState('3'); // Years
   const [interestFreq, setInterestFreq] = useState('1'); // 1=yearly, 2=half-yearly, 4=quarterly, 12=monthly, 0=simple
   // SPI/CPI state
+  const [vitCalcMode, setVitCalcMode] = useState('sgpa'); // sgpa, cgpa
+  const [showGradeTable, setShowGradeTable] = useState(false);
   const [spiCourses, setSpiCourses] = useState([
-    { id: 1, name: 'Biochemistry', credits: 4, grade: 10 },
-    { id: 2, name: 'Bioinformatics', credits: 3, grade: 9 },
-    { id: 3, name: 'Genetic Eng.', credits: 4, grade: 8 },
-    { id: 4, name: 'Technical Comm.', credits: 2, grade: 10 }
+    { id: 1, name: 'Biochemistry', credits: '4', grade: '10' },
+    { id: 2, name: 'Bioinformatics', credits: '3', grade: '9' },
+    { id: 3, name: 'Genetic Eng.', credits: '4', grade: '8' },
+    { id: 4, name: 'Technical Comm.', credits: '2', grade: '10' }
   ]);
   const [cpiSemesters, setCpiSemesters] = useState([
-    { id: 1, sem: 'Semester 1', credits: 21, spi: 9.1 },
-    { id: 2, sem: 'Semester 2', credits: 22, spi: 8.9 }
+    { id: 1, sem: 'Semester 1', credits: '21', spi: '9.1' },
+    { id: 2, sem: 'Semester 2', credits: '22', spi: '8.9' }
   ]);
 
   // Invoice Maker states
@@ -435,8 +437,10 @@ export default function SuperToolsModal({ isOpen, onClose }) {
     let totalCredits = 0;
     let totalWeightedPoints = 0;
     spiCourses.forEach(c => {
-      totalCredits += c.credits;
-      totalWeightedPoints += c.credits * c.grade;
+      const cr = parseFloat(c.credits) || 0;
+      const gr = parseFloat(c.grade) || 0;
+      totalCredits += cr;
+      totalWeightedPoints += cr * gr;
     });
     return totalCredits > 0 ? (totalWeightedPoints / totalCredits).toFixed(2) : '0.00';
   };
@@ -445,18 +449,20 @@ export default function SuperToolsModal({ isOpen, onClose }) {
     let totalCredits = 0;
     let totalWeightedPoints = 0;
     cpiSemesters.forEach(s => {
-      totalCredits += s.credits;
-      totalWeightedPoints += s.credits * s.spi;
+      const cr = parseFloat(s.credits) || 0;
+      const sp = parseFloat(s.spi) || 0;
+      totalCredits += cr;
+      totalWeightedPoints += cr * sp;
     });
     return totalCredits > 0 ? (totalWeightedPoints / totalCredits).toFixed(2) : '0.00';
   };
 
   const addSpiCourse = () => {
-    setSpiCourses(prev => [...prev, { id: Date.now(), name: '', credits: 3, grade: 10 }]);
+    setSpiCourses(prev => [...prev, { id: Date.now(), name: `Subject ${prev.length + 1}`, credits: '3', grade: '10' }]);
   };
 
   const updateSpiCourse = (id, field, val) => {
-    setSpiCourses(prev => prev.map(c => c.id === id ? { ...c, [field]: field === 'name' ? val : parseFloat(val) || 0 } : c));
+    setSpiCourses(prev => prev.map(c => c.id === id ? { ...c, [field]: val } : c));
   };
 
   const deleteSpiCourse = (id) => {
@@ -464,15 +470,33 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   };
 
   const addCpiSemester = () => {
-    setCpiSemesters(prev => [...prev, { id: Date.now(), sem: `Semester ${prev.length + 1}`, credits: 20, spi: 9.0 }]);
+    setCpiSemesters(prev => [...prev, { id: Date.now(), sem: `Semester ${prev.length + 1}`, credits: '20', spi: '9.0' }]);
   };
 
   const updateCpiSemester = (id, field, val) => {
-    setCpiSemesters(prev => prev.map(s => s.id === id ? { ...s, [field]: field === 'sem' ? val : parseFloat(val) || 0 } : s));
+    let processedVal = val;
+    if (field === 'spi' && val !== '') {
+      const parsed = parseFloat(val);
+      if (parsed > 10) processedVal = '10.00';
+      if (parsed < 0) processedVal = '0.00';
+    }
+    setCpiSemesters(prev => prev.map(s => s.id === id ? { ...s, [field]: processedVal } : s));
   };
 
   const deleteCpiSemester = (id) => {
     setCpiSemesters(prev => prev.filter(s => s.id !== id));
+  };
+
+  const resetSpiCourses = () => {
+    setSpiCourses([
+      { id: 1, name: 'Subject 1', credits: '4', grade: '10' }
+    ]);
+  };
+
+  const resetCpiSemesters = () => {
+    setCpiSemesters([
+      { id: 1, sem: 'Semester 1', credits: '20', spi: '9.0' }
+    ]);
   };
 
   // --- INVOICE MAKER ACTIONS ---
@@ -1244,61 +1268,372 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                     {financeSubTab === 'spi' && (() => {
                       const spi = calculateSPI();
                       const cpi = calculateCPI();
+
+                      const score = vitCalcMode === 'sgpa' ? parseFloat(spi) : parseFloat(cpi);
+                      const percentage = (score * 10).toFixed(1);
+                      const totalCreditsSum = vitCalcMode === 'sgpa'
+                        ? spiCourses.reduce((acc, c) => acc + (parseFloat(c.credits) || 0), 0)
+                        : cpiSemesters.reduce((acc, s) => acc + (parseFloat(s.credits) || 0), 0);
+
+                      // Circular Progress Ring Math
+                      const radius = 60;
+                      const strokeWidth = 10;
+                      const circumference = 2 * Math.PI * radius;
+                      const strokeDashoffset = circumference - (Math.min(score, 10) / 10) * circumference;
+
+                      // Academic Advice
+                      let feedbackText = '';
+                      let feedbackIcon = 'fa-graduation-cap';
+                      let scoreColor = 'var(--gold)';
+                      if (score >= 9.0) {
+                        feedbackText = 'Outstanding! You are in the prestigious VIT 9-Pointer club. Maintain this elite performance for top-tier campus placements and high-repute research fellowships!';
+                        feedbackIcon = 'fa-trophy';
+                        scoreColor = '#10b981';
+                      } else if (score >= 8.0) {
+                        feedbackText = 'Excellent Academic Standing! You have strong prospects for core placements. Focus on maintaining a consistent record to break into the 9-Pointer Club next semester.';
+                        feedbackIcon = 'fa-star';
+                        scoreColor = 'var(--gold)';
+                      } else if (score >= 7.0) {
+                        feedbackText = 'Good Standing. You meet the eligibility criteria for most campus placements. Focus on key high-credit subjects in upcoming semesters to lift your average above 8.0.';
+                        feedbackIcon = 'fa-circle-check';
+                        scoreColor = '#3b82f6';
+                      } else if (score >= 6.0) {
+                        feedbackText = 'Average Performance. Make sure to identify low-performing domains. Boosting your credits in upcoming subjects will be key to secure your placement threshold.';
+                        feedbackIcon = 'fa-triangle-exclamation';
+                        scoreColor = '#f59e0b';
+                      } else {
+                        feedbackText = 'Academic Action Plan needed. Reach out to course faculty for guidance. Focus on clearing backlogs and boosting core subject marks to pass comfortably.';
+                        feedbackIcon = 'fa-triangle-exclamation';
+                        scoreColor = '#ef4444';
+                      }
+
                       return (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-                          {/* Semester SPI */}
-                          <div className="card" style={{ padding: '20px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                              <h3>SPI (GPA) Calculator</h3>
-                              <button className="btn" onClick={addSpiCourse} style={{ padding: '6px 12px', fontSize: '0.75em' }}>+ Add Course</button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                          {/* Segmented Controller & Collapsible Reference Table */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', alignItems: 'start' }}>
+                            {/* Controller Toggle */}
+                            <div style={{
+                              display: 'flex',
+                              background: 'rgba(255,255,255,0.03)',
+                              padding: '5px',
+                              borderRadius: '30px',
+                              border: '1px solid rgba(255,255,255,0.08)'
+                            }}>
+                              <button onClick={() => setVitCalcMode('sgpa')} style={{
+                                flex: 1,
+                                padding: '10px 16px',
+                                borderRadius: '25px',
+                                border: 'none',
+                                background: vitCalcMode === 'sgpa' ? 'var(--gold)' : 'transparent',
+                                color: vitCalcMode === 'sgpa' ? 'black' : 'gray',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s',
+                                fontSize: '0.85em'
+                              }}>
+                                <i className="fas fa-book" style={{ marginRight: '6px' }} />
+                                SGPA Mode (Subject-wise)
+                              </button>
+                              <button onClick={() => setVitCalcMode('cgpa')} style={{
+                                flex: 1,
+                                padding: '10px 16px',
+                                borderRadius: '25px',
+                                border: 'none',
+                                background: vitCalcMode === 'cgpa' ? 'var(--gold)' : 'transparent',
+                                color: vitCalcMode === 'cgpa' ? 'black' : 'gray',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s',
+                                fontSize: '0.85em'
+                              }}>
+                                <i className="fas fa-graduation-cap" style={{ marginRight: '6px' }} />
+                                CGPA Mode (Semester-wise)
+                              </button>
                             </div>
-                            <div className="section-divider" style={{ margin: '10px 0 20px 0' }} />
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxH: '250px', overflowY: 'auto', paddingRight: '4px', marginBottom: '15px' }}>
-                              {spiCourses.map(course => (
-                                <div key={course.id} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <input type="text" placeholder="Course Name" value={course.name} onChange={e => updateSpiCourse(course.id, 'name', e.target.value)} style={{ flex: 2, padding: '8px 12px' }} />
-                                  <input type="number" placeholder="Credits" value={course.credits} onChange={e => updateSpiCourse(course.id, 'credits', e.target.value)} style={{ flex: 1, padding: '8px 12px' }} />
-                                  <select value={course.grade} onChange={e => updateSpiCourse(course.id, 'grade', e.target.value)} style={{
-                                    flex: 1.2, padding: '9px', borderRadius: '10px', border: '1.5px solid var(--gold-dim)', background: 'var(--surface-2)', color: 'white'
-                                  }}>
-                                    <option value="10">O [10]</option>
-                                    <option value="9">A+ [9]</option>
-                                    <option value="8">A [8]</option>
-                                    <option value="7">B+ [7]</option>
-                                    <option value="6">B [6]</option>
-                                    <option value="5">C [5]</option>
-                                    <option value="0">F [0]</option>
-                                  </select>
-                                  <button onClick={() => deleteSpiCourse(course.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><i className="fas fa-trash-alt" /></button>
-                                </div>
-                              ))}
-                            </div>
-                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span>Semester SPI Score:</span>
-                              <strong style={{ fontSize: '1.3em', color: 'var(--gold)', textShadow: '0 0 10px var(--gold-glow)' }}>{spi}</strong>
+
+                            {/* Reference Table Trigger */}
+                            <div>
+                              <button onClick={() => setShowGradeTable(!showGradeTable)} style={{
+                                width: '100%',
+                                padding: '10px 16px',
+                                borderRadius: '25px',
+                                border: '1px solid var(--gold-dim)',
+                                background: 'rgba(212, 175, 55, 0.05)',
+                                color: 'var(--gold)',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                fontSize: '0.85em',
+                                fontWeight: 'bold',
+                                transition: 'all 0.3s'
+                              }}>
+                                <span><i className="fas fa-table" style={{ marginRight: '8px' }} /> View Grade Reference Table</span>
+                                <i className={`fas fa-chevron-${showGradeTable ? 'up' : 'down'}`} />
+                              </button>
                             </div>
                           </div>
 
-                          {/* Cumulative CPI */}
-                          <div className="card" style={{ padding: '20px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                              <h3>CPI (CGPA) Cumulative</h3>
-                              <button className="btn" onClick={addCpiSemester} style={{ padding: '6px 12px', fontSize: '0.75em' }}>+ Add Sem</button>
+                          {/* Expanded Grade Reference Table */}
+                          {showGradeTable && (
+                            <div className="card" style={{
+                              padding: '16px',
+                              background: 'rgba(12, 12, 12, 0.9)',
+                              borderColor: 'var(--gold-dim)',
+                              animation: 'fadeIn 0.3s ease-out'
+                            }}>
+                              <h4 style={{ margin: '0 0 10px 0', color: 'var(--gold)' }}>VIT Official 10-Point Grading Scale</h4>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                                {[
+                                  { g: 'S', p: '10.00', d: 'Outstanding' },
+                                  { g: 'A', p: '9.00', d: 'Excellent' },
+                                  { g: 'B', p: '8.00', d: 'Very Good' },
+                                  { g: 'C', p: '7.00', d: 'Good' },
+                                  { g: 'D', p: '6.00', d: 'Average' },
+                                  { g: 'E', p: '5.00', d: 'Pass' },
+                                  { g: 'F', p: '0.00', d: 'Fail' },
+                                  { g: 'N', p: '0.00', d: 'Absent/Not Done' }
+                                ].map(row => (
+                                  <div key={row.g} style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '8px 12px',
+                                    background: 'rgba(255,255,255,0.02)',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255,255,255,0.04)'
+                                  }}>
+                                    <span style={{ fontWeight: 'bold', color: 'var(--gold)' }}>{row.g}</span>
+                                    <span style={{ color: '#fff', fontSize: '0.85em' }}>{row.p} GP</span>
+                                    <span style={{ color: 'gray', fontSize: '0.75em' }}>{row.d}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <div className="section-divider" style={{ margin: '10px 0 20px 0' }} />
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxH: '250px', overflowY: 'auto', paddingRight: '4px', marginBottom: '15px' }}>
-                              {cpiSemesters.map(sem => (
-                                <div key={sem.id} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <input type="text" value={sem.sem} onChange={e => updateCpiSemester(sem.id, 'sem', e.target.value)} style={{ flex: 1.5, padding: '8px 12px' }} />
-                                  <input type="number" placeholder="Credits" value={sem.credits} onChange={e => updateCpiSemester(sem.id, 'credits', e.target.value)} style={{ flex: 1, padding: '8px 12px' }} />
-                                  <input type="number" step="0.01" placeholder="SPI" value={sem.spi} onChange={e => updateCpiSemester(sem.id, 'spi', e.target.value)} style={{ flex: 1, padding: '8px 12px' }} />
-                                  <button onClick={() => deleteCpiSemester(sem.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><i className="fas fa-trash-alt" /></button>
+                          )}
+
+                          {/* Main Dual View Dashboard Grid */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+
+                            {/* Left Box: Inputs List */}
+                            <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', minHeight: '380px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                <h3 style={{ margin: 0 }}>
+                                  {vitCalcMode === 'sgpa' ? 'Subject Entries (SGPA)' : 'Semester Entries (CGPA)'}
+                                </h3>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button onClick={vitCalcMode === 'sgpa' ? addSpiCourse : addCpiSemester} className="btn" style={{
+                                    padding: '6px 12px', fontSize: '0.75em', border: '1px solid var(--gold)', background: 'transparent', color: 'var(--gold)'
+                                  }}>
+                                    {vitCalcMode === 'sgpa' ? '+ Add Subject' : '+ Add Semester'}
+                                  </button>
+                                  <button onClick={vitCalcMode === 'sgpa' ? resetSpiCourses : resetCpiSemesters} className="btn" style={{
+                                    padding: '6px 12px', fontSize: '0.75em', border: '1px solid rgba(239,68,68,0.4)', background: 'transparent', color: '#ef4444'
+                                  }}>
+                                    Reset
+                                  </button>
                                 </div>
-                              ))}
+                              </div>
+                              <div className="section-divider" style={{ margin: '0 0 15px 0' }} />
+
+                              <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '10px',
+                                flex: 1,
+                                overflowY: 'auto',
+                                maxHeight: '280px',
+                                paddingRight: '6px',
+                                marginBottom: '15px'
+                              }}>
+                                {/* SGPA Inputs */}
+                                {vitCalcMode === 'sgpa' && spiCourses.map(course => (
+                                  <div key={course.id} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g. Mathematics"
+                                      value={course.name}
+                                      onChange={e => updateSpiCourse(course.id, 'name', e.target.value)}
+                                      style={{ flex: 2, padding: '10px 12px' }}
+                                    />
+                                    <input
+                                      type="number"
+                                      placeholder="Credits"
+                                      value={course.credits}
+                                      min="0"
+                                      onChange={e => updateSpiCourse(course.id, 'credits', e.target.value)}
+                                      style={{ flex: 1, padding: '10px 12px', textAlign: 'center' }}
+                                    />
+                                    <select
+                                      value={course.grade}
+                                      onChange={e => updateSpiCourse(course.id, 'grade', e.target.value)}
+                                      style={{
+                                        flex: 1.2,
+                                        padding: '11px',
+                                        borderRadius: '10px',
+                                        border: '1.5px solid var(--gold-dim)',
+                                        background: 'var(--surface-2)',
+                                        color: 'white',
+                                        fontSize: '0.85em'
+                                      }}
+                                    >
+                                      <option value="10">S [10.0]</option>
+                                      <option value="9">A [9.0]</option>
+                                      <option value="8">B [8.0]</option>
+                                      <option value="7">C [7.0]</option>
+                                      <option value="6">D [6.0]</option>
+                                      <option value="5">E [5.0]</option>
+                                      <option value="0">F [0.0]</option>
+                                      <option value="0">N [0.0]</option>
+                                    </select>
+                                    <button
+                                      onClick={() => deleteSpiCourse(course.id)}
+                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px' }}
+                                      title="Remove Subject"
+                                    >
+                                      <i className="fas fa-trash-alt" />
+                                    </button>
+                                  </div>
+                                ))}
+
+                                {/* CGPA Inputs */}
+                                {vitCalcMode === 'cgpa' && cpiSemesters.map(sem => (
+                                  <div key={sem.id} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <input
+                                      type="text"
+                                      value={sem.sem}
+                                      onChange={e => updateCpiSemester(sem.id, 'sem', e.target.value)}
+                                      style={{ flex: 1.8, padding: '10px 12px' }}
+                                    />
+                                    <input
+                                      type="number"
+                                      placeholder="Credits"
+                                      value={sem.credits}
+                                      min="0"
+                                      onChange={e => updateCpiSemester(sem.id, 'credits', e.target.value)}
+                                      style={{ flex: 1, padding: '10px 12px', textAlign: 'center' }}
+                                    />
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      max="10"
+                                      min="0"
+                                      placeholder="SGPA"
+                                      value={sem.spi}
+                                      onChange={e => updateCpiSemester(sem.id, 'spi', e.target.value)}
+                                      style={{ flex: 1, padding: '10px 12px', textAlign: 'center' }}
+                                    />
+                                    <button
+                                      onClick={() => deleteCpiSemester(sem.id)}
+                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px' }}
+                                      title="Remove Semester"
+                                    >
+                                      <i className="fas fa-trash-alt" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'gray', fontSize: '0.85em', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '15px' }}>
+                                <span>Total Credits: <strong>{totalCreditsSum}</strong></span>
+                                <span>Official VIT 10-Point Scale</span>
+                              </div>
                             </div>
-                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span>Cumulative CPI (CGPA):</span>
-                              <strong style={{ fontSize: '1.3em', color: 'var(--gold)', textShadow: '0 0 10px var(--gold-glow)' }}>{cpi}</strong>
+
+                            {/* Right Box: Live Interactive Analytics & Performance Details */}
+                            <div className="card" style={{
+                              padding: '24px',
+                              background: 'rgba(212,175,55,0.02)',
+                              borderColor: 'var(--gold-dim)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              minHeight: '380px'
+                            }}>
+                              <h3 style={{ margin: '0 0 20px 0', alignSelf: 'flex-start', color: 'var(--gold)' }}>
+                                <i className="fas fa-chart-line" style={{ marginRight: '8px' }} />
+                                Academic Analytics
+                              </h3>
+
+                              {/* Massive Glowing Ring Score */}
+                              <div style={{ position: 'relative', width: '160px', height: '160px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="150" height="150" style={{ transform: 'rotate(-90deg)' }}>
+                                  <circle
+                                    cx="75"
+                                    cy="75"
+                                    r={radius}
+                                    stroke="rgba(255,255,255,0.06)"
+                                    strokeWidth={strokeWidth}
+                                    fill="transparent"
+                                  />
+                                  <circle
+                                    cx="75"
+                                    cy="75"
+                                    r={radius}
+                                    stroke={scoreColor}
+                                    strokeWidth={strokeWidth}
+                                    fill="transparent"
+                                    strokeDasharray={circumference}
+                                    strokeDashoffset={strokeDashoffset}
+                                    strokeLinecap="round"
+                                    style={{
+                                      transition: 'stroke-dashoffset 0.6s ease-out',
+                                      filter: `drop-shadow(0 0 8px ${scoreColor}cc)`
+                                    }}
+                                  />
+                                </svg>
+                                <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '2.2em', fontWeight: 'bold', color: '#fff', textShadow: '0 0 15px rgba(255,255,255,0.2)' }}>{score.toFixed(2)}</span>
+                                  <span style={{ fontSize: '0.7em', color: 'gray', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                                    {vitCalcMode === 'sgpa' ? 'SGPA Score' : 'CGPA Score'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Conversion Results Grid */}
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', width: '100%', marginBottom: '20px' }}>
+                                <div style={{
+                                  background: 'rgba(0,0,0,0.2)',
+                                  padding: '12px',
+                                  borderRadius: '12px',
+                                  border: '1px solid rgba(255,255,255,0.05)',
+                                  textAlign: 'center'
+                                }}>
+                                  <span style={{ display: 'block', fontSize: '0.75em', color: 'gray', marginBottom: '4px' }}>VIT Percentage</span>
+                                  <strong style={{ fontSize: '1.25em', color: 'var(--gold)' }}>{percentage}%</strong>
+                                </div>
+                                <div style={{
+                                  background: 'rgba(0,0,0,0.2)',
+                                  padding: '12px',
+                                  borderRadius: '12px',
+                                  border: '1px solid rgba(255,255,255,0.05)',
+                                  textAlign: 'center'
+                                }}>
+                                  <span style={{ display: 'block', fontSize: '0.75em', color: 'gray', marginBottom: '4px' }}>Total Credits Earned</span>
+                                  <strong style={{ fontSize: '1.25em', color: '#fff' }}>{totalCreditsSum}</strong>
+                                </div>
+                              </div>
+
+                              {/* Automated Feedback Block */}
+                              <div style={{
+                                width: '100%',
+                                background: 'rgba(255,255,255,0.02)',
+                                border: `1px solid rgba(255,255,255,0.05)`,
+                                borderLeft: `4px solid ${scoreColor}`,
+                                padding: '12px 16px',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                gap: '12px',
+                                alignItems: 'flex-start'
+                              }}>
+                                <i className={`fas ${feedbackIcon}`} style={{ color: scoreColor, fontSize: '1.3em', marginTop: '3px' }} />
+                                <div style={{ fontSize: '0.82em', lineHeight: '1.5', color: '#dddddd' }}>
+                                  {feedbackText}
+                                </div>
+                              </div>
+
                             </div>
                           </div>
                         </div>
