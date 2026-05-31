@@ -150,9 +150,9 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   const certContainerRef = useRef(null);
   const dragItemRef = useRef(null);
 
-  // Check if KaTeX needs to be loaded when activeTab is academics and subtab is latex
+  // Check if KaTeX needs to be loaded when activeTab is latex
   useEffect(() => {
-    if (activeTab === 'academics' && academicsSubTab === 'latex' && isOpen) {
+    if (activeTab === 'latex' && isOpen) {
       loadStyle('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css', 'katex-css');
       Promise.all([
         loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js', 'katex-js'),
@@ -163,11 +163,11 @@ export default function SuperToolsModal({ isOpen, onClose }) {
         });
       });
     }
-  }, [activeTab, academicsSubTab, isOpen]);
+  }, [activeTab, isOpen]);
 
   // Handle LaTeX real-time render
   useEffect(() => {
-    if (activeTab === 'academics' && academicsSubTab === 'latex' && katexLoaded && latexPreviewRef.current && latexMode === 'math') {
+    if (activeTab === 'latex' && katexLoaded && latexPreviewRef.current && latexMode === 'math') {
       if (latexMathType === 'formula') {
         try {
           const rendered = window.katex.renderToString(latexInput, {
@@ -192,7 +192,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
         }
       }
     }
-  }, [latexInput, latexMode, latexMathType, katexLoaded, activeTab, academicsSubTab]);
+  }, [latexInput, latexMode, latexMathType, katexLoaded, activeTab]);
 
   // Load custom certificate fonts when cert tab is loaded
   useEffect(() => {
@@ -203,10 +203,10 @@ export default function SuperToolsModal({ isOpen, onClose }) {
 
   // Initialize scientific graphing plotter path
   useEffect(() => {
-    if (activeTab === 'academics' && academicsSubTab === 'grapher') {
+    if (activeTab === 'grapher') {
       plotGraph();
     }
-  }, [graphEquation, activeTab, academicsSubTab]);
+  }, [graphEquation, activeTab]);
 
   if (!isOpen) return null;
 
@@ -900,7 +900,9 @@ export default function SuperToolsModal({ isOpen, onClose }) {
           }}>
             {[
               { id: 'finance', icon: 'fa-file-invoice-dollar', label: 'Finance' },
-              { id: 'academics', icon: 'fa-graduation-cap', label: 'GPA / CGPA / Grades' },
+              { id: 'grades', icon: 'fa-graduation-cap', label: 'GPA / CGPA / Grades' },
+              { id: 'grapher', icon: 'fa-calculator', label: 'Scientific Grapher' },
+              { id: 'latex', icon: 'fa-square-root-variable', label: 'LaTeX Compiler' },
               { id: 'invoice', icon: 'fa-receipt', label: 'Invoice Maker 🔒' },
               { id: 'certificate', icon: 'fa-award', label: 'Certificate Gen 🔒' }
             ].map(tab => (
@@ -1338,33 +1340,10 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                   </div>
                 )}
 
-                {/* 2. ACADEMICS TAB */}
-                {activeTab === 'academics' && (
+                {/* 2. GPA / CGPA / GRADES TAB */}
+                {activeTab === 'grades' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>
-                      {[
-                        { id: 'grades', label: 'GPA / CGPA / Grades' },
-                        { id: 'grapher', label: 'Scientific Grapher' },
-                        { id: 'latex', label: 'LaTeX Compiler' }
-                      ].map(sub => (
-                        <button key={sub.id} onClick={() => setAcademicsSubTab(sub.id)} style={{
-                          padding: '6px 16px',
-                          borderRadius: '20px',
-                          border: '1px solid ' + (academicsSubTab === sub.id ? 'var(--gold)' : 'rgba(255,255,255,0.1)'),
-                          background: academicsSubTab === sub.id ? 'var(--gold-dim)' : 'transparent',
-                          color: academicsSubTab === sub.id ? 'var(--gold)' : 'gray',
-                          cursor: 'pointer',
-                          fontSize: '0.85em',
-                          fontWeight: 'bold',
-                          transition: 'all 0.3s'
-                        }}>
-                          {sub.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* SUB: GPA / CGPA / GRADES */}
-                    {academicsSubTab === 'grades' && (() => {
+                    {(() => {
                       const spi = calculateSPI();
                       const cpi = calculateCPI();
 
@@ -1738,9 +1717,11 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                         </div>
                       );
                     })()}
-                    
-                    {/* SUB: SCIENTIFIC GRAPHING CALCULATOR */}
-                    {academicsSubTab === 'grapher' && (
+                  </div>
+                )}
+
+                {/* 3. SCIENTIFIC GRAPHING CALCULATOR TAB */}
+                {activeTab === 'grapher' && (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
                         {/* Calculator UI */}
                         <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
@@ -1895,8 +1876,8 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                       </div>
                     )}
 
-                    {/* SUB: LATEX COMPILER */}
-                    {academicsSubTab === 'latex' && (
+                {/* 4. LATEX COMPILER TAB */}
+                {activeTab === 'latex' && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
                         {/* Upper Toolbar */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', flexWrap: 'wrap', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -2062,8 +2043,6 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                         </div>
                       </div>
                     )}
-                  </div>
-                )}
 
                 {/* 4. PROFESSIONAL INVOICE MAKER TAB */}
                 {activeTab === 'invoice' && (
