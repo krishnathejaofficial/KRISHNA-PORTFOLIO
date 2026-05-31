@@ -45,9 +45,14 @@ export default function SuperToolsModal({ isOpen, onClose }) {
     '$$ V_0 = \\frac{V_{max} [S]}{K_m + [S]} $$\n\n' +
     'Where $V_0$ is the initial rate, $V_{max}$ is the maximum velocity, and $K_m$ is the Michaelis constant.'
   );
-  const [latexMode, setLatexMode] = useState('document'); // formula, document
+  const [latexMode, setLatexMode] = useState('pdf'); // 'pdf' for PDF LaTeX compiling, 'math' for real-time equations
+  const [latexMathType, setLatexMathType] = useState('document'); // formula, document
   const [katexLoaded, setKatexLoaded] = useState(false);
   const latexPreviewRef = useRef(null);
+
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [compileStatus, setCompileStatus] = useState('idle'); // idle, compiling, done, error
+  const [compileMsg, setCompileMsg] = useState('');
 
   // Scientific calculator states
   const [calcDisplay, setCalcDisplay] = useState('');
@@ -59,7 +64,8 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   const [graphPath, setGraphPath] = useState('');
 
   // Finance calculators states
-  const [financeSubTab, setFinanceSubTab] = useState('gst'); // gst, tds, emi, interest, spi
+  const [financeSubTab, setFinanceSubTab] = useState('gst'); // gst, tds, emi, interest
+  const [academicsSubTab, setAcademicsSubTab] = useState('grades'); // grades, grapher, latex
   // GST state
   const [gstAmount, setGstAmount] = useState('10000');
   const [gstRate, setGstRate] = useState('18');
@@ -144,9 +150,9 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   const certContainerRef = useRef(null);
   const dragItemRef = useRef(null);
 
-  // Check if KaTeX needs to be loaded when activeTab is latex
+  // Check if KaTeX needs to be loaded when activeTab is academics and subtab is latex
   useEffect(() => {
-    if (activeTab === 'latex' && isOpen) {
+    if (activeTab === 'academics' && academicsSubTab === 'latex' && isOpen) {
       loadStyle('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css', 'katex-css');
       Promise.all([
         loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js', 'katex-js'),
@@ -157,12 +163,12 @@ export default function SuperToolsModal({ isOpen, onClose }) {
         });
       });
     }
-  }, [activeTab, isOpen]);
+  }, [activeTab, academicsSubTab, isOpen]);
 
   // Handle LaTeX real-time render
   useEffect(() => {
-    if (activeTab === 'latex' && katexLoaded && latexPreviewRef.current) {
-      if (latexMode === 'formula') {
+    if (activeTab === 'academics' && academicsSubTab === 'latex' && katexLoaded && latexPreviewRef.current && latexMode === 'math') {
+      if (latexMathType === 'formula') {
         try {
           const rendered = window.katex.renderToString(latexInput, {
             throwOnError: false,
@@ -186,7 +192,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
         }
       }
     }
-  }, [latexInput, latexMode, katexLoaded, activeTab]);
+  }, [latexInput, latexMode, latexMathType, katexLoaded, activeTab, academicsSubTab]);
 
   // Load custom certificate fonts when cert tab is loaded
   useEffect(() => {
@@ -197,10 +203,10 @@ export default function SuperToolsModal({ isOpen, onClose }) {
 
   // Initialize scientific graphing plotter path
   useEffect(() => {
-    if (activeTab === 'calculator') {
+    if (activeTab === 'academics' && academicsSubTab === 'grapher') {
       plotGraph();
     }
-  }, [graphEquation, activeTab]);
+  }, [graphEquation, activeTab, academicsSubTab]);
 
   if (!isOpen) return null;
 
@@ -329,6 +335,74 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   // --- LATEX TEMPLATE INSERTS ---
   const insertLatexPreset = (latexCode) => {
     setLatexInput(prev => prev + '\n' + latexCode);
+  };
+
+  const compilePDF = async () => {
+    if (!latexInput) return;
+    setCompileStatus('compiling');
+    setCompileMsg('Compiling LaTeX to PDF…');
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+
+    try {
+      const res = await fetch('/api/compile-pdf-api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ compiler: 'pdflatex', resources: [{ main: true, content: latexInput }] }),
+      });
+      
+      if (!res.ok) {
+        const errText = await res.text();
+        try {
+          const js = JSON.parse(errText);
+          throw new Error(js.error || 'Compile failed');
+        } catch {
+          throw new Error(`Compile failed: ${errText.slice(0, 100)}`);
+        }
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      setPdfUrl(url);
+      setCompileStatus('done');
+      setCompileMsg('PDF compiled successfully! Switch to PDF Preview to view.');
+    } catch (err) {
+      setCompileStatus('error');
+      setCompileMsg(`Compile error: ${err.message}`);
+    }
+  };
+
+  const downloadPDF = () => {
+    if (!pdfUrl) return;
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = `Compiled_LaTeX_Document.pdf`;
+    a.click();
+  };
+
+  const downloadLatexFile = () => {
+    if (!latexInput) return;
+    const blob = new Blob([latexInput], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `document.tex`;
+    a.click();
+  };
+
+  const loadResumeTemplate = async () => {
+    setCompileStatus('compiling');
+    setCompileMsg('Loading Professional Resume Template…');
+    try {
+      const r = await fetch('/resume.tex');
+      if (!r.ok) throw new Error('Failed to fetch resume template.');
+      const tex = await r.text();
+      setLatexInput(tex);
+      setLatexMode('pdf');
+      setCompileStatus('done');
+      setCompileMsg('Resume Template Loaded! Click "Compile & Render PDF" below.');
+    } catch (err) {
+      setCompileStatus('error');
+      setCompileMsg(`Error loading resume: ${err.message}`);
+    }
   };
 
   // --- FINANCE CALCULATORS LOGIC ---
@@ -825,9 +899,8 @@ export default function SuperToolsModal({ isOpen, onClose }) {
             padding: '16px 8px'
           }}>
             {[
-              { id: 'finance', icon: 'fa-file-invoice-dollar', label: 'Finance & CGPA' },
-              { id: 'calculator', icon: 'fa-calculator', label: 'Scientific Grapher' },
-              { id: 'latex', icon: 'fa-square-root-variable', label: 'LaTeX Compiler' },
+              { id: 'finance', icon: 'fa-file-invoice-dollar', label: 'Finance' },
+              { id: 'academics', icon: 'fa-graduation-cap', label: 'GPA / CGPA / Grades' },
               { id: 'invoice', icon: 'fa-receipt', label: 'Invoice Maker 🔒' },
               { id: 'certificate', icon: 'fa-award', label: 'Certificate Gen 🔒' }
             ].map(tab => (
@@ -929,7 +1002,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
             ) : (
               // Active Tab Renderings
               <>
-                {/* 1. FINANCE & SPI TAB */}
+                {/* 1. FINANCE TAB */}
                 {activeTab === 'finance' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>
@@ -937,8 +1010,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                         { id: 'gst', label: 'GST Tax' },
                         { id: 'tds', label: 'TDS Deduction' },
                         { id: 'emi', label: 'EMI Loan' },
-                        { id: 'interest', label: 'Interest Rates' },
-                        { id: 'spi', label: 'SPI & CGPA (VIT)' }
+                        { id: 'interest', label: 'Interest Rates' }
                       ].map(sub => (
                         <button key={sub.id} onClick={() => setFinanceSubTab(sub.id)} style={{
                           padding: '6px 16px',
@@ -1263,9 +1335,36 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                         </div>
                       );
                     })()}
+                  </div>
+                )}
 
-                    {/* SUB: SPI / CGPA */}
-                    {financeSubTab === 'spi' && (() => {
+                {/* 2. ACADEMICS TAB */}
+                {activeTab === 'academics' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>
+                      {[
+                        { id: 'grades', label: 'GPA / CGPA / Grades' },
+                        { id: 'grapher', label: 'Scientific Grapher' },
+                        { id: 'latex', label: 'LaTeX Compiler' }
+                      ].map(sub => (
+                        <button key={sub.id} onClick={() => setAcademicsSubTab(sub.id)} style={{
+                          padding: '6px 16px',
+                          borderRadius: '20px',
+                          border: '1px solid ' + (academicsSubTab === sub.id ? 'var(--gold)' : 'rgba(255,255,255,0.1)'),
+                          background: academicsSubTab === sub.id ? 'var(--gold-dim)' : 'transparent',
+                          color: academicsSubTab === sub.id ? 'var(--gold)' : 'gray',
+                          cursor: 'pointer',
+                          fontSize: '0.85em',
+                          fontWeight: 'bold',
+                          transition: 'all 0.3s'
+                        }}>
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* SUB: GPA / CGPA / GRADES */}
+                    {academicsSubTab === 'grades' && (() => {
                       const spi = calculateSPI();
                       const cpi = calculateCPI();
 
@@ -1639,241 +1738,330 @@ export default function SuperToolsModal({ isOpen, onClose }) {
                         </div>
                       );
                     })()}
-                  </div>
-                )}
+                    
+                    {/* SUB: SCIENTIFIC GRAPHING CALCULATOR */}
+                    {academicsSubTab === 'grapher' && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+                        {/* Calculator UI */}
+                        <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+                          <div style={{
+                            background: 'rgba(0,0,0,0.3)',
+                            border: '1px solid var(--gold-dim)',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            minHeight: '80px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-end',
+                            marginBottom: '15px'
+                          }}>
+                            <div style={{ fontSize: '0.85em', color: 'gray', wordBreak: 'break-all', textAlign: 'right', width: '100%' }}>{calcDisplay || '0'}</div>
+                            <div style={{ fontSize: '1.4em', color: 'var(--gold)', fontWeight: 'bold', wordBreak: 'break-all' }}>{calcResult || '0'}</div>
+                          </div>
 
-                {/* 2. SCIENTIFIC GRAPHING CALCULATOR TAB */}
-                {activeTab === 'calculator' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-                    {/* Calculator UI */}
-                    <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                      <div style={{
-                        background: 'rgba(0,0,0,0.3)',
-                        border: '1px solid var(--gold-dim)',
-                        borderRadius: '12px',
-                        padding: '12px 16px',
-                        minHeight: '80px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-end',
-                        marginBottom: '15px'
-                      }}>
-                        <div style={{ fontSize: '0.85em', color: 'gray', wordBreak: 'break-all', textAlign: 'right', width: '100%' }}>{calcDisplay || '0'}</div>
-                        <div style={{ fontSize: '1.4em', color: 'var(--gold)', fontWeight: 'bold', wordBreak: 'break-all' }}>{calcResult || '0'}</div>
-                      </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <button onClick={() => setCalcAngleMode(p => p === 'Deg' ? 'Rad' : 'Deg')} style={{
+                              padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--gold-dim)', background: 'transparent', color: 'var(--gold)', fontSize: '0.75em', cursor: 'pointer'
+                            }}>
+                              Angle: {calcAngleMode}
+                            </button>
+                            <span style={{ fontSize: '0.75em', color: 'gray' }}>Memory: {calcMemory.toFixed(4)}</span>
+                          </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                        <button onClick={() => setCalcAngleMode(p => p === 'Deg' ? 'Rad' : 'Deg')} style={{
-                          padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--gold-dim)', background: 'transparent', color: 'var(--gold)', fontSize: '0.75em', cursor: 'pointer'
-                        }}>
-                          Angle: {calcAngleMode}
-                        </button>
-                        <span style={{ fontSize: '0.75em', color: 'gray' }}>Memory: {calcMemory.toFixed(4)}</span>
-                      </div>
+                          {/* Memory Row */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', marginBottom: '8px' }}>
+                            {['MC', 'MR', 'M+', 'M-', 'MS'].map(op => (
+                              <button key={op} onClick={() => handleCalcMemory(op)} style={{
+                                padding: '8px 4px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.04)', color: 'gray', fontSize: '0.75em', cursor: 'pointer'
+                              }}>{op}</button>
+                            ))}
+                          </div>
 
-                      {/* Memory Row */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', marginBottom: '8px' }}>
-                        {['MC', 'MR', 'M+', 'M-', 'MS'].map(op => (
-                          <button key={op} onClick={() => handleCalcMemory(op)} style={{
-                            padding: '8px 4px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.04)', color: 'gray', fontSize: '0.75em', cursor: 'pointer'
-                          }}>{op}</button>
-                        ))}
-                      </div>
+                          {/* Sci Operators */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', marginBottom: '8px' }}>
+                            {['sin(', 'cos(', 'tan(', 'asin(', 'acos('].map(op => (
+                              <button key={op} onClick={() => handleCalcBtn(op)} style={{
+                                padding: '8px 4px', borderRadius: '6px', border: 'none', background: 'rgba(212,175,55,0.08)', color: 'var(--gold)', fontSize: '0.8em', cursor: 'pointer'
+                              }}>{op.replace('(', '')}</button>
+                            ))}
+                            {['atan(', 'ln(', 'log(', 'sqrt(', '^'].map(op => (
+                              <button key={op} onClick={() => handleCalcBtn(op)} style={{
+                                padding: '8px 4px', borderRadius: '6px', border: 'none', background: 'rgba(212,175,55,0.08)', color: 'var(--gold)', fontSize: '0.8em', cursor: 'pointer'
+                              }}>{op === '^' ? 'x^y' : op.replace('(', '')}</button>
+                            ))}
+                          </div>
 
-                      {/* Sci Operators */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', marginBottom: '8px' }}>
-                        {['sin(', 'cos(', 'tan(', 'asin(', 'acos('].map(op => (
-                          <button key={op} onClick={() => handleCalcBtn(op)} style={{
-                            padding: '8px 4px', borderRadius: '6px', border: 'none', background: 'rgba(212,175,55,0.08)', color: 'var(--gold)', fontSize: '0.8em', cursor: 'pointer'
-                          }}>{op.replace('(', '')}</button>
-                        ))}
-                        {['atan(', 'ln(', 'log(', 'sqrt(', '^'].map(op => (
-                          <button key={op} onClick={() => handleCalcBtn(op)} style={{
-                            padding: '8px 4px', borderRadius: '6px', border: 'none', background: 'rgba(212,175,55,0.08)', color: 'var(--gold)', fontSize: '0.8em', cursor: 'pointer'
-                          }}>{op === '^' ? 'x^y' : op.replace('(', '')}</button>
-                        ))}
-                      </div>
+                          {/* Standard Buttons */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', flex: 1 }}>
+                            {/* Row 1 */}
+                            {['(', ')', 'pi', 'e', 'C'].map(btn => (
+                              <button key={btn} onClick={() => handleCalcBtn(btn)} style={{
+                                padding: '12px 4px', borderRadius: '8px', border: 'none', background: btn === 'C' ? '#ef4444' : 'rgba(255,255,255,0.06)', color: btn === 'C' ? 'white' : 'var(--text-bright)', fontWeight: 'bold', cursor: 'pointer'
+                              }}>{btn}</button>
+                            ))}
+                            {/* Row 2 */}
+                            {['7', '8', '9', '/', '⌫'].map(btn => (
+                              <button key={btn} onClick={() => handleCalcBtn(btn)} style={{
+                                padding: '12px 4px', borderRadius: '8px', border: 'none', background: btn === '⌫' ? '#f59e0b' : 'rgba(255,255,255,0.08)', color: btn === '⌫' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer'
+                              }}>{btn}</button>
+                            ))}
+                            {/* Row 3 */}
+                            {['4', '5', '6', '*', '('].map(btn => {
+                              const actual = btn === '(' ? '+' : btn; // fix template map
+                              return (
+                                <button key={btn} onClick={() => handleCalcBtn(actual)} style={{
+                                  padding: '12px 4px', borderRadius: '8px', border: 'none', background: 'rgba(255,255,255,0.08)', color: 'white', fontWeight: 'bold', cursor: 'pointer'
+                                }}>{actual}</button>
+                              );
+                            })}
+                            {/* Row 4 */}
+                            {['1', '2', '3', '-', ')'].map(btn => {
+                              const actual = btn === ')' ? '=' : btn;
+                              return (
+                                <button key={btn} onClick={() => { if (actual === '=') handleCalcBtn('='); else handleCalcBtn(actual); }} style={{
+                                  gridRow: actual === '=' ? 'span 2' : 'auto',
+                                  padding: '12px 4px', borderRadius: '8px', border: 'none', background: actual === '=' ? 'var(--gold)' : 'rgba(255,255,255,0.08)', color: actual === '=' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer'
+                                }}>{actual}</button>
+                              );
+                            })}
+                            {/* Row 5 */}
+                            {['0', '.', '+'].map(btn => (
+                              <button key={btn} onClick={() => handleCalcBtn(btn)} style={{
+                                gridColumn: btn === '0' ? 'span 2' : 'auto',
+                                padding: '12px 4px', borderRadius: '8px', border: 'none', background: 'rgba(255,255,255,0.08)', color: 'white', fontWeight: 'bold', cursor: 'pointer'
+                              }}>{btn}</button>
+                            ))}
+                          </div>
+                        </div>
 
-                      {/* Standard Buttons */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', flex: 1 }}>
-                        {/* Row 1 */}
-                        {['(', ')', 'pi', 'e', 'C'].map(btn => (
-                          <button key={btn} onClick={() => handleCalcBtn(btn)} style={{
-                            padding: '12px 4px', borderRadius: '8px', border: 'none', background: btn === 'C' ? '#ef4444' : 'rgba(255,255,255,0.06)', color: btn === 'C' ? 'white' : 'var(--text-bright)', fontWeight: 'bold', cursor: 'pointer'
-                          }}>{btn}</button>
-                        ))}
-                        {/* Row 2 */}
-                        {['7', '8', '9', '/', '⌫'].map(btn => (
-                          <button key={btn} onClick={() => handleCalcBtn(btn)} style={{
-                            padding: '12px 4px', borderRadius: '8px', border: 'none', background: btn === '⌫' ? '#f59e0b' : 'rgba(255,255,255,0.08)', color: btn === '⌫' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer'
-                          }}>{btn}</button>
-                        ))}
-                        {/* Row 3 */}
-                        {['4', '5', '6', '*', '('].map(btn => {
-                          const actual = btn === '(' ? '+' : btn; // fix template map
-                          return (
-                            <button key={btn} onClick={() => handleCalcBtn(actual)} style={{
-                              padding: '12px 4px', borderRadius: '8px', border: 'none', background: 'rgba(255,255,255,0.08)', color: 'white', fontWeight: 'bold', cursor: 'pointer'
-                            }}>{actual}</button>
-                          );
-                        })}
-                        {/* Row 4 */}
-                        {['1', '2', '3', '-', ')'].map(btn => {
-                          const actual = btn === ')' ? '=' : btn;
-                          return (
-                            <button key={btn} onClick={() => { if (actual === '=') handleCalcBtn('='); else handleCalcBtn(actual); }} style={{
-                              gridRow: actual === '=' ? 'span 2' : 'auto',
-                              padding: '12px 4px', borderRadius: '8px', border: 'none', background: actual === '=' ? 'var(--gold)' : 'rgba(255,255,255,0.08)', color: actual === '=' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer'
-                            }}>{actual}</button>
-                          );
-                        })}
-                        {/* Row 5 */}
-                        {['0', '.', '+'].map(btn => (
-                          <button key={btn} onClick={() => handleCalcBtn(btn)} style={{
-                            gridColumn: btn === '0' ? 'span 2' : 'auto',
-                            padding: '12px 4px', borderRadius: '8px', border: 'none', background: 'rgba(255,255,255,0.08)', color: 'white', fontWeight: 'bold', cursor: 'pointer'
-                          }}>{btn}</button>
-                        ))}
-                      </div>
-                    </div>
+                        {/* Coordinate SVG Grapher */}
+                        <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+                          <h3>Interactive SVG Function Grapher</h3>
+                          <div className="section-divider" style={{ margin: '10px 0 20px 0' }} />
+                          <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                            <input
+                              type="text"
+                              value={graphEquation}
+                              onChange={e => setGraphEquation(e.target.value)}
+                              placeholder="e.g. sin(x) or x^2 or cos(x)*2"
+                              style={{ flex: 1, padding: '10px 14px' }}
+                            />
+                            <button className="btn" onClick={plotGraph} style={{ padding: '10px 20px' }}>Plot</button>
+                          </div>
 
-                    {/* Coordinate SVG Grapher */}
-                    <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                      <h3>Interactive SVG Function Grapher</h3>
-                      <div className="section-divider" style={{ margin: '10px 0 20px 0' }} />
-                      <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                        <input
-                          type="text"
-                          value={graphEquation}
-                          onChange={e => setGraphEquation(e.target.value)}
-                          placeholder="e.g. sin(x) or x^2 or cos(x)*2"
-                          style={{ flex: 1, padding: '10px 14px' }}
-                        />
-                        <button className="btn" onClick={plotGraph} style={{ padding: '10px 20px' }}>Plot</button>
-                      </div>
-
-                      <div style={{
-                        flex: 1,
-                        background: 'rgba(0,0,0,0.4)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '12px',
-                        position: 'relative',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        overflow: 'hidden',
-                        minHeight: '220px'
-                      }}>
-                        {/* SVG Drawing Board */}
-                        <svg width="300" height="200" viewBox="0 0 300 200" style={{ width: '100%', height: '100%' }}>
-                          {/* Grid Lines */}
-                          {Array.from({ length: 21 }).map((_, i) => (
-                            <line key={`x-${i}`} x1={i * 15} y1="0" x2={i * 15} y2="200" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-                          ))}
-                          {Array.from({ length: 21 }).map((_, i) => (
-                            <line key={`y-${i}`} x1="0" y1={i * 10} x2="300" y2={i * 10} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-                          ))}
-
-                          {/* Axes */}
-                          <line x1="0" y1="100" x2="300" y2="100" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
-                          <line x1="150" y1="0" x2="150" y2="200" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
-
-                          {/* Ticks & Labels */}
-                          <text x="290" y="112" fill="gray" fontSize="8">X</text>
-                          <text x="155" y="10" fill="gray" fontSize="8">Y</text>
-
-                          {/* Rendered Function Curve Path */}
-                          {graphPath && (
-                            <path d={graphPath} fill="none" stroke="var(--gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                          )}
-                        </svg>
-                      </div>
-
-                      {/* Plotter Legend Help */}
-                      <div style={{ marginTop: '10px', fontSize: '0.78em', color: 'gray' }}>
-                        <strong>Supported syntax:</strong> <code>x^2</code>, <code>sin(x)</code>, <code>cos(x)</code>, <code>sqrt(x)</code>, <code>2*x + 1</code>.
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. LATEX COMPILER TAB */}
-                {activeTab === 'latex' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
-                    {/* LaTeX Presets Panel */}
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.85em', color: 'gray' }}>Insert Preset:</span>
-                      {[
-                        { label: 'Fraction', code: '\\frac{a}{b}' },
-                        { label: 'Matrix', code: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
-                        { label: 'Integral', code: '\\int_{a}^{b} x^2 \\, dx' },
-                        { label: 'Sigma Sum', code: '\\sum_{i=1}^{n} i' },
-                        { label: 'Limits', code: '\\lim_{x \\to \\infty} f(x)' },
-                        { label: 'Square Root', code: '\\sqrt{x}' }
-                      ].map(preset => (
-                        <button key={preset.label} onClick={() => insertLatexPreset(preset.code)} style={{
-                          padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(212,175,55,0.25)', background: 'rgba(212,175,55,0.05)', color: 'var(--gold)', fontSize: '0.78em', cursor: 'pointer'
-                        }}>{preset.label}</button>
-                      ))}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                      <label style={{ color: 'gray', fontSize: '0.85em', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                        <input type="radio" checked={latexMode === 'document'} onChange={() => setLatexMode('document')} />
-                        Document Mode (Render inline $ and display $$ blocks)
-                      </label>
-                      <label style={{ color: 'gray', fontSize: '0.85em', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                        <input type="radio" checked={latexMode === 'formula'} onChange={() => setLatexMode('formula')} />
-                        Formula Mode (Renders input directly inside math block)
-                      </label>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', flex: 1 }}>
-                      {/* Editor */}
-                      <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                        <h3>LaTeX Code Editor</h3>
-                        <div className="section-divider" style={{ margin: '10px 0 20px 0' }} />
-                        <textarea
-                          value={latexInput}
-                          onChange={e => setLatexInput(e.target.value)}
-                          style={{
+                          <div style={{
                             flex: 1,
-                            fontFamily: 'monospace',
-                            fontSize: '0.9em',
-                            lineHeight: 1.5,
-                            background: '#090909',
-                            color: '#e0e0e0',
-                            border: '1.5px solid var(--gold-dim)',
-                            borderRadius: '10px',
-                            padding: '16px',
-                            resize: 'none',
-                            minHeight: '280px'
-                          }}
-                        />
-                      </div>
+                            background: 'rgba(0,0,0,0.4)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '12px',
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            overflow: 'hidden',
+                            minHeight: '220px'
+                          }}>
+                            {/* SVG Drawing Board */}
+                            <svg width="300" height="200" viewBox="0 0 300 200" style={{ width: '100%', height: '100%' }}>
+                              {/* Grid Lines */}
+                              {Array.from({ length: 21 }).map((_, i) => (
+                                <line key={`x-${i}`} x1={i * 15} y1="0" x2={i * 15} y2="200" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+                              ))}
+                              {Array.from({ length: 21 }).map((_, i) => (
+                                <line key={`y-${i}`} x1="0" y1={i * 10} x2="300" y2={i * 10} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+                              ))}
 
-                      {/* Compiler Live Preview */}
-                      <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                        <h3>Compiled Mathematical Preview</h3>
-                        <div className="section-divider" style={{ margin: '10px 0 20px 0' }} />
-                        <div
-                          ref={latexPreviewRef}
-                          style={{
-                            flex: 1,
-                            background: '#fff',
-                            color: '#111',
-                            borderRadius: '10px',
-                            padding: '24px',
-                            overflow: 'auto',
-                            lineHeight: 1.6,
-                            fontSize: '0.95em',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            minHeight: '280px'
-                          }}
-                        />
+                              {/* Axes */}
+                              <line x1="0" y1="100" x2="300" y2="100" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
+                              <line x1="150" y1="0" x2="150" y2="200" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
+
+                              {/* Ticks & Labels */}
+                              <text x="290" y="112" fill="gray" fontSize="8">X</text>
+                              <text x="155" y="10" fill="gray" fontSize="8">Y</text>
+
+                              {/* Rendered Function Curve Path */}
+                              {graphPath && (
+                                <path d={graphPath} fill="none" stroke="var(--gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              )}
+                            </svg>
+                          </div>
+
+                          {/* Plotter Legend Help */}
+                          <div style={{ marginTop: '10px', fontSize: '0.78em', color: 'gray' }}>
+                            <strong>Supported syntax:</strong> <code>x^2</code>, <code>sin(x)</code>, <code>cos(x)</code>, <code>sqrt(x)</code>, <code>2*x + 1</code>.
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* SUB: LATEX COMPILER */}
+                    {academicsSubTab === 'latex' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
+                        {/* Upper Toolbar */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', flexWrap: 'wrap', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.85em', color: 'gray', fontWeight: 'bold' }}>Select Mode:</span>
+                            <label style={{ color: latexMode === 'pdf' ? 'var(--gold)' : 'gray', fontSize: '0.85em', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                              <input type="radio" name="super-latex-mode" checked={latexMode === 'pdf'} onChange={() => setLatexMode('pdf')} />
+                              <i className="fas fa-file-pdf" /> Overleaf PDF Mode (Full Document LaTeX)
+                            </label>
+                            <label style={{ color: latexMode === 'math' ? 'var(--gold)' : 'gray', fontSize: '0.85em', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                              <input type="radio" name="super-latex-mode" checked={latexMode === 'math'} onChange={() => setLatexMode('math')} />
+                              <i className="fas fa-square-root-variable" /> Math Equation Mode (KaTeX formulas)
+                            </label>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={loadResumeTemplate} className="btn" style={{ padding: '6px 12px', fontSize: '0.8em', border: '1px solid var(--gold)', background: 'transparent', color: 'var(--gold)' }}>
+                              <i className="fas fa-file-invoice" /> Load Professional Resume Preset
+                            </button>
+                            <button onClick={downloadLatexFile} className="btn" style={{ padding: '6px 12px', fontSize: '0.8em', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff' }}>
+                              <i className="fas fa-download" /> Download .tex
+                            </button>
+                            {latexMode === 'pdf' && pdfUrl && (
+                              <button onClick={downloadPDF} className="btn" style={{ padding: '6px 12px', fontSize: '0.8em', border: '1px solid var(--gold)', background: 'var(--gold-dim)', color: 'var(--gold)' }}>
+                                <i className="fas fa-file-pdf" /> Download PDF
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Preset Inserts if in Math Mode */}
+                        {latexMode === 'math' && (
+                          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', background: 'rgba(255,255,255,0.01)', padding: '8px 12px', borderRadius: '8px' }}>
+                            <span style={{ fontSize: '0.85em', color: 'gray' }}>Insert Preset:</span>
+                            {[
+                              { label: 'Fraction', code: '\\frac{a}{b}' },
+                              { label: 'Matrix', code: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
+                              { label: 'Integral', code: '\\int_{a}^{b} x^2 \\, dx' },
+                              { label: 'Sigma Sum', code: '\\sum_{i=1}^{n} i' },
+                              { label: 'Limits', code: '\\lim_{x \\to \\infty} f(x)' },
+                              { label: 'Square Root', code: '\\sqrt{x}' }
+                            ].map(preset => (
+                              <button key={preset.label} onClick={() => insertLatexPreset(preset.code)} style={{
+                                padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(212,175,55,0.2)', background: 'rgba(212,175,55,0.03)', color: 'var(--gold)', fontSize: '0.75em', cursor: 'pointer'
+                              }}>{preset.label}</button>
+                            ))}
+                            <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+                              <label style={{ color: 'gray', fontSize: '0.75em', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                <input type="radio" checked={latexMathType === 'document'} onChange={() => setLatexMathType('document')} /> Inline $ / Block $$
+                              </label>
+                              <label style={{ color: 'gray', fontSize: '0.75em', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                <input type="radio" checked={latexMathType === 'formula'} onChange={() => setLatexMathType('formula')} /> Pure Formula block
+                              </label>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Editor + Render Split Panel */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', flex: 1, minHeight: '400px' }}>
+                          {/* Code Editor */}
+                          <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                              <h3 style={{ margin: 0, fontSize: '1.1em' }}><i className="fas fa-edit" style={{ marginRight: '8px', color: 'var(--gold)' }} /> LaTeX Code Editor</h3>
+                              <span style={{ fontSize: '0.75em', color: 'gray' }}>{latexInput.split('\n').length} lines | {latexInput.length} chars</span>
+                            </div>
+                            <textarea
+                              value={latexInput}
+                              onChange={e => setLatexInput(e.target.value)}
+                              spellCheck={false}
+                              style={{
+                                flex: 1,
+                                fontFamily: 'monospace',
+                                fontSize: '0.85em',
+                                lineHeight: 1.5,
+                                background: '#090909',
+                                color: '#e0e0e0',
+                                border: '1.5px solid var(--gold-dim)',
+                                borderRadius: '10px',
+                                padding: '16px',
+                                resize: 'none',
+                                minHeight: '380px'
+                              }}
+                            />
+                            {latexMode === 'pdf' && (
+                              <button
+                                className={`btn ${compileStatus === 'compiling' ? 'loading' : ''}`}
+                                onClick={() => compilePDF()}
+                                disabled={compileStatus === 'compiling'}
+                                style={{ marginTop: '12px', padding: '12px', background: 'var(--gold)', color: 'black', fontWeight: 'bold' }}
+                              >
+                                {compileStatus === 'compiling' ? (
+                                  <><i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }} /> Compiling...</>
+                                ) : (
+                                  <><i className="fas fa-cog" style={{ marginRight: '8px' }} /> Compile & Render PDF</>
+                                )}
+                              </button>
+                            )}
+                            {(compileMsg || compileStatus === 'error') && (
+                              <div style={{
+                                marginTop: '10px',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                fontSize: '0.8em',
+                                background: compileStatus === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(212,175,55,0.05)',
+                                border: `1px solid ${compileStatus === 'error' ? '#ef4444' : 'var(--gold-dim)'}`,
+                                color: compileStatus === 'error' ? '#ef4444' : 'var(--gold)'
+                              }}>
+                                <i className={`fas ${compileStatus === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}`} style={{ marginRight: '6px' }} />
+                                {compileMsg}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Preview Viewport */}
+                          <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%', background: latexMode === 'math' ? 'rgba(255,255,255,0.01)' : '#1a1a1a' }}>
+                            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1em', color: latexMode === 'math' ? 'inherit' : '#fff' }}>
+                              <i className={`fas ${latexMode === 'math' ? 'fa-chart-line' : 'fa-file-pdf'}`} style={{ marginRight: '8px', color: 'var(--gold)' }} />
+                              {latexMode === 'math' ? 'Compiled Mathematical Preview' : 'Overleaf PDF Previewer'}
+                            </h3>
+                            <div className="section-divider" style={{ margin: '0 0 15px 0', borderColor: 'rgba(255,255,255,0.1)' }} />
+                            
+                            {latexMode === 'math' ? (
+                              <div
+                                ref={latexPreviewRef}
+                                style={{
+                                  flex: 1,
+                                  background: '#fff',
+                                  color: '#111',
+                                  borderRadius: '10px',
+                                  padding: '24px',
+                                  overflow: 'auto',
+                                  lineHeight: 1.6,
+                                  fontSize: '0.95em',
+                                  minHeight: '380px'
+                                }}
+                              />
+                            ) : (
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '380px', height: '100%' }}>
+                                {pdfUrl ? (
+                                  <iframe
+                                    src={pdfUrl}
+                                    style={{
+                                      width: '100%',
+                                      height: '100%',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      background: '#fff'
+                                    }}
+                                    title="LaTeX Overleaf Compiler Output PDF Preview"
+                                  />
+                                ) : (
+                                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '15px', color: 'gray', padding: '40px', textAlign: 'center' }}>
+                                    <i className="fas fa-file-pdf" style={{ fontSize: '4em', color: 'var(--gold)', opacity: 0.3 }} />
+                                    <div>
+                                      <h4 style={{ margin: '0 0 5px 0', color: '#fff' }}>Overleaf PDF Compiler is Ready</h4>
+                                      <p style={{ margin: 0, fontSize: '0.85em' }}>Paste any LaTeX document code (like your resume code) on the left, then click <strong>Compile & Render PDF</strong> to see the real-time compiled PDF preview here.</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
