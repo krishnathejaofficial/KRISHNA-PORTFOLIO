@@ -31,6 +31,53 @@ function toLatLonDMS(lat, lon) {
   return `${fmt(lat, 'N', 'S')} ${fmt(lon, 'E', 'W')}`;
 }
 
+function encodePlusCode(latitude, longitude) {
+  const ALPHABET = '23456789CFGHJMPQRVWX';
+  let lat = Math.min(Math.max(latitude, -90), 90);
+  let lon = longitude;
+  while (lon < -180) lon += 360;
+  while (lon >= 180) lon -= 360;
+
+  lat += 90;
+  lon += 180;
+
+  let code = '';
+  let latGrid = lat / 20;
+  let lonGrid = lon / 20;
+
+  // 1st pair
+  code += ALPHABET.charAt(Math.floor(latGrid) % 20);
+  code += ALPHABET.charAt(Math.floor(lonGrid) % 20);
+
+  // 2nd pair
+  latGrid = (latGrid % 1) * 20;
+  lonGrid = (lonGrid % 1) * 20;
+  code += ALPHABET.charAt(Math.floor(latGrid) % 20);
+  code += ALPHABET.charAt(Math.floor(lonGrid) % 20);
+
+  // 3rd pair
+  latGrid = (latGrid % 1) * 20;
+  lonGrid = (lonGrid % 1) * 20;
+  code += ALPHABET.charAt(Math.floor(latGrid) % 20);
+  code += ALPHABET.charAt(Math.floor(lonGrid) % 20);
+
+  // 4th pair
+  latGrid = (latGrid % 1) * 20;
+  lonGrid = (lonGrid % 1) * 20;
+  code += ALPHABET.charAt(Math.floor(latGrid) % 20);
+  code += ALPHABET.charAt(Math.floor(lonGrid) % 20);
+
+  code += '+';
+
+  // 5th pair
+  latGrid = (latGrid % 1) * 20;
+  lonGrid = (lonGrid % 1) * 20;
+  code += ALPHABET.charAt(Math.floor(latGrid) % 20);
+  code += ALPHABET.charAt(Math.floor(lonGrid) % 20);
+
+  return code;
+}
+
 function getCountryFlag(countryCode) {
   if (!countryCode) return '';
   const cp = countryCode
@@ -80,28 +127,22 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
       const W = canvas.width;
       const H = canvas.height;
 
-      // Panel sizing responsive to image
-      const scale = Math.min(W / 1080, H / 1920, 1);
-      const panelH = Math.max(220, Math.round(H * 0.22));
-      const panelY = H - panelH;
-      const pad = Math.round(16 * scale + 8);
-      const mapSize = Math.round(panelH * 0.72);
+      // Sizing scale responsive to image width (reference width 1080px)
+      const scale = W / 1080;
+      const pad = Math.round(W * 0.04);
+      const padBottom = Math.round(W * 0.04);
+      const mapSize = Math.round(W * 0.28);
 
-      // ── Semi-transparent background panel ──
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
-      ctx.beginPath();
-      ctx.roundRect(0, panelY, W, panelH, [0, 0, 0, 0]);
-      ctx.fill();
+      // Positioning coordinates
+      const mapX = pad;
+      const mapY = H - mapSize - padBottom;
 
-      // ── Gold top accent line ──
-      ctx.fillStyle = '#D4AF37';
-      ctx.fillRect(0, panelY, W, 3);
+      const boxX = mapSize + 2 * pad;
+      const boxY = mapY;
+      const boxWidth = W - boxX - pad;
+      const boxHeight = mapSize;
 
-      // ── Map thumbnail (top-right corner) ──
-      const mapX = W - mapSize - pad;
-      const mapY = panelY + pad;
-
-      // Try to load OSM tile
+      // ── Map thumbnail (bottom-left corner) ──
       try {
         const tileUrl = TILE(gpsData.lat, gpsData.lon, 14);
         const tileImg = new Image();
@@ -111,16 +152,16 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
             // Clip map to rounded rect
             ctx.save();
             ctx.beginPath();
-            ctx.roundRect(mapX, mapY, mapSize, mapSize, 8);
+            ctx.roundRect(mapX, mapY, mapSize, mapSize, Math.round(W * 0.015));
             ctx.clip();
             ctx.drawImage(tileImg, mapX, mapY, mapSize, mapSize);
             ctx.restore();
 
             // Map border
             ctx.strokeStyle = '#D4AF37';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = Math.round(W * 0.003 + 1);
             ctx.beginPath();
-            ctx.roundRect(mapX, mapY, mapSize, mapSize, 8);
+            ctx.roundRect(mapX, mapY, mapSize, mapSize, Math.round(W * 0.015));
             ctx.stroke();
 
             // Red pin dot in center of map
@@ -128,19 +169,21 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
             const cy = mapY + mapSize / 2;
             ctx.fillStyle = '#ef4444';
             ctx.beginPath();
-            ctx.arc(cx, cy - 4, 6, 0, Math.PI * 2);
+            ctx.arc(cx, cy - Math.round(W * 0.004), Math.round(W * 0.006 + 2), 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#fff';
             ctx.beginPath();
-            ctx.arc(cx, cy - 4, 2.5, 0, Math.PI * 2);
+            ctx.arc(cx, cy - Math.round(W * 0.004), Math.round(W * 0.0025 + 1), 0, Math.PI * 2);
             ctx.fill();
 
             // Google Maps logo area
             ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillRect(mapX, mapY + mapSize - 18, 52, 18);
+            const watermarkH = Math.round(W * 0.018 + 6);
+            const watermarkW = Math.round(W * 0.05 + 20);
+            ctx.fillRect(mapX, mapY + mapSize - watermarkH, watermarkW, watermarkH);
             ctx.fillStyle = '#333';
-            ctx.font = `bold ${Math.round(9 * scale + 6)}px Arial`;
-            ctx.fillText('OpenStreet', mapX + 3, mapY + mapSize - 5);
+            ctx.font = `bold ${Math.round(W * 0.01 + 4)}px Arial`;
+            ctx.fillText('Google', mapX + Math.round(W * 0.004 + 2), mapY + mapSize - Math.round(watermarkH * 0.25));
 
             res();
           };
@@ -148,10 +191,14 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
             // Fallback: draw a placeholder map
             ctx.fillStyle = '#1a1a2e';
             ctx.beginPath();
-            ctx.roundRect(mapX, mapY, mapSize, mapSize, 8);
+            ctx.roundRect(mapX, mapY, mapSize, mapSize, Math.round(W * 0.015));
             ctx.fill();
+            ctx.strokeStyle = '#D4AF37';
+            ctx.lineWidth = Math.round(W * 0.003 + 1);
+            ctx.stroke();
+
             ctx.fillStyle = '#D4AF37';
-            ctx.font = `${Math.round(10 * scale + 8)}px Arial`;
+            ctx.font = `bold ${Math.round(W * 0.02 + 8)}px Arial`;
             ctx.textAlign = 'center';
             ctx.fillText('📍 Map', mapX + mapSize / 2, mapY + mapSize / 2);
             ctx.textAlign = 'left';
@@ -163,88 +210,120 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
         // ignore
       }
 
-      // ── GPS Camera logo (top-right of panel) ──
-      const logoX = W - pad;
-      const logoY = panelY + 14;
-      ctx.fillStyle = '#D4AF37';
-      ctx.font = `bold ${Math.round(9 * scale + 7)}px Arial`;
+      // ── Semi-transparent background box on bottom-right ──
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxWidth, boxHeight, Math.round(W * 0.015));
+      ctx.fill();
+
+      // ── Branding logo (top-right corner of box) ──
+      const boxPadX = Math.round(W * 0.035);
+      const boxPadY = Math.round(W * 0.035);
+      const logoFontSize = Math.round(W * 0.016);
+      const logoX = boxX + boxWidth - boxPadX;
+      const logoY = boxY + boxPadY + Math.round(logoFontSize * 0.4);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = `bold ${logoFontSize}px Arial`;
       ctx.textAlign = 'right';
-      ctx.fillText('📷 GPS Map Camera', logoX, logoY);
+      ctx.fillText('📷 krishnateja.vercel.app', logoX, logoY);
 
-      // ── Text content (left side) ──
-      const txtX = pad;
-      let txtY = panelY + pad + 4;
-      const lineGap = Math.round(22 * scale + 14);
+      // ── Dynamic text rendering inside box ──
+      const cityFontSize = Math.round(W * 0.024);
+      const addrFontSize = Math.round(W * 0.017);
+      const coordFontSize = Math.round(W * 0.015);
+      const dtFontSize = Math.round(W * 0.015);
 
-      // City / Region (large)
-      const cityFontSize = Math.round(18 * scale + 16);
-      ctx.font = `bold ${cityFontSize}px Arial`;
-      ctx.fillStyle = '#FFFFFF';
-      ctx.textAlign = 'left';
-      const cityLine = `${gpsData.city || gpsData.state || 'Unknown'}, ${gpsData.state || ''}, ${gpsData.country || ''} ${gpsData.flag}`;
-      ctx.fillText(cityLine, txtX, txtY);
-      txtY += cityFontSize + 6;
+      const gap1 = Math.round(W * 0.008);
+      const gap2 = Math.round(W * 0.004);
+      const gap3 = Math.round(W * 0.008);
+      const gap4 = Math.round(W * 0.004);
 
-      // Full address
-      const addrFontSize = Math.round(10 * scale + 9);
-      ctx.font = `${addrFontSize}px Arial`;
-      ctx.fillStyle = '#DDDDDD';
-      // Wrap address if too long
-      const maxW = mapX - txtX - pad;
-      const words = (gpsData.address || '').split(' ');
-      let line1 = '';
-      let line2 = '';
-      let lineNum = 0;
-      for (const word of words) {
-        const test = (lineNum === 0 ? line1 : line2) + word + ' ';
-        const testW = ctx.measureText(test).width;
-        if (testW > maxW && lineNum === 0) {
-          lineNum = 1;
-          line2 = word + ' ';
-        } else if (lineNum === 0) {
-          line1 = test;
-        } else {
-          line2 = test;
+      const totalTextHeight = cityFontSize + gap1 + addrFontSize + gap2 + addrFontSize + gap3 + coordFontSize + gap4 + dtFontSize;
+
+      // Text truncation helper to prevent overflow
+      const maxW = boxWidth - 2 * boxPadX;
+      const truncateText = (text, maxAllowedWidth, fontSpec) => {
+        ctx.font = fontSpec;
+        if (ctx.measureText(text).width <= maxAllowedWidth) return text;
+        let low = 0, high = text.length;
+        while (low < high) {
+          const mid = Math.floor((low + high) / 2);
+          const test = text.slice(0, mid) + '…';
+          if (ctx.measureText(test).width <= maxAllowedWidth) {
+            low = mid + 1;
+          } else {
+            high = mid;
+          }
         }
-      }
-      ctx.fillText(line1.trim(), txtX, txtY);
-      if (line2.trim()) {
-        txtY += addrFontSize + 4;
-        ctx.fillText(line2.trim(), txtX, txtY);
-      }
-      txtY += addrFontSize + 8;
+        return text.slice(0, Math.max(0, low - 2)) + '…';
+      };
 
-      // Lat / Long (gold)
-      const coordFontSize = Math.round(10 * scale + 9);
-      ctx.font = `bold ${coordFontSize}px 'Courier New', monospace`;
-      ctx.fillStyle = '#D4AF37';
-      ctx.fillText(
-        `Lat ${gpsData.lat.toFixed(6)}°  Long ${gpsData.lon.toFixed(6)}°`,
-        txtX,
-        txtY
-      );
-      txtY += coordFontSize + 6;
+      // Formulate text content
+      const cityLine = `${gpsData.city || gpsData.state || 'Unknown'}, ${gpsData.state || ''}, ${gpsData.country || ''} ${gpsData.flag || ''}`;
 
-      // Date & Time
-      const dtFontSize = Math.round(10 * scale + 8);
-      ctx.font = `${dtFontSize}px Arial`;
-      ctx.fillStyle = '#CCCCCC';
-      ctx.fillText(`${gpsData.dateStr}  ${gpsData.timeStr}`, txtX, txtY);
+      const road = gpsData.road || '';
+      const suburb = gpsData.suburb || '';
+      const village = gpsData.village || '';
+      const town = gpsData.town || '';
+      const postcode = gpsData.postcode || '';
+      const plusCode = gpsData.plusCode || '';
 
-      // ── Accuracy badge ──
-      if (gpsData.accuracy) {
-        const accTxt = `±${Math.round(gpsData.accuracy)}m`;
-        ctx.font = `bold ${Math.round(8 * scale + 7)}px Arial`;
-        const accW = ctx.measureText(accTxt).width + 12;
-        ctx.fillStyle = gpsData.accuracy < 20 ? 'rgba(34,197,94,0.85)' : 'rgba(234,179,8,0.85)';
-        ctx.beginPath();
-        ctx.roundRect(txtX, panelY + panelH - 28, accW, 20, 4);
-        ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.fillText(accTxt, txtX + 6, panelY + panelH - 13);
+      let addrLine1 = '';
+      let addrLine2 = '';
+
+      if (gpsData.road || gpsData.suburb || gpsData.village || gpsData.town) {
+        addrLine1 = [plusCode, road, suburb].filter(Boolean).join(', ') + (road || suburb ? ',' : '');
+        addrLine2 = [village || town || gpsData.city, gpsData.state + (postcode ? ` ${postcode}` : ''), gpsData.country].filter(Boolean).join(', ');
+      } else {
+        // Fallback split for address
+        const fullAddr = gpsData.address || '';
+        const half = Math.ceil(fullAddr.length / 2);
+        addrLine1 = fullAddr.slice(0, half);
+        addrLine2 = fullAddr.slice(half);
       }
 
+      const coordLine = `Lat ${gpsData.lat.toFixed(6)}° Long ${gpsData.lon.toFixed(6)}°` + (gpsData.accuracy ? ` (±${Math.round(gpsData.accuracy)}m)` : '');
+      const dtLine = `${gpsData.dateStr} ${gpsData.timeStr}`;
+
+      const truncatedCity = truncateText(cityLine, maxW - Math.round(W * 0.22), `bold ${cityFontSize}px Arial`);
+      const truncatedAddr1 = truncateText(addrLine1, maxW, `${addrFontSize}px Arial`);
+      const truncatedAddr2 = truncateText(addrLine2, maxW, `${addrFontSize}px Arial`);
+      const truncatedCoord = truncateText(coordLine, maxW, `${coordFontSize}px Arial`);
+      const truncatedDt = truncateText(dtLine, maxW, `${dtFontSize}px Arial`);
+
+      // Center vertically
+      let txtY = boxY + (boxHeight - totalTextHeight) / 2 + cityFontSize;
+      const txtX = boxX + boxPadX;
+
+      // Line 1: City & Country Flag
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${cityFontSize}px Arial`;
       ctx.textAlign = 'left';
+      ctx.fillText(truncatedCity, txtX, txtY);
+
+      // Line 2: Address line 1
+      txtY += gap1 + addrFontSize;
+      ctx.fillStyle = '#EEEEEE';
+      ctx.font = `${addrFontSize}px Arial`;
+      ctx.fillText(truncatedAddr1, txtX, txtY);
+
+      // Line 3: Address line 2
+      txtY += gap2 + addrFontSize;
+      ctx.fillText(truncatedAddr2, txtX, txtY);
+
+      // Line 4: Lat/Long
+      txtY += gap3 + coordFontSize;
+      ctx.fillStyle = '#DDDDDD';
+      ctx.font = `${coordFontSize}px Arial`;
+      ctx.fillText(truncatedCoord, txtX, txtY);
+
+      // Line 5: Date/Time
+      txtY += gap4 + dtFontSize;
+      ctx.fillStyle = '#CCCCCC';
+      ctx.font = `${dtFontSize}px Arial`;
+      ctx.fillText(truncatedDt, txtX, txtY);
+
       resolve(canvas.toDataURL('image/jpeg', 0.95));
     };
     img.src = photoDataUrl;
@@ -306,6 +385,12 @@ export default function GPSMapCamera({ isOpen, onClose }) {
         let flag = '';
         let plusCode = '';
 
+        let road = '';
+        let suburb = '';
+        let village = '';
+        let town = '';
+        let postcode = '';
+
         try {
           const res = await fetch(
             `${NOMINATIM}?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
@@ -318,7 +403,12 @@ export default function GPSMapCamera({ isOpen, onClose }) {
           country = a.country || '';
           countryCode = a.country_code?.toUpperCase() || '';
           flag = getCountryFlag(countryCode);
-          plusCode = data.place_id ? `${Math.abs(Math.floor(lat * 20) % 20).toString(36).toUpperCase()}${Math.abs(Math.floor(lon * 20) % 20).toString(36).toUpperCase()}+${Math.abs(Math.floor((lat * 20) % 1 * 100)).toString(36).toUpperCase()}${Math.abs(Math.floor((lon * 20) % 1 * 100)).toString(36).toUpperCase()}` : '';
+          plusCode = encodePlusCode(lat, lon);
+          road = a.road || '';
+          suburb = a.suburb || a.neighbourhood || '';
+          village = a.village || a.hamlet || '';
+          town = a.town || '';
+          postcode = a.postcode || '';
 
           // Build a clean address string
           const parts = [
@@ -338,7 +428,26 @@ export default function GPSMapCamera({ isOpen, onClose }) {
         const now = new Date();
         const { dateStr, timeStr } = formatDateTime(now);
 
-        setGpsData({ lat, lon, accuracy, address, city, state, country, countryCode, flag, plusCode, dateStr, timeStr, dmsCoords: toLatLonDMS(lat, lon) });
+        setGpsData({ 
+          lat, 
+          lon, 
+          accuracy, 
+          address, 
+          city, 
+          state, 
+          country, 
+          countryCode, 
+          flag, 
+          plusCode, 
+          dateStr, 
+          timeStr, 
+          dmsCoords: toLatLonDMS(lat, lon),
+          road,
+          suburb,
+          village,
+          town,
+          postcode
+        });
         setLocProgress('Location found! Opening camera…');
 
         // Start camera
