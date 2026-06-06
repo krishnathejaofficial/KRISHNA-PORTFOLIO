@@ -90,21 +90,10 @@ function buildAutoReply(name, trackingId, source, meetingLink) {
         </div>
 
         <p style="color:#6b7280;font-size:14px;line-height:1.6;margin:0;">
-          You can use this tracking ID at any time to check the status of your request on my portfolio website. 
+          You can use this tracking ID or scan the QR code at any time to check the status of your request on my portfolio website. 
           You'll also receive an email notification when I update the status.
         </p>
       </div>
-
-      <!-- Footer -->
-      <div style="background:#f9fafb;padding:20px 32px;border-top:1px solid #eee;text-align:center;">
-        <p style="margin:0;color:#9ca3af;font-size:12px;">
-          G. Krishna Teja · VIT University · Biotechnology & Business Professional<br/>
-          <a href="https://krishnateja.vercel.app" style="color:#D4AF37;text-decoration:none;">krishnateja.vercel.app</a>
-        </p>
-      </div>
-    </div>
-  `;
-}
 
       <!-- Footer -->
       <div style="background:#f9fafb;padding:20px 32px;border-top:1px solid #eee;text-align:center;">
@@ -149,18 +138,6 @@ export default async function handler(req, res) {
       </div>
     `;
 
-    if (source === 'collaboration') {
-      subject = `🚀 New Collab Proposal: ${type} - ${name} [${trackingId}]`;
-      htmlContent = baseTemplate('Collaboration Proposal', '#D4AF37', `
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">From:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${name} (<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a>)</td></tr>
-          <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Type:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;"><span style="background-color: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600;">${type}</span></td></tr>
-          ${org ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Organization:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${org}</td></tr>` : ''}
-          ${timeline ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong><span style="color: #4b5563;">Timeline:</span></strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">${timeline}</td></tr>` : ''}
-        </table>
-        <h3 style="color: #111827; font-size: 16px; margin: 25px 0 10px 0;">Proposal Details:</h3>
-        <p style="color: #374151; line-height: 1.7; white-space: pre-wrap; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 0;">${detail}</p>
-      `);
     // Setup Meeting details if source is meeting
     let meetingLink = '';
     if (source === 'meeting') {
