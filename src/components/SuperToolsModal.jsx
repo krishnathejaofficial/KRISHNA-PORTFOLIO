@@ -1982,6 +1982,52 @@ export default function SuperToolsModal({ isOpen, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .super-tools-container {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            max-width: 100vw !important;
+            border-radius: 0px !important;
+            border: none !important;
+          }
+          .super-tools-layout {
+            flex-direction: column !important;
+          }
+          .super-tools-sidebar {
+            width: 100% !important;
+            height: auto !important;
+            flex-direction: row !important;
+            overflow-x: auto !important;
+            border-right: none !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            padding: 8px !important;
+            white-space: nowrap !important;
+            scrollbar-width: none;
+          }
+          .super-tools-sidebar::-webkit-scrollbar {
+            display: none;
+          }
+          .super-tools-sidebar button {
+            flex-shrink: 0 !important;
+            margin-bottom: 0 !important;
+            margin-right: 8px !important;
+            padding: 8px 12px !important;
+            font-size: 0.8em !important;
+            border-left: none !important;
+            border-radius: 8px !important;
+            border-bottom: 3px solid transparent !important;
+          }
+          .super-tools-sidebar button.active {
+            border-bottom: 3px solid var(--gold) !important;
+            border-radius: 8px 8px 0 0 !important;
+          }
+          .super-tools-content {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
       <div className="modal-box super-tools-container" onClick={e => e.stopPropagation()} style={{
         maxWidth: '1200px',
         width: '95vw',
@@ -2060,7 +2106,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
               { id: 'invoice', icon: 'fa-receipt', label: 'Invoice Maker 🔒' },
               { id: 'certificate', icon: 'fa-award', label: 'Certificate Gen 🔒' }
             ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`super-tools-tab-btn ${activeTab === tab.id ? 'active' : ''}`} style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
