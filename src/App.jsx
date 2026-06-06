@@ -13,6 +13,8 @@ import HireMeButton from './components/HireMeButton';
 import HireKrishnaModal from './components/HireKrishnaModal';
 import DoubtsForm from './components/DoubtsForm';
 import VaultModal from './components/VaultModal';
+import CoverLetterGenerator from './components/CoverLetterGenerator';
+import AIResumeBuilder from './components/AIResumeBuilder';
 
 import Hero from './sections/Hero';
 import About from './sections/About';
@@ -135,6 +137,20 @@ function App() {
       <GPSMapCamera isOpen={modals.gps} onClose={() => closeModal('gps')} />
       <DoubtsForm isOpen={modals.doubts} onClose={() => closeModal('doubts')} />
       <VaultModal isOpen={modals.vault} onClose={() => closeModal('vault')} />
+      <CoverLetterGenerator isOpen={modals.clg} onClose={() => closeModal('clg')} />
+      <AIResumeBuilder isOpen={modals.resumeAI} onClose={() => closeModal('resumeAI')} />
+
+      {/* WhatsApp FAB — Mobile only */}
+      <a
+        href="https://wa.me/919390850349?text=Hi%20Krishna!%20I%20visited%20your%20portfolio%20and%20would%20like%20to%20connect."
+        target="_blank"
+        rel="noreferrer"
+        className="whatsapp-fab"
+        aria-label="Chat on WhatsApp"
+        title="Chat with Krishna on WhatsApp"
+      >
+        <i className="fab fa-whatsapp" />
+      </a>
     </div>
   );
 }

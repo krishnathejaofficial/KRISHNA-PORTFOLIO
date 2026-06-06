@@ -59,11 +59,13 @@ body.sidebar-open #sidebar-toggle .bar:nth-child(3) { transform: translateY(-7px
 #theme-toggle:hover { border-color: var(--gold); box-shadow: 0 4px 24px var(--gold-glow); transform: scale(1.05) rotate(15deg); }
 
 /* ── Sidebar ── */
+body.sidebar-open { overflow: hidden; touch-action: none; }
 #sidebar {
-  position: fixed; top: 0; left: calc(-1 * var(--sidebar-w) - 10px); width: var(--sidebar-w); height: 100vh;
+  position: fixed; top: 0; left: calc(-1 * var(--sidebar-w) - 10px); width: var(--sidebar-w); height: 100dvh;
   background: rgba(10,10,10,0.97); border-right: 1px solid var(--gold-dim); z-index: 1050;
   transition: left 0.45s var(--ease); backdrop-filter: blur(20px);
   display: flex; flex-direction: column; overflow-y: auto; box-shadow: 4px 0 40px rgba(0,0,0,0.6);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 #sidebar.open { left: 0; }
 #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1040; opacity: 0; pointer-events: none; transition: opacity 0.35s ease; backdrop-filter: blur(2px); }
@@ -72,13 +74,13 @@ body.sidebar-open #sidebar-toggle .bar:nth-child(3) { transform: translateY(-7px
 .sidebar-avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; margin-bottom: 12px; box-shadow: 0 0 20px var(--gold-glow); }
 .sidebar-name { font-family: 'Cormorant Garamond',serif; font-size: 1.25em; color: var(--gold); font-weight: 700; }
 .sidebar-sub { font-size: 0.72em; color: var(--text); opacity: 0.7; margin-top: 4px; line-height: 1.4; }
-.sidebar-nav { list-style: none; padding: 20px 0; flex: 1; }
-.sidebar-nav li a { display: flex; align-items: center; gap: 14px; padding: 13px 28px; color: var(--text); text-decoration: none; font-size: 0.9em; font-weight: 500; letter-spacing: 0.03em; transition: all 0.25s ease; position: relative; }
+.sidebar-nav { list-style: none; padding: 20px 0; flex: 1; overflow-y: auto; }
+.sidebar-nav li a { display: flex; align-items: center; gap: 14px; padding: 13px 28px; color: var(--text); text-decoration: none; font-size: 0.9em; font-weight: 500; letter-spacing: 0.03em; transition: all 0.25s ease; position: relative; min-height: 48px; }
 .sidebar-nav li a::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 0; background: var(--gold); border-radius: 0 3px 3px 0; transition: height 0.25s ease; }
 .sidebar-nav li a:hover, .sidebar-nav li a.active { color: var(--gold); background: var(--gold-dim); padding-left: 34px; }
 .sidebar-nav li a:hover::before, .sidebar-nav li a.active::before { height: 70%; }
 .sidebar-nav li a i { width: 18px; text-align: center; font-size: 0.95em; color: var(--gold); opacity: 0.8; }
-.sidebar-footer { padding: 20px 24px; border-top: 1px solid var(--gold-dim); display: flex; gap: 16px; justify-content: center; }
+.sidebar-footer { padding: 20px 24px; border-top: 1px solid var(--gold-dim); display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 .sidebar-footer a img { width: 28px; height: 28px; filter: grayscale(60%); transition: all 0.3s; }
 .sidebar-footer a:hover img { filter: grayscale(0%); transform: scale(1.2); }
 
@@ -222,12 +224,12 @@ footer i { color: var(--gold); }
   h2 { font-size: 1.9em; }
   .profile-photo { width: 160px; height: 160px; }
   /* Hero mobile */
-  .hero { padding: 80px 16px 120px; min-height: 100svh; }
+  .hero { padding: 80px 16px 140px; min-height: 100dvh; }
   .hero-content { max-width: 100%; }
   .hero-btns { gap: 8px; }
   .hero-btn-primary, .hero-btn-outline { padding: 11px 18px; font-size: 0.85em; }
   .hero-actions-row { gap: 8px; }
-  .hero-action-chip { padding: 8px 14px; font-size: 0.8em; }
+  .hero-action-chip { padding: 8px 14px; font-size: 0.8em; min-height: 40px; }
   .hero-contact { padding: 16px 16px 0; }
   /* Hide old floating components (replaced by dock) */
   .back-to-top { display: none; }
@@ -235,17 +237,22 @@ footer i { color: var(--gold); }
   .ai-chat-window { display: none; }
   .live-time-weather { display: none; }
   /* Sidebar toggle stays visible */
-  #sidebar-toggle { top: 16px; left: 16px; width: 42px; height: 42px; }
+  #sidebar-toggle { top: 16px; left: 16px; width: 44px; height: 44px; }
+  /* Card hover effect — disable transform on touch devices */
+  .card:hover { transform: none; }
+  /* Safe-area bottom padding for footer */
+  footer { padding-bottom: calc(36px + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 480px) {
   .lang-grid { grid-template-columns: 1fr; }
   section { padding: 50px 14px; }
   .hero-btns { flex-direction: column; align-items: center; }
-  .hero-btn-primary, .hero-btn-outline { width: 100%; max-width: 280px; justify-content: center; }
+  .hero-btn-primary, .hero-btn-outline { width: 100%; max-width: 300px; justify-content: center; min-height: 48px; }
   .hero-actions-row { gap: 6px; }
-  .hero-action-chip { padding: 7px 12px; font-size: 0.78em; }
+  .hero-action-chip { padding: 8px 13px; font-size: 0.8em; min-height: 40px; }
   h2 { font-size: 1.7em; }
   .profile-photo { width: 140px; height: 140px; }
+  .cert-grid { grid-template-columns: 1fr; }
 }
 
 /* ── AI Chat Widget ── */

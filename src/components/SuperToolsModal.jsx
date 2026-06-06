@@ -1981,7 +1981,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   const certStyle = getCertStyles();
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0' }}>
       <style>{`
         @media (max-width: 768px) {
           .super-tools-container {

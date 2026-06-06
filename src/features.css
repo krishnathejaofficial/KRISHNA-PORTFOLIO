@@ -570,3 +570,149 @@ body.light { --hm-0: #ebedf0; --hm-1: #9be9a8; --hm-2: #40c463; --hm-3: #30a14e;
   .gps-cam-btn-primary, .gps-cam-btn-secondary { padding: 11px 12px; font-size: 0.82em; }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL MOBILE FIXES — All Modals, Features & Panels
+═══════════════════════════════════════════════════════════════ */
+
+/* Modal overlay — tighter padding on tiny phones */
+@media (max-width: 600px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal-box {
+    border-radius: 24px 24px 0 0;
+    max-height: 92dvh;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Drag handle indicator */
+  .modal-box::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 4px;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+  }
+
+  .modal-header { padding: 12px 18px; border-radius: 0; }
+  .modal-body { padding: 16px; gap: 14px; }
+
+  /* QR code pair — stack vertically */
+  .qr-pair { flex-direction: column; gap: 12px; }
+  .qr-item { padding: 14px; }
+  .qr-img { width: 160px; height: 160px; }
+
+  /* Cover Letter field row — stack */
+  .clg-field-row { flex-direction: column; gap: 10px; }
+  .clg-tones { grid-template-columns: 1fr 1fr; gap: 6px; }
+
+  /* Collab type chips — wrap */
+  .collab-types { gap: 6px; }
+  .collab-type-btn { font-size: 0.78em; padding: 7px 10px; }
+
+  /* Cert grid */
+  .cert-grid { grid-template-columns: 1fr; }
+
+  /* Contact copy row */
+  .contact-copy-label { width: 68px; font-size: 0.7em; }
+  .contact-copy-val { font-size: 0.8em; }
+}
+
+/* ── SuperTools Modal — Full-screen on Mobile ── */
+@media (max-width: 768px) {
+  .super-tools-overlay {
+    padding: 0 !important;
+    align-items: stretch !important;
+  }
+  .super-tools-box {
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    display: flex;
+    flex-direction: column;
+  }
+  .super-tools-tab-bar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+    padding-bottom: 2px;
+  }
+  .super-tools-tab-bar::-webkit-scrollbar { display: none; }
+  .super-tools-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Vault Modal — Stack on mobile ── */
+@media (max-width: 480px) {
+  .vault-modal .vault-item-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .vault-modal .vault-item-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+  .vault-modal .vault-item-actions button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* ── Meeting Scheduler — responsive ── */
+@media (max-width: 520px) {
+  .slot-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
+  .slot-btn { padding: 8px 4px !important; font-size: 0.75em !important; }
+}
+
+/* ── DoubtsForm — Category chips mobile ── */
+@media (max-width: 520px) {
+  .doubt-cats { gap: 6px; }
+  .doubt-cat-btn { padding: 8px 10px; font-size: 0.78em; }
+}
+
+/* ── Right dock flyout safe bounds on mobile ── */
+@media (max-width: 480px) {
+  .rd-flyout {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) translateY(12px) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 320px;
+  }
+  .rd-item-wrap.rd-active .rd-flyout {
+    transform: translateX(-50%) translateY(0) !important;
+  }
+}
+
+/* ── WhatsApp FAB ── */
+.whatsapp-fab {
+  position: fixed;
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  left: 20px;
+  z-index: 1150;
+  width: 50px; height: 50px;
+  border-radius: 50%; border: none;
+  background: #25D366;
+  color: #fff; font-size: 1.5em;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+  cursor: pointer; transition: all 0.3s;
+  text-decoration: none;
+}
+.whatsapp-fab:hover { transform: scale(1.12); box-shadow: 0 6px 28px rgba(37,211,102,0.7); }
+@media (min-width: 769px) { .whatsapp-fab { display: none; } }

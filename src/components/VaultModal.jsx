@@ -208,20 +208,20 @@ export default function VaultModal({ isOpen, onClose }) {
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           padding: '12px 16px', background: 'var(--surface-2)',
                           border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px',
-                          transition: 'border-color 0.2s'
+                          transition: 'border-color 0.2s', gap: '10px'
                         }}
-                        className="vault-item"
+                        className="vault-item vault-item-row"
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
                           <div style={{
-                            width: '38px', height: '38px', borderRadius: '8px',
+                            width: '38px', height: '38px', borderRadius: '8px', flexShrink: 0,
                             background: `${typeConfig.color}20`, border: `1px solid ${typeConfig.color}40`,
                             display: 'flex', alignItems: 'center', justifyContent: 'center'
                           }}>
                             <i className={`fas ${typeConfig.icon}`} style={{ color: typeConfig.color }} />
                           </div>
-                          <div>
-                            <strong style={{ display: 'block', color: 'var(--text-bright)', fontSize: '0.88em' }}>{doc.name}</strong>
+                          <div style={{ minWidth: 0 }}>
+                            <strong style={{ display: 'block', color: 'var(--text-bright)', fontSize: '0.88em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</strong>
                             <span style={{ fontSize: '0.75em', color: 'gray', display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <span>{typeConfig.label}</span>
                               <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'gray' }} />
@@ -229,19 +229,22 @@ export default function VaultModal({ isOpen, onClose }) {
                             </span>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDownload(doc)}
-                          className="btn"
-                          title="Download document"
-                          style={{
-                            background: 'var(--surface)', border: '1px solid rgba(255,255,255,0.1)',
-                            width: '36px', height: '36px', borderRadius: '50%',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', padding: 0
-                          }}
-                        >
-                          <i className="fas fa-download" style={{ color: '#D4AF37', fontSize: '0.9em' }} />
-                        </button>
+                        <div className="vault-item-actions" style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                          <button
+                            onClick={() => handleDownload(doc)}
+                            className="btn vault-download-btn"
+                            title="Download document"
+                            style={{
+                              background: 'linear-gradient(135deg,rgba(212,175,55,0.2),rgba(212,175,55,0.08))',
+                              border: '1px solid var(--gold-dim)', color: 'var(--gold)',
+                              padding: '8px 14px', borderRadius: '8px', fontSize: '0.8em',
+                              display: 'flex', alignItems: 'center', gap: '6px',
+                              cursor: 'pointer', fontWeight: 600
+                            }}
+                          >
+                            <i className="fas fa-download" /> Download
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
