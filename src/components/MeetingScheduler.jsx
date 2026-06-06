@@ -21,6 +21,7 @@ export default function MeetingScheduler({ isOpen, onClose }) {
   const [slots, setSlots] = useState([]);
   const [dayLocked, setDayLocked] = useState(false);
   const [fetchingSlots, setFetchingSlots] = useState(false);
+  const [meetingLink, setMeetingLink] = useState('');
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
@@ -76,7 +77,13 @@ export default function MeetingScheduler({ isOpen, onClose }) {
         }),
       });
       const result = await res.json();
-      if (res.ok && result.success) { setTrackingId(result.trackingId); setStatus('success'); }
+      if (res.ok && result.success) { 
+        setTrackingId(result.trackingId); 
+        if (result.meetingLink) {
+          setMeetingLink(result.meetingLink);
+        }
+        setStatus('success'); 
+      }
       else throw new Error();
     } catch { setStatus('error'); }
   }
@@ -114,6 +121,17 @@ export default function MeetingScheduler({ isOpen, onClose }) {
               <i className="fas fa-calendar-check" style={{ fontSize: '3em', color: '#22c55e' }} />
               <h3>Meeting Requested!</h3>
               <p>Krishna will confirm your <strong>{meetType?.label}</strong> on <strong>{date} at {time} ({duration} min)</strong> via email within 24 hours.</p>
+              
+              {meetingLink && (
+                <div style={{ background: 'rgba(37, 99, 235, 0.1)', padding: '15px', borderRadius: '8px', border: '1px solid rgba(37, 99, 235, 0.4)', margin: '15px 0', textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.85em', color: '#60a5fa', marginBottom: '8px', fontWeight: '500' }}>🎥 Automatic Video Room Created</p>
+                  <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: '#2563eb', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '6px', fontWeight: 'bold', textDecoration: 'none' }}>
+                    <i className="fas fa-video" /> Join Video Call
+                  </a>
+                  <p style={{ fontSize: '0.75em', color: 'gray', marginTop: '8px', lineHeight: 1.4 }}>The Jitsi room is ready. The link has also been sent to your email.</p>
+                </div>
+              )}
+
               <div style={{ background: 'var(--surface-2)', padding: '15px', borderRadius: '8px', border: '1px dashed var(--gold)', margin: '20px 0' }}>
                 <p style={{ fontSize: '0.85em', color: 'gray', marginBottom: '5px' }}>Your Tracking ID</p>
                 <strong style={{ fontSize: '1.4em', letterSpacing: '2px', color: 'white' }}>{trackingId}</strong>
