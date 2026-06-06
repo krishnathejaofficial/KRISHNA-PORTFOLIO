@@ -525,6 +525,42 @@ body.light { --hm-0: #ebedf0; --hm-1: #9be9a8; --hm-2: #40c463; --hm-3: #30a14e;
 }
 .hero-action-chip.gps-chip i { color: #ef4444; }
 
+/* ── Hero action chip for Doubt Clarification ── */
+.hero-action-chip.doubt-chip {
+  background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(109,40,217,0.1));
+  border-color: rgba(139,92,246,0.5);
+  color: #c4b5fd;
+  position: relative;
+  overflow: visible;
+}
+.hero-action-chip.doubt-chip::after {
+  content: 'NEW';
+  position: absolute;
+  top: -9px;
+  right: -4px;
+  background: linear-gradient(135deg,#8b5cf6,#7c3aed);
+  color: #fff;
+  font-size: 0.55em;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(139,92,246,0.5);
+  animation: doubt-badge-pulse 2s ease-in-out infinite;
+}
+@keyframes doubt-badge-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(139,92,246,0.5); }
+  50% { transform: scale(1.1); box-shadow: 0 2px 14px rgba(139,92,246,0.8); }
+}
+.hero-action-chip.doubt-chip:hover {
+  background: rgba(139,92,246,0.28) !important;
+  border-color: #8b5cf6;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(139,92,246,0.4);
+  transform: translateY(-2px);
+}
+.hero-action-chip.doubt-chip i { color: #a78bfa; }
+
 /* Responsive */
 @media (max-width: 520px) {
   .gps-cam-modal { max-width: 100%; border-radius: 18px 18px 0 0; max-height: 100vh; }

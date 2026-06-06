@@ -76,6 +76,14 @@ export default function AdminDashboard() {
   const [editingTestimonial, setEditingTestimonial] = useState(null); // null | {} | {_id,...} (existing)
   const EMPTY_T = { name: '', role: '', org: '', avatar: '', avatarColor: '#D4AF37', rating: 5, text: '', relation: '', date: '' };
 
+  // Doubts state
+  const [doubts, setDoubts] = useState([]);
+  const [doubtsLoading, setDoubtsLoading] = useState(false);
+  const [expandedDoubtId, setExpandedDoubtId] = useState(null);
+  const [doubtAnswers, setDoubtAnswers] = useState({}); // { [doubtId]: answerText }
+  const [answeringId, setAnsweringId] = useState(null); // id being submitted
+  const [doubtFilter, setDoubtFilter] = useState('ALL'); // ALL | Pending | Answered
+
   // Notification state
   const [toast, setToast] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(null);
@@ -120,6 +128,7 @@ export default function AdminDashboard() {
       fetchActivityLog();
       fetchAvailability();
       fetchTestimonials();
+      fetchDoubts();
     }
   }, [token]);
 
@@ -243,6 +252,58 @@ export default function AdminDashboard() {
       if (d.success) setTestimonials(d.testimonials || []);
     } catch (e) { console.error(e); }
     setTestimonialsLoading(false);
+  };
+
+  const fetchDoubts = async () => {
+    setDoubtsLoading(true);
+    try {
+      const r = await fetch('/api/doubts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get-doubts', token })
+      });
+      const d = await r.json();
+      if (d.success) setDoubts(d.doubts || []);
+    } catch (e) { console.error(e); }
+    setDoubtsLoading(false);
+  };
+
+  const answerDoubt = async (doubtId) => {
+    const answer = doubtAnswers[doubtId]?.trim();
+    if (!answer) return showToast('Please write an answer first', 'error');
+    setAnsweringId(doubtId);
+    try {
+      const r = await fetch('/api/doubts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'answer-doubt', token, doubtId, answer })
+      });
+      const d = await r.json();
+      if (d.success) {
+        showToast('Answer sent! Email notified the questioner 📧');
+        setDoubtAnswers(p => ({ ...p, [doubtId]: '' }));
+        setExpandedDoubtId(null);
+        fetchDoubts();
+      } else {
+        showToast(d.error || 'Failed to send answer', 'error');
+      }
+    } catch (e) { showToast('Error sending answer', 'error'); }
+    setAnsweringId(null);
+  };
+
+  const deleteDoubt = async (doubtId) => {
+    confirmAction('Permanently delete this question?', async () => {
+      try {
+        const r = await fetch('/api/doubts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete-doubt', token, doubtId })
+        });
+        const d = await r.json();
+        if (d.success) { showToast('Question deleted'); fetchDoubts(); }
+        else showToast(d.error || 'Delete failed', 'error');
+      } catch (e) { showToast('Error deleting', 'error'); }
+    });
   };
 
   const saveTestimonial = async (data) => {
@@ -528,6 +589,7 @@ export default function AdminDashboard() {
         {(() => {
           const tabs = [
             { id: 'submissions', icon: 'fa-inbox', label: 'Submissions' },
+            { id: 'doubts', icon: 'fa-question-circle', label: 'Doubts', badge: doubts.filter(d => d.status === 'Pending').length },
             { id: 'calendar', icon: 'fa-calendar-alt', label: 'Calendar' },
             { id: 'weekly', icon: 'fa-clock', label: 'Schedule' },
             { id: 'availability', icon: 'fa-circle-check', label: 'Availability' },
@@ -544,11 +606,17 @@ export default function AdminDashboard() {
                     display: 'flex', alignItems: 'center', gap: '6px',
                     padding: '8px 14px', borderRadius: '10px', cursor: 'pointer',
                     fontSize: '0.82em', fontWeight: 600, border: 'none',
-                    background: activeTab === t.id ? 'var(--gold)' : 'transparent',
-                    color: activeTab === t.id ? '#111' : 'rgba(255,255,255,0.5)',
-                    transition: 'all 0.2s'
+                    background: activeTab === t.id ? (t.id === 'doubts' ? '#8b5cf6' : 'var(--gold)') : 'transparent',
+                    color: activeTab === t.id ? (t.id === 'doubts' ? '#fff' : '#111') : 'rgba(255,255,255,0.5)',
+                    transition: 'all 0.2s', position: 'relative'
                   }}>
                   <i className={`fas ${t.icon}`} />{t.label}
+                  {t.badge > 0 && (
+                    <span style={{
+                      background: '#ef4444', color: '#fff', fontSize: '0.7em', fontWeight: 800,
+                      borderRadius: '10px', padding: '1px 6px', minWidth: '16px', textAlign: 'center'
+                    }}>{t.badge}</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -567,6 +635,165 @@ export default function AdminDashboard() {
                 <i className="fas fa-magic" /> Cover Letter
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ── DOUBTS TAB ── */}
+        {activeTab === 'doubts' && (
+          <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid rgba(139,92,246,0.3)', marginBottom: '30px', boxShadow: '0 0 30px rgba(139,92,246,0.08)' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(139,92,246,0.4)' }}>
+                  <i className="fas fa-question-circle" style={{ color: '#fff', fontSize: '1.1em' }} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, color: 'var(--text-bright)' }}>Doubt Clarification Center</h3>
+                  <p style={{ margin: 0, fontSize: '0.78em', color: 'rgba(255,255,255,0.45)' }}>{doubts.filter(d => d.status === 'Pending').length} pending · {doubts.filter(d => d.status === 'Answered').length} answered</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* Filter Buttons */}
+                {['ALL', 'Pending', 'Answered'].map(f => (
+                  <button key={f} onClick={() => setDoubtFilter(f)}
+                    style={{
+                      padding: '6px 14px', borderRadius: '20px', fontSize: '0.75em', fontWeight: 700,
+                      cursor: 'pointer', border: `1px solid ${doubtFilter === f ? '#8b5cf6' : 'var(--border)'}`,
+                      background: doubtFilter === f ? 'rgba(139,92,246,0.25)' : 'var(--bg)',
+                      color: doubtFilter === f ? '#a78bfa' : 'gray', transition: 'all 0.2s'
+                    }}>
+                    {f}
+                  </button>
+                ))}
+                <button onClick={fetchDoubts} className="btn" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'white', fontSize: '0.82em' }}>
+                  <i className="fas fa-sync-alt" /> Refresh
+                </button>
+              </div>
+            </div>
+
+            {/* Doubts List */}
+            {doubtsLoading ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#8b5cf6' }}>
+                <i className="fas fa-spinner fa-spin" style={{ fontSize: '1.5em', marginBottom: '10px', display: 'block' }} />
+                Loading questions…
+              </div>
+            ) : doubts.filter(d => doubtFilter === 'ALL' || d.status === doubtFilter).length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '50px 20px', color: 'gray' }}>
+                <i className="fas fa-question-circle" style={{ fontSize: '2.5em', marginBottom: '16px', display: 'block', opacity: 0.25, color: '#8b5cf6' }} />
+                <p style={{ fontSize: '0.9em' }}>No {doubtFilter === 'ALL' ? '' : doubtFilter.toLowerCase()} questions yet.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {doubts
+                  .filter(d => doubtFilter === 'ALL' || d.status === doubtFilter)
+                  .map(doubt => (
+                    <div key={doubt.doubtId} style={{
+                      background: 'var(--bg)', borderRadius: '14px',
+                      border: `1px solid ${doubt.status === 'Answered' ? 'rgba(16,185,129,0.3)' : 'rgba(139,92,246,0.25)'}`,
+                      overflow: 'hidden', transition: 'all 0.2s'
+                    }}>
+                      {/* Doubt Header Row */}
+                      <div
+                        style={{ padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: '14px' }}
+                        onClick={() => setExpandedDoubtId(expandedDoubtId === doubt.doubtId ? null : doubt.doubtId)}
+                      >
+                        {/* Status indicator */}
+                        <div style={{
+                          width: 10, height: 10, borderRadius: '50%', flexShrink: 0, marginTop: 6,
+                          background: doubt.status === 'Answered' ? '#10b981' : '#f59e0b',
+                          boxShadow: `0 0 8px ${doubt.status === 'Answered' ? '#10b981' : '#f59e0b'}60`
+                        }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                            <span style={{ fontFamily: 'monospace', fontSize: '0.78em', color: '#8b5cf6', fontWeight: 700 }}>{doubt.doubtId}</span>
+                            <span style={{ fontSize: '0.73em', background: 'rgba(139,92,246,0.15)', color: '#a78bfa', padding: '2px 8px', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.25)' }}>{doubt.category}</span>
+                            <span style={{ fontSize: '0.73em', color: doubt.status === 'Answered' ? '#10b981' : '#f59e0b', fontWeight: 700 }}>{doubt.status === 'Answered' ? '✅ Answered' : '⏳ Pending'}</span>
+                            {doubt.isPublic && <span style={{ fontSize: '0.72em', color: '#60a5fa' }}>🌍 Public</span>}
+                            <span style={{ fontSize: '0.72em', color: 'rgba(255,255,255,0.3)', marginLeft: 'auto' }}>{new Date(doubt.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <div style={{ fontSize: '0.92em', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '4px' }}>{doubt.subject}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.8em', color: 'rgba(255,255,255,0.55)' }}>{doubt.name} · {doubt.email}</span>
+                          </div>
+                        </div>
+                        {/* Action buttons */}
+                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                          <button
+                            onClick={e => { e.stopPropagation(); deleteDoubt(doubt.doubtId); }}
+                            style={{ background: 'transparent', border: 'none', color: '#ef444480', cursor: 'pointer', padding: '4px 8px', transition: 'color 0.2s' }}
+                            title="Delete"
+                            onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#ef444480'}
+                          >
+                            <i className="fas fa-trash-alt" />
+                          </button>
+                          <i className={`fas fa-chevron-${expandedDoubtId === doubt.doubtId ? 'up' : 'down'}`} style={{ color: 'rgba(255,255,255,0.3)', alignSelf: 'center', fontSize: '0.8em' }} />
+                        </div>
+                      </div>
+
+                      {/* Expanded Panel */}
+                      {expandedDoubtId === doubt.doubtId && (
+                        <div style={{ borderTop: '1px solid rgba(139,92,246,0.15)', padding: '20px' }}>
+                          {/* Full Question */}
+                          <div style={{ background: 'rgba(139,92,246,0.06)', borderRadius: '10px', padding: '16px', border: '1px solid rgba(139,92,246,0.15)', marginBottom: '16px' }}>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '0.75em', color: '#8b5cf6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Full Question</p>
+                            <p style={{ margin: 0, fontSize: '0.9em', color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{doubt.question}</p>
+                          </div>
+
+                          {/* Existing Answer */}
+                          {doubt.answer && (
+                            <div style={{ background: 'rgba(16,185,129,0.08)', borderRadius: '10px', padding: '16px', border: '1px solid rgba(16,185,129,0.25)', marginBottom: '16px' }}>
+                              <p style={{ margin: '0 0 8px 0', fontSize: '0.75em', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>✅ Krishna's Answer</p>
+                              <p style={{ margin: 0, fontSize: '0.9em', color: 'rgba(255,255,255,0.85)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{doubt.answer}</p>
+                              <p style={{ margin: '10px 0 0 0', fontSize: '0.72em', color: 'rgba(255,255,255,0.3)' }}>Answered on {new Date(doubt.answeredAt).toLocaleString()}</p>
+                            </div>
+                          )}
+
+                          {/* Answer Form */}
+                          <div>
+                            <p style={{ margin: '0 0 10px 0', fontSize: '0.82em', color: 'rgba(255,255,255,0.6)' }}>
+                              {doubt.answer ? '📝 Update your answer (will re-notify the user):' : '📝 Write your answer (user will be notified via email):'}
+                            </p>
+                            <textarea
+                              rows={5}
+                              placeholder="Type your detailed answer here…"
+                              value={doubtAnswers[doubt.doubtId] || ''}
+                              onChange={e => setDoubtAnswers(p => ({ ...p, [doubt.doubtId]: e.target.value }))}
+                              style={{
+                                width: '100%', padding: '12px', borderRadius: '10px',
+                                border: '1px solid rgba(139,92,246,0.35)',
+                                background: 'var(--surface-2)', color: 'white',
+                                boxSizing: 'border-box', marginBottom: '12px',
+                                resize: 'vertical', lineHeight: 1.6, fontSize: '0.9em',
+                                outline: 'none', transition: 'border-color 0.2s'
+                              }}
+                              onFocus={e => e.target.style.borderColor = '#8b5cf6'}
+                              onBlur={e => e.target.style.borderColor = 'rgba(139,92,246,0.35)'}
+                            />
+                            <button
+                              onClick={() => answerDoubt(doubt.doubtId)}
+                              disabled={!doubtAnswers[doubt.doubtId]?.trim() || answeringId === doubt.doubtId}
+                              style={{
+                                background: answeringId === doubt.doubtId ? 'rgba(139,92,246,0.4)' : 'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+                                color: '#fff', border: 'none', padding: '12px 28px', borderRadius: '30px',
+                                cursor: 'pointer', fontWeight: 700, fontSize: '0.9em',
+                                boxShadow: '0 4px 16px rgba(139,92,246,0.35)',
+                                display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s'
+                              }}
+                            >
+                              {answeringId === doubt.doubtId ? (
+                                <><i className="fas fa-spinner fa-spin" />Sending Answer…</>
+                              ) : (
+                                <><i className="fas fa-paper-plane" />{doubt.answer ? 'Update & Re-notify' : 'Send Answer & Notify User'}</>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         )}
 

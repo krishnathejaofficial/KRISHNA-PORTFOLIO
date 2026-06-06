@@ -11,6 +11,7 @@ import CollaborationForm from './components/CollaborationForm';
 import MeetingScheduler from './components/MeetingScheduler';
 import HireMeButton from './components/HireMeButton';
 import HireKrishnaModal from './components/HireKrishnaModal';
+import DoubtsForm from './components/DoubtsForm';
 
 import Hero from './sections/Hero';
 import About from './sections/About';
@@ -34,7 +35,7 @@ import GPSMapCamera from './components/GPSMapCamera';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, hireKrishna: false, resumeAI: false, track: false, tools: false, gps: false });
+  const [modals, setModals] = useState({ clg: false, qr: false, collab: false, meeting: false, hire: false, hireKrishna: false, resumeAI: false, track: false, tools: false, gps: false, doubts: false });
 
   const isAdmin = typeof window !== 'undefined' && window.location.pathname === '/admin';
 
@@ -80,9 +81,9 @@ function App() {
       </button>
 
       {/* Right Dock: Theme + Language + Back-to-top + Voice (left) + AI Chat (bottom-right) */}
-      <RightDock />
+      <RightDock onOpenDoubts={() => openModal('doubts')} />
 
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} onOpenTrack={() => openModal('track')} onOpenTools={() => openModal('tools')} />
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} onOpenQR={() => openModal('qr')} onOpenTrack={() => openModal('track')} onOpenTools={() => openModal('tools')} onOpenDoubts={() => openModal('doubts')} />
 
       <main>
         <Hero
@@ -96,6 +97,7 @@ function App() {
           onOpenResumeAI={() => openModal('resumeAI')}
           onOpenTools={() => openModal('tools')}
           onOpenGPS={() => openModal('gps')}
+          onOpenDoubts={() => openModal('doubts')}
         />
         <About />
         <Career />
@@ -110,7 +112,7 @@ function App() {
         <Testimonials />
         <Media />
         <Resume />
-        <Contact onOpenCollab={() => openModal('collab')} onOpenQR={() => openModal('qr')} />
+        <Contact onOpenCollab={() => openModal('collab')} onOpenQR={() => openModal('qr')} onOpenDoubts={() => openModal('doubts')} />
       </main>
 
       <footer>
@@ -130,6 +132,7 @@ function App() {
       <TrackingWidget isOpen={modals.track} onClose={() => closeModal('track')} />
       <SuperToolsModal isOpen={modals.tools} onClose={() => closeModal('tools')} />
       <GPSMapCamera isOpen={modals.gps} onClose={() => closeModal('gps')} />
+      <DoubtsForm isOpen={modals.doubts} onClose={() => closeModal('doubts')} />
     </div>
   );
 }

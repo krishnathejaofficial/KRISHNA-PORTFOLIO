@@ -47,7 +47,7 @@ function setGoogleTranslateLang(code) {
 
 
 /* ─── RIGHT DOCK (Theme + Language) ─── */
-export default function RightDock() {
+export default function RightDock({ onOpenDoubts }) {
   const [panel, setPanel] = useState(null);
   const [currentTheme, setCurrentTheme] = useState('dark');
   const [selectedLang, setSelectedLang] = useState(() => {
@@ -155,10 +155,10 @@ export default function RightDock() {
       </div>
 
       {/* ── LEFT FLOATING: Voice Mic ── */}
-      <VoiceFloating />
+      <VoiceFloating onOpenDoubts={onOpenDoubts} />
 
       {/* ── BOTTOM RIGHT FLOATING: AI Chat ── */}
-      <AIChatFloating />
+      <AIChatFloating onOpenDoubts={onOpenDoubts} />
     </>
   );
 }
@@ -178,7 +178,7 @@ function getBestIndianMaleVoice() {
       || voices[0]; // Absolute fallback
 }
 
-function VoiceFloating() {
+function VoiceFloating({ onOpenDoubts }) {
   const [listening, setListening] = useState(false);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState('Click "Start Listening" and say a section name.');
@@ -222,6 +222,22 @@ function VoiceFloating() {
     r.onresult = async (e) => {
       const cmd = e.results[0][0].transcript.toLowerCase();
       setStatus(`Heard: "${cmd}"`);
+      
+      if (cmd.includes('doubt') || cmd.includes('ask a question') || cmd.includes('submit a question')) {
+        setStatus('Opening doubt form...');
+        if (onOpenDoubts) {
+          onOpenDoubts();
+          if (window.speechSynthesis) {
+            const speech = new SpeechSynthesisUtterance("Opening the doubt clarification form.");
+            const bestVoice = getBestIndianMaleVoice();
+            if (bestVoice) speech.voice = bestVoice;
+            else speech.lang = 'en-IN';
+            window.speechSynthesis.speak(speech);
+          }
+          setTimeout(closePanel, 1500);
+        }
+        return;
+      }
       
       // Import the helpers dynamically or use the already imported voiceCommands logic
       import('../utils/voiceCommands.js').then(async ({ classifyIntent, parseCommand, navigateTo }) => {
@@ -395,12 +411,12 @@ function VoiceFloating() {
 /* ─── AI CHAT — BOTTOM RIGHT FLOATING ─── */
 const MODEL = 'meta/llama-3.3-70b-instruct';
 const SYSTEM_PROMPT = (ctx) => `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01). Speak in first person as Krishna. Be warm, confident, concise (2-4 sentences). Base answers on context below. If unknown, say to email krishnatejareddy2003@gmail.com.\n\nCONTEXT:\n${ctx}`;
-const SUGGESTIONS = ['Tell me about your research 🔬', 'What are your top skills?', 'What projects have you built?', 'How can I contact you?'];
+const SUGGESTIONS = ['Ask Krishna a Doubt 💡', 'Tell me about your research 🔬', 'What are your top skills?', 'What projects have you built?'];
 
 const CHAT_SESSION_KEY = 'krishna_chat_history';
 const DEFAULT_MSG = { role: 'assistant', content: "Hi! I'm Krishna's AI assistant 🧬 Ask me anything about his research, skills, or projects!" };
 
-export function AIChatFloating() {
+export function AIChatFloating({ onOpenDoubts }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
     try {
@@ -436,10 +452,21 @@ export function AIChatFloating() {
     setInput('');
     const newMsgs = [...stateRef.current.messages, { role: 'user', content: msg }];
     setMessages(newMsgs);
+    
+    if (msg.includes('Ask Krishna a Doubt')) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "Sure! You can submit your question directly to me using the doubt clarification form. I will receive an email and reply to your inbox within 24-48 hours.",
+        showDoubtBtn: true
+      }]);
+      return;
+    }
+    
     setLoading(true);
     
     try {
       const ctx = getRelevantContext(msg, knowledgeChunks);
+      const isAskingDoubt = msg.toLowerCase().includes('doubt') || msg.toLowerCase().includes('ask a question') || msg.toLowerCase().includes('submit a question');
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -451,7 +478,7 @@ export function AIChatFloating() {
       });
       const d = await res.json();
       const reply = d.choices?.[0]?.message?.content || "I'm not sure — please email krishnatejareddy2003@gmail.com!";
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: reply, showDoubtBtn: isAskingDoubt }]);
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Please try again!' }]);
     } finally { setLoading(false); }
@@ -489,7 +516,33 @@ export function AIChatFloating() {
                 {m.role === 'assistant' && (
                   <div className="rd-msg-avatar"><i className="fas fa-dna" /></div>
                 )}
-                <div className="rd-msg-bubble">{m.content}</div>
+                <div className="rd-msg-bubble">
+                  {m.content}
+                  {m.showDoubtBtn && onOpenDoubts && (
+                    <button
+                      onClick={onOpenDoubts}
+                      className="btn"
+                      style={{
+                        marginTop: '10px',
+                        background: 'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+                        color: 'white',
+                        border: 'none',
+                        fontSize: '0.85em',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        width: 'fit-content',
+                        fontWeight: 600,
+                        boxShadow: '0 4px 12px rgba(139,92,246,0.3)'
+                      }}
+                    >
+                      <i className="fas fa-lightbulb" /> Open Doubt Form
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
             {loading && (

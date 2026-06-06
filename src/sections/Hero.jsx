@@ -13,7 +13,7 @@ const ROLES = [
   "AI Systems Enthusiast"
 ];
 
-export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenHireKrishna, onOpenResumeAI, onOpenTrack, onOpenTools, onOpenGPS }) {
+export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenHireKrishna, onOpenResumeAI, onOpenTrack, onOpenTools, onOpenGPS, onOpenDoubts }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
   const { t } = useTranslation();
@@ -128,6 +128,13 @@ export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpe
           </button>
           <button className="hero-action-chip gps-chip" onClick={onOpenGPS}>
             <i className="fas fa-camera-retro" /> GPS Camera
+          </button>
+          <button
+            className="hero-action-chip doubt-chip"
+            onClick={onOpenDoubts}
+            id="hero-doubt-btn"
+          >
+            <i className="fas fa-lightbulb" /> Ask a Doubt
           </button>
           <ShareButton />
         </div>

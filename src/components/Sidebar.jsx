@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 
-export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpenTools }) {
+export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpenTools, onOpenDoubts }) {
   const { t } = useTranslation();
   
   const navLinks = [
@@ -76,6 +76,9 @@ export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpen
           </button>
           <button className="btn" onClick={() => { onClose(); onOpenTools(); }} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-bright)', border: '1px solid var(--gold-dim)', fontSize: '0.85em', padding: '10px', marginTop: '10px' }}>
             <i className="fas fa-tools" style={{ marginRight: '8px' }} /> Super Tools
+          </button>
+          <button className="btn" onClick={() => { onClose(); onOpenDoubts(); }} style={{ width: '100%', background: 'linear-gradient(135deg,rgba(139,92,246,0.18),rgba(109,40,217,0.1))', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.5)', fontSize: '0.85em', padding: '10px', marginTop: '10px' }}>
+            <i className="fas fa-lightbulb" style={{ marginRight: '8px', color: '#a78bfa' }} /> Ask a Doubt
           </button>
         </div>
         <div className="sidebar-footer">

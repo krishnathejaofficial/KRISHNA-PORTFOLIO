@@ -4,7 +4,7 @@ import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 import CopyEmail from '../components/CopyEmail';
 
-export default function Contact({ onOpenCollab, onOpenQR }) {
+export default function Contact({ onOpenCollab, onOpenQR, onOpenDoubts }) {
   const ref = useRef(null);
   const { t } = useTranslation();
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
@@ -68,6 +68,9 @@ export default function Contact({ onOpenCollab, onOpenQR }) {
           </button>
           <button type="button" className="btn" onClick={onOpenQR} style={{ background: 'var(--surface-2)', color: 'var(--gold)', border: '1px solid var(--gold)' }}>
             <i className="fas fa-qrcode" style={{ marginRight: '8px' }} /> Digital Card
+          </button>
+          <button type="button" className="btn" onClick={onOpenDoubts} style={{ background: 'linear-gradient(135deg,rgba(139,92,246,0.18),rgba(109,40,217,0.1))', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.5)' }}>
+            <i className="fas fa-lightbulb" style={{ marginRight: '8px', color: '#a78bfa' }} /> Ask a Doubt
           </button>
         </div>
       </form>
