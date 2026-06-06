@@ -84,6 +84,16 @@ export default function AdminDashboard() {
   const [answeringId, setAnsweringId] = useState(null); // id being submitted
   const [doubtFilter, setDoubtFilter] = useState('ALL'); // ALL | Pending | Answered
 
+  // ── VAULT STATES ──────────────────────────────────────────────────────────
+  const [vaultDocs, setVaultDocs] = useState([]);
+  const [vaultLoading, setVaultLoading] = useState(false);
+  const [vaultUploading, setVaultUploading] = useState(false);
+  const [vaultDocName, setVaultDocName] = useState('');
+  const [vaultDocType, setVaultDocType] = useState('aadhar');
+  const [vaultFileData, setVaultFileData] = useState(null);
+  const [vaultFileName, setVaultFileName] = useState('');
+  const [vaultFileSize, setVaultFileSize] = useState(0);
+
   // Notification state
   const [toast, setToast] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(null);
@@ -129,6 +139,7 @@ export default function AdminDashboard() {
       fetchAvailability();
       fetchTestimonials();
       fetchDoubts();
+      fetchVaultDocs();
     }
   }, [token]);
 
@@ -266,6 +277,62 @@ export default function AdminDashboard() {
       if (d.success) setDoubts(d.doubts || []);
     } catch (e) { console.error(e); }
     setDoubtsLoading(false);
+  };
+
+  // ── VAULT ACTIONS ─────────────────────────────────────────────────────────
+  const fetchVaultDocs = async () => {
+    setVaultLoading(true);
+    try {
+      const d = await api({ action: 'get-vault-documents-admin' });
+      if (d.success) setVaultDocs(d.documents || []);
+    } catch (e) { console.error(e); }
+    setVaultLoading(false);
+  };
+
+  const uploadVaultDoc = async () => {
+    if (!vaultDocName.trim() || !vaultFileData) return showToast('Please select a file and enter a name', 'error');
+    setVaultUploading(true);
+    try {
+      const d = await api({
+        action: 'upload-vault-document',
+        name: vaultDocName.trim(),
+        type: vaultDocType,
+        fileData: vaultFileData,
+        size: vaultFileSize
+      });
+      if (d.success) {
+        showToast('Document uploaded securely! 🔒');
+        setVaultDocName('');
+        setVaultFileData(null);
+        setVaultFileName('');
+        setVaultFileSize(0);
+        fetchVaultDocs();
+      } else {
+        showToast(d.error || 'Upload failed', 'error');
+      }
+    } catch (e) { showToast('Upload error', 'error'); }
+    setVaultUploading(false);
+  };
+
+  const deleteVaultDoc = async (docId) => {
+    if (!confirm('Permanently delete this document from the vault?')) return;
+    const d = await api({ action: 'delete-vault-document', docId });
+    if (d.success) { showToast('Document deleted.'); fetchVaultDocs(); }
+    else showToast(d.error || 'Delete failed', 'error');
+  };
+
+  const handleVaultFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return showToast('File must be under 5 MB', 'error');
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setVaultFileData(reader.result);
+      setVaultFileName(file.name);
+      setVaultFileSize(file.size);
+      if (!vaultDocName) setVaultDocName(file.name.replace(/\.\w+$/, ''));
+    };
+    reader.readAsDataURL(file);
   };
 
   const answerDoubt = async (doubtId) => {
@@ -596,6 +663,7 @@ export default function AdminDashboard() {
             { id: 'testimonials', icon: 'fa-star', label: 'Testimonials' },
             { id: 'analytics', icon: 'fa-chart-bar', label: 'Analytics' },
             { id: 'log', icon: 'fa-list-alt', label: 'Activity Log' },
+            { id: 'vault', icon: 'fa-shield-halved', label: 'Emergency Vault 🔒' },
             { id: 'tools', icon: 'fa-toolbox', label: 'Tools' },
           ];
           return (
@@ -606,8 +674,8 @@ export default function AdminDashboard() {
                     display: 'flex', alignItems: 'center', gap: '6px',
                     padding: '8px 14px', borderRadius: '10px', cursor: 'pointer',
                     fontSize: '0.82em', fontWeight: 600, border: 'none',
-                    background: activeTab === t.id ? (t.id === 'doubts' ? '#8b5cf6' : 'var(--gold)') : 'transparent',
-                    color: activeTab === t.id ? (t.id === 'doubts' ? '#fff' : '#111') : 'rgba(255,255,255,0.5)',
+                    background: activeTab === t.id ? (t.id === 'doubts' ? '#8b5cf6' : t.id === 'vault' ? '#ef4444' : 'var(--gold)') : 'transparent',
+                    color: activeTab === t.id ? (t.id === 'doubts' || t.id === 'vault' ? '#fff' : '#111') : 'rgba(255,255,255,0.5)',
                     transition: 'all 0.2s', position: 'relative'
                   }}>
                   <i className={`fas ${t.icon}`} />{t.label}
@@ -622,6 +690,132 @@ export default function AdminDashboard() {
             </div>
           );
         })()}
+
+        {/* ── EMERGENCY VAULT TAB ── */}
+        {activeTab === 'vault' && (
+          <div style={{ background: 'var(--surface-2)', borderRadius: '16px', padding: '24px', border: '1px solid rgba(239,68,68,0.3)', marginBottom: '30px', boxShadow: '0 0 30px rgba(239,68,68,0.06)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#ef4444,#D4AF37)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}>
+                <i className="fas fa-shield-halved" style={{ color: '#fff', fontSize: '1.2em' }} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, color: 'var(--text-bright)' }}>Emergency Document Vault</h3>
+                <p style={{ margin: 0, fontSize: '0.78em', color: 'rgba(255,255,255,0.45)' }}>Upload sensitive identity documents. Accessible from the sidebar with admin password only.</p>
+              </div>
+            </div>
+
+            {/* Upload Form */}
+            <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '20px', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '24px' }}>
+              <h4 style={{ margin: '0 0 16px 0', color: '#ef4444', fontSize: '0.9em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <i className="fas fa-upload" style={{ marginRight: '8px' }} />Upload New Document
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8em', color: 'gray', marginBottom: '6px' }}>Document Label</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Aadhar Card Front"
+                    value={vaultDocName}
+                    onChange={e => setVaultDocName(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8em', color: 'gray', marginBottom: '6px' }}>Document Type</label>
+                  <select
+                    value={vaultDocType}
+                    onChange={e => setVaultDocType(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }}
+                  >
+                    <option value="aadhar">Aadhar Card</option>
+                    <option value="pan">PAN Card</option>
+                    <option value="voter">Voter ID</option>
+                    <option value="passport">Passport</option>
+                    <option value="other">Other Document</option>
+                  </select>
+                </div>
+              </div>
+              <div
+                onClick={() => document.getElementById('vault-file-input').click()}
+                style={{
+                  border: `2px dashed ${vaultFileData ? 'rgba(239,68,68,0.6)' : 'rgba(255,255,255,0.15)'}`,
+                  borderRadius: '10px', padding: '20px', textAlign: 'center', cursor: 'pointer',
+                  background: vaultFileData ? 'rgba(239,68,68,0.05)' : 'transparent',
+                  transition: 'all 0.2s', marginBottom: '14px'
+                }}
+              >
+                <i className={`fas ${vaultFileData ? 'fa-file-check' : 'fa-cloud-upload-alt'}`} style={{ fontSize: '2em', color: vaultFileData ? '#ef4444' : 'gray', marginBottom: '8px', display: 'block' }} />
+                <p style={{ margin: 0, fontSize: '0.85em', color: vaultFileData ? '#fca5a5' : 'gray' }}>
+                  {vaultFileData ? `✅ ${vaultFileName} (${(vaultFileSize / 1024).toFixed(1)} KB)` : 'Click to choose a file (PDF, JPG, PNG — max 5 MB)'}
+                </p>
+              </div>
+              <input id="vault-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" style={{ display: 'none' }} onChange={handleVaultFileSelect} />
+              <button
+                className="btn"
+                onClick={uploadVaultDoc}
+                disabled={vaultUploading || !vaultFileData || !vaultDocName.trim()}
+                style={{ background: 'linear-gradient(135deg,#ef4444,#D4AF37)', color: '#000', fontWeight: 'bold', padding: '12px 28px', border: 'none' }}
+              >
+                {vaultUploading ? <><i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }} />Encrypting & Uploading…</> : <><i className="fas fa-lock" style={{ marginRight: '8px' }} />Secure Upload to Vault</>}
+              </button>
+            </div>
+
+            {/* Document List */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.9em', color: 'rgba(255,255,255,0.6)' }}>Stored Documents ({vaultDocs.length})</h4>
+                <button onClick={fetchVaultDocs} className="btn" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'white', fontSize: '0.8em', padding: '6px 14px' }}>
+                  <i className="fas fa-sync-alt" style={{ marginRight: '6px' }} />Refresh
+                </button>
+              </div>
+              {vaultLoading ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: '#ef4444' }}>
+                  <i className="fas fa-spinner fa-spin" style={{ fontSize: '1.5em', display: 'block', marginBottom: '8px' }} />Loading vault…
+                </div>
+              ) : vaultDocs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'gray', border: '1px dashed rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                  <i className="fas fa-folder-open" style={{ fontSize: '2em', display: 'block', marginBottom: '10px', opacity: 0.4 }} />
+                  No documents in vault. Upload one above.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {vaultDocs.map(doc => (
+                    <div key={doc.docId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <i className="fas fa-file-shield" style={{ color: '#ef4444', fontSize: '1.4em' }} />
+                        <div>
+                          <strong style={{ display: 'block', color: 'var(--text-bright)', fontSize: '0.9em' }}>{doc.name}</strong>
+                          <span style={{ fontSize: '0.75em', color: 'gray' }}>
+                            {doc.type?.toUpperCase()} · {doc.size ? (doc.size / 1024).toFixed(1) + ' KB' : 'Unknown size'} · Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = doc.fileData;
+                            link.download = doc.name;
+                            link.click();
+                          }}
+                          style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82em', fontWeight: 600 }}
+                        >
+                          <i className="fas fa-download" style={{ marginRight: '5px' }} />Download
+                        </button>
+                        <button
+                          onClick={() => deleteVaultDoc(doc.docId)}
+                          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82em' }}
+                        >
+                          <i className="fas fa-trash-alt" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── TOOLS TAB ── */}
         {activeTab === 'tools' && (

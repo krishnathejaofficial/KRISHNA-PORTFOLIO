@@ -410,7 +410,7 @@ function VoiceFloating({ onOpenDoubts }) {
 
 /* ─── AI CHAT — BOTTOM RIGHT FLOATING ─── */
 const MODEL = 'meta/llama-3.3-70b-instruct';
-const SYSTEM_PROMPT = (ctx) => `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01). Speak in first person as Krishna. Be warm, confident, concise (2-4 sentences). Base answers on context below. If unknown, say to email krishnatejareddy2003@gmail.com.\n\nCONTEXT:\n${ctx}`;
+const SYSTEM_PROMPT = (ctx) => `You are an interactive AI persona for G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA: 9.01). Speak in first person as Krishna. Be warm, confident, and provide detailed, comprehensive, and well-structured answers using clear paragraphs or bullet points where appropriate. Base answers on context below. If unknown, say to email krishnatejareddy2003@gmail.com.\n\nCONTEXT:\n${ctx}`;
 const SUGGESTIONS = ['Ask Krishna a Doubt 💡', 'Tell me about your research 🔬', 'What are your top skills?', 'What projects have you built?'];
 
 const CHAT_SESSION_KEY = 'krishna_chat_history';
@@ -473,7 +473,7 @@ export function AIChatFloating({ onOpenDoubts }) {
         body: JSON.stringify({
           model: MODEL,
           messages: [{ role: 'system', content: SYSTEM_PROMPT(ctx) }, ...newMsgs.slice(-10)],
-          max_tokens: 300,
+          max_tokens: 800,
         }),
       });
       const d = await res.json();

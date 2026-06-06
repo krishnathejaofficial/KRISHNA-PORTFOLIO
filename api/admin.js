@@ -144,10 +144,66 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
+    if (action === 'get-vault-documents') {
+      const authDoc = await db.collection('auth').findOne({ role: 'admin' });
+      const activePassword = authDoc?.password || DEFAULT_PASSWORD;
+      if (password !== activePassword) return res.status(401).json({ error: 'Invalid password' });
+      
+      const docs = await db.collection('vault_documents').find().sort({ uploadedAt: -1 }).toArray();
+      return res.status(200).json({ success: true, documents: docs });
+    }
+
     // ── AUTH GUARD ────────────────────────────────────────────────────────────
     const adminDoc = await db.collection('auth').findOne({ role: 'admin', sessionToken: token });
     if (!adminDoc || Date.now() > adminDoc.sessionExpiry)
       return res.status(401).json({ error: 'Unauthorized or session expired.' });
+
+    // ── EMERGENCY VAULT DOCUMENTS (ADMIN) ──────────────────────────────────────
+    if (action === 'get-vault-documents-admin') {
+      const docs = await db.collection('vault_documents').find({}, { projection: { fileData: 0 } }).sort({ uploadedAt: -1 }).toArray();
+      // Re-fetch with fileData for download — limit to 20
+      const fullDocs = await db.collection('vault_documents').find().sort({ uploadedAt: -1 }).limit(20).toArray();
+      return res.status(200).json({ success: true, documents: fullDocs });
+    }
+
+    if (action === 'upload-vault-document') {
+      const { name, type, fileData, size } = req.body;
+      if (!name || !fileData) return res.status(400).json({ error: 'Missing document parameters' });
+      
+      const docId = `DOC-${Math.floor(100000 + Math.random() * 900000)}`;
+      await db.collection('vault_documents').insertOne({
+        docId,
+        name,
+        type,
+        fileData,
+        size,
+        uploadedAt: new Date()
+      });
+      
+      await db.collection('activity_log').insertOne({
+        action: 'upload_document',
+        detail: `Uploaded document: ${name} (${type})`,
+        source: 'admin',
+        timestamp: new Date()
+      });
+      
+      return res.status(200).json({ success: true, docId });
+    }
+
+    if (action === 'delete-vault-document') {
+      const { docId } = req.body;
+      if (!docId) return res.status(400).json({ error: 'Missing docId' });
+      await db.collection('vault_documents').deleteOne({ docId });
+      
+      await db.collection('activity_log').insertOne({
+        action: 'delete_document',
+        detail: `Deleted document ID: ${docId}`,
+        source: 'admin',
+        timestamp: new Date()
+      });
+      
+      return res.status(200).json({ success: true });
+    }
 
     // ── PASSWORD CHANGE ───────────────────────────────────────────────────────
     if (action === 'request-password-change-otp') {

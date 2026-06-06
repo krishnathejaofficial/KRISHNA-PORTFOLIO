@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { socialLogos } from '../data/socialLogos';
 import { useTranslation } from '../components/LanguageSwitcher';
 
-export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpenTools, onOpenDoubts }) {
+export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpenTools, onOpenDoubts, onOpenVault }) {
   const { t } = useTranslation();
   
   const navLinks = [
@@ -79,6 +79,9 @@ export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpen
           </button>
           <button className="btn" onClick={() => { onClose(); onOpenDoubts(); }} style={{ width: '100%', background: 'linear-gradient(135deg,rgba(139,92,246,0.18),rgba(109,40,217,0.1))', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.5)', fontSize: '0.85em', padding: '10px', marginTop: '10px' }}>
             <i className="fas fa-lightbulb" style={{ marginRight: '8px', color: '#a78bfa' }} /> Ask a Doubt
+          </button>
+          <button className="btn" onClick={() => { onClose(); onOpenVault(); }} style={{ width: '100%', background: 'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(212,175,55,0.06))', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.4)', fontSize: '0.85em', padding: '10px', marginTop: '10px' }}>
+            <i className="fas fa-shield-halved" style={{ marginRight: '8px', color: '#ef4444' }} /> Emergency Vault 🔒
           </button>
         </div>
         <div className="sidebar-footer">
