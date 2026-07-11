@@ -57,7 +57,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   // Scientific calculator states
   const [calcDisplay, setCalcDisplay] = useState('');
   const [calcResult, setCalcResult] = useState('');
-  const [calcHistory, setCalcHistory] = useState([]);
+
   const [calcAngleMode, setCalcAngleMode] = useState('Deg'); // Deg, Rad
   const [calcMemory, setCalcMemory] = useState(0);
   const [graphEquation, setGraphEquation] = useState('x^2');
@@ -65,7 +65,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
 
   // Finance calculators states
   const [financeSubTab, setFinanceSubTab] = useState('gst'); // gst, tds, emi, interest
-  const [academicsSubTab, setAcademicsSubTab] = useState('grades'); // grades, grapher, latex
+
   // GST state
   const [gstAmount, setGstAmount] = useState('10000');
   const [gstRate, setGstRate] = useState('18');
@@ -80,7 +80,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   const [emiRate, setEmiRate] = useState('8.5');
   const [emiTenure, setEmiTenure] = useState('120'); // Months
   const [emiTenureType, setEmiTenureType] = useState('months'); // months, years
-  const [emiAmortization, setEmiAmortization] = useState([]);
+
   const [showAmortization, setShowAmortization] = useState(false);
   // Interest state
   const [interestPrincipal, setInterestPrincipal] = useState('50000');
@@ -270,7 +270,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
       } else {
         setAuthError(data.error || 'Incorrect admin password.');
       }
-    } catch (err) {
+    } catch (_err) {
       setAuthError('Connection error. Please try again.');
     } finally {
       setAuthLoading(false);
@@ -309,8 +309,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
         const res = fn();
         const formattedRes = Number.isInteger(res) ? res : parseFloat(res.toFixed(8));
         setCalcResult(formattedRes.toString());
-        setCalcHistory(prev => [{ exp: calcDisplay, res: formattedRes.toString() }, ...prev.slice(0, 9)]);
-      } catch (err) {
+      } catch (_err) {
         setCalcResult('Error');
       }
     } else {
@@ -369,7 +368,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
       } else {
         setGraphPath('');
       }
-    } catch (e) {
+    } catch (_e) {
       setGraphPath('');
     }
   };
@@ -448,6 +447,27 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   };
 
   // --- PDF TOOLS SUITE CLIENT HANDLERS ---
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPdfFiles([{ id: Date.now(), file }]);
+    setPdfPagesSelected([]);
+    try {
+      const fileBytes = await file.arrayBuffer();
+      if (window.PDFLib) {
+        const { PDFDocument } = window.PDFLib;
+        const pdfDoc = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+        const count = pdfDoc.getPageCount();
+        setPdfPageCount(count);
+      } else {
+        setPdfPageCount(1);
+      }
+    } catch (err) {
+      console.error('Error parsing PDF page count:', err);
+      setPdfPageCount(1);
+    }
+  };
+
   const mergePDFs = async () => {
     if (!window.PDFLib) {
       alert('PDF Engine is still loading. Please try again in a moment.');
@@ -1372,7 +1392,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
       const fileBytes = await pdfFiles[0].file.arrayBuffer();
       const srcPdf = await PDFDocument.load(fileBytes);
       const page = srcPdf.getPages()[0];
-      const { width, height } = page.getSize();
+      const { height } = page.getSize();
       
       page.drawRectangle({
         x: 40,
@@ -1836,7 +1856,6 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   const handleDragStart = (e, itemKey) => {
     dragItemRef.current = itemKey;
     // For mouse/touch events offset calculation
-    const rect = certContainerRef.current.getBoundingClientRect();
     e.dataTransfer?.setData('text/plain', ''); // Firefox fix
   };
 

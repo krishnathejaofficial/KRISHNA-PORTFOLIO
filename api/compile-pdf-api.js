@@ -1,15 +1,28 @@
-// api/compile-pdf-api.js
-// Forwards body to latex.ytotech.com and streams back raw PDF binary.
-// Frontend handles the binary blob directly (no base64 encoding needed).
+import { Buffer } from 'buffer';
+import fs from 'fs';
+import path from 'path';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
+    const payload = req.body;
+    const hasImageRef = payload.resources?.some(r => r.content && r.content.includes('krishnateja.jpg'));
+    const hasImageResource = payload.resources?.some(r => r.path === 'krishnateja.jpg');
+
+    if (hasImageRef && !hasImageResource) {
+      const photoPath = path.join(globalThis.process.cwd(), 'public', 'images', 'krishna teja profile.jpg');
+      if (fs.existsSync(photoPath)) {
+        const imageBase64 = fs.readFileSync(photoPath).toString('base64');
+        if (!payload.resources) payload.resources = [];
+        payload.resources.push({ path: 'krishnateja.jpg', file: imageBase64 });
+      }
+    }
+
     const response = await fetch('https://latex.ytotech.com/builds/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body), // pass through: { compiler, resources }
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

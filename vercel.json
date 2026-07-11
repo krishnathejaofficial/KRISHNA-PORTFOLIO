@@ -6,7 +6,7 @@
   "functions": {
     "api/chat.js": { "maxDuration": 30 },
     "api/tailor-resume.js": { "maxDuration": 60, "memory": 1024, "includeFiles": "resume.tex" },
-    "api/compile-pdf-api.js": { "maxDuration": 60, "memory": 512 },
+    "api/compile-pdf-api.js": { "maxDuration": 60, "memory": 512, "includeFiles": "public/images/krishna teja profile.jpg" },
     "api/analytics.js": { "maxDuration": 10 },
     "api/availability.js": { "maxDuration": 10 },
     "api/testimonials.js": { "maxDuration": 10 },

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import LogoLoop from '../components/LogoLoop';
 import { socialLogos } from '../data/socialLogos';
-import { useTranslation } from '../components/LanguageSwitcher';
+import { useTranslation } from '../utils/translation';
 import CopyEmail from '../components/CopyEmail';
 
 export default function Contact({ onOpenCollab, onOpenQR, onOpenDoubts }) {

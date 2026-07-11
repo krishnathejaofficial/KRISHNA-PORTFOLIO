@@ -285,7 +285,7 @@ function VoiceFloating({ onOpenDoubts }) {
             } else {
               setTimeout(closePanel, 4000);
             }
-          } catch (err) {
+          } catch {
             setStatus('Connection error. Please try again.');
           }
         } else {
@@ -434,7 +434,7 @@ export function AIChatFloating({ onOpenDoubts }) {
 
   // Persist chat history to sessionStorage
   useEffect(() => {
-    try { sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(messages)); } catch {}
+    try { sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(messages)); } catch { void 0; }
   }, [messages]);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
@@ -442,7 +442,7 @@ export function AIChatFloating({ onOpenDoubts }) {
   function clearHistory() {
     const fresh = [DEFAULT_MSG];
     setMessages(fresh);
-    try { sessionStorage.removeItem(CHAT_SESSION_KEY); } catch {}
+    try { sessionStorage.removeItem(CHAT_SESSION_KEY); } catch { void 0; }
   }
 
   async function send(text) {

@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import nodemailer from 'nodemailer';
 
 const MONGODB_URI = 'mongodb+srv://krishnateja:Gteja1234@cluster0.3veyidf.mongodb.net/trackingDB?retryWrites=true&w=majority';
@@ -53,7 +53,7 @@ async function sendEmail(to, subject, html) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { action, password, currentPassword, newPassword, otp, token, trackingId, newStatus, adminNote, reminderTime } = req.body;
+  const { action, password, currentPassword, newPassword, otp, token, trackingId, newStatus, adminNote, _reminderTime } = req.body;
 
   try {
     const client = await connectToDatabase();
@@ -152,6 +152,55 @@ export default async function handler(req, res) {
       const docs = await db.collection('vault_documents').find().sort({ uploadedAt: -1 }).toArray();
       return res.status(200).json({ success: true, documents: docs });
     }
+ 
+    if (action === 'get-user-uploads') {
+      const authDoc = await db.collection('auth').findOne({ role: 'admin' });
+      const activePassword = authDoc?.password || DEFAULT_PASSWORD;
+      
+      let authorized = false;
+      if (password && password === activePassword) {
+        authorized = true;
+      } else if (token) {
+        const adminDoc = await db.collection('auth').findOne({ role: 'admin', sessionToken: token });
+        if (adminDoc && Date.now() <= adminDoc.sessionExpiry) {
+          authorized = true;
+        }
+      }
+      
+      if (!authorized) return res.status(401).json({ error: 'Unauthorized access.' });
+      
+      const uploads = await db.collection('user_uploads').find().sort({ uploadedAt: -1 }).toArray();
+      return res.status(200).json({ success: true, uploads });
+    }
+ 
+    if (action === 'upload-user-file') {
+      const authDoc = await db.collection('auth').findOne({ role: 'admin' });
+      const activePassword = authDoc?.password || DEFAULT_PASSWORD;
+      
+      if (password !== activePassword) return res.status(401).json({ error: 'Invalid password.' });
+      
+      const { name, fileData, size } = req.body;
+      if (!name || !fileData) return res.status(400).json({ error: 'Missing file parameters.' });
+      if (size && size > 5 * 1024 * 1024) return res.status(400).json({ error: 'File exceeds 5MB size limit.' });
+      
+      const uploadId = `UPL-${Math.floor(100000 + Math.random() * 900000)}`;
+      await db.collection('user_uploads').insertOne({
+        uploadId,
+        name,
+        fileData,
+        size,
+        uploadedAt: new Date()
+      });
+      
+      await db.collection('activity_log').insertOne({
+        action: 'user_upload',
+        detail: `User uploaded file: ${name}`,
+        source: 'user',
+        timestamp: new Date()
+      });
+      
+      return res.status(200).json({ success: true, uploadId });
+    }
 
     // ── AUTH GUARD ────────────────────────────────────────────────────────────
     const adminDoc = await db.collection('auth').findOne({ role: 'admin', sessionToken: token });
@@ -160,7 +209,6 @@ export default async function handler(req, res) {
 
     // ── EMERGENCY VAULT DOCUMENTS (ADMIN) ──────────────────────────────────────
     if (action === 'get-vault-documents-admin') {
-      const docs = await db.collection('vault_documents').find({}, { projection: { fileData: 0 } }).sort({ uploadedAt: -1 }).toArray();
       // Re-fetch with fileData for download — limit to 20
       const fullDocs = await db.collection('vault_documents').find().sort({ uploadedAt: -1 }).limit(20).toArray();
       return res.status(200).json({ success: true, documents: fullDocs });
@@ -198,6 +246,21 @@ export default async function handler(req, res) {
       await db.collection('activity_log').insertOne({
         action: 'delete_document',
         detail: `Deleted document ID: ${docId}`,
+        source: 'admin',
+        timestamp: new Date()
+      });
+      
+      return res.status(200).json({ success: true });
+    }
+ 
+    if (action === 'delete-user-upload') {
+      const { uploadId } = req.body;
+      if (!uploadId) return res.status(400).json({ error: 'Missing uploadId' });
+      await db.collection('user_uploads').deleteOne({ uploadId });
+      
+      await db.collection('activity_log').insertOne({
+        action: 'delete_user_upload',
+        detail: `Deleted user upload ID: ${uploadId}`,
         source: 'admin',
         timestamp: new Date()
       });
@@ -425,7 +488,6 @@ export default async function handler(req, res) {
 
     if (action === 'delete-reminder') {
       const { id } = req.body;
-      const { ObjectId } = require('mongodb');
       await db.collection('reminders').deleteOne({ _id: new ObjectId(id) });
       return res.status(200).json({ success: true });
     }

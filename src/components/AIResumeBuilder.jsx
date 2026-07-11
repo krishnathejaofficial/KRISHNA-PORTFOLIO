@@ -81,7 +81,7 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
       const rawText = await res.text();
       if (!res.ok || !rawText.trim()) {
         let msg = `API Error ${res.status}`;
-        try { msg = JSON.parse(rawText)?.error?.message || JSON.parse(rawText)?.error || msg; } catch {}
+        try { msg = JSON.parse(rawText)?.error?.message || JSON.parse(rawText)?.error || msg; } catch { void 0; }
         throw new Error(msg);
       }
       let data;
@@ -95,7 +95,7 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
     if (!res.ok) {
       const rawText = await res.text();
       let msg = `API Error ${res.status}`;
-      try { msg = JSON.parse(rawText)?.error?.message || JSON.parse(rawText)?.error || msg; } catch {}
+      try { msg = JSON.parse(rawText)?.error?.message || JSON.parse(rawText)?.error || msg; } catch { void 0; }
       throw new Error(msg);
     }
     const reader = res.body.getReader();
@@ -156,7 +156,7 @@ RULES:
 
       const msg = `COMPANY: ${company}\nJOB TITLE: ${jobTitle}\nJOB DESCRIPTION:\n${jobDesc}\n\n---\nBASE RESUME:\n${baseTex}`;
       
-      const aiOutput = await callNVIDIA(sys, msg, (partial) => {
+      const aiOutput = await callNVIDIA(sys, msg, (_partial) => {
         setGenMsg(`Streaming… analyzing JD and writing tailored sections`);
       });
 
@@ -182,7 +182,7 @@ RULES:
             try {
               const regex = new RegExp(flexSearch);
               newLatex = newLatex.replace(regex, replaceStr);
-            } catch (e) {}
+            } catch { void 0; }
           }
         }
       }
@@ -218,7 +218,7 @@ The user wants to edit their current resume. Because the file is large, you MUST
 Output NOTHING else. You can provide multiple blocks if needed.`;
       const msg = `Current Resume:\n${latex}\n\n---\nUser Request: "${editPrompt}"`;
       
-      const aiOutput = await callNVIDIA(sys, msg, (partial) => {
+      const aiOutput = await callNVIDIA(sys, msg, (_partial) => {
         setEditMsg(`Streaming edits… writing replacement blocks`);
       });
       
@@ -238,7 +238,7 @@ Output NOTHING else. You can provide multiple blocks if needed.`;
             try {
               const regex = new RegExp(flexSearch);
               newLatex = newLatex.replace(regex, replaceStr);
-            } catch (e) {}
+            } catch { void 0; }
           }
         }
       }

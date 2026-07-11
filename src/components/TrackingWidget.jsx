@@ -72,7 +72,7 @@ export default function TrackingWidget({ isOpen, onClose }) {
         setErrorMsg(data.error || 'Tracking ID not found');
         setStatus('error');
       }
-    } catch (err) {
+    } catch {
       setErrorMsg('Connection error. Please try again.');
       setStatus('error');
     }
@@ -106,7 +106,7 @@ export default function TrackingWidget({ isOpen, onClose }) {
             stopScanner();
             triggerTrackDirectly(val);
           },
-          (errorMessage) => {
+          () => {
             // Scanning in progress...
           }
         );

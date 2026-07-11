@@ -92,7 +92,4 @@ export function initTheme() {
   return saved;
 }
 
-export default function ThemeSelector({ currentTheme, setCurrentTheme }) {
-  // This component is now only used internally by RightDock — kept for exports
-  return null;
-}
+// No default component export needed - this file is a pure JS theme utility.

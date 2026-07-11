@@ -43,7 +43,7 @@ export default function GitHubHeatmap() {
     if (!contributions) return [];
     const weeks = [];
     let week = [];
-    contributions.forEach((day, i) => {
+    contributions.forEach((day) => {
       week.push(day);
       if (week.length === 7) { weeks.push(week); week = []; }
     });
@@ -52,7 +52,6 @@ export default function GitHubHeatmap() {
   }
 
   const weeks = getWeeks(data);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   return (
     <div className="gh-heatmap-wrap">

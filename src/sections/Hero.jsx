@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { socialLogos } from '../data/socialLogos';
-import { useTranslation } from '../components/LanguageSwitcher';
 import AvailabilityWidget from '../components/AvailabilityWidget';
 import ShareButton from '../components/ShareButton';
 import CopyEmail from '../components/CopyEmail';
@@ -13,10 +12,9 @@ const ROLES = [
   "AI Systems Enthusiast"
 ];
 
-export default function Hero({ onOpenCoverLetter, onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenHireKrishna, onOpenResumeAI, onOpenTrack, onOpenTools, onOpenGPS, onOpenDoubts }) {
+export default function Hero({ onOpenMeeting, onOpenQR, onOpenCollab, onOpenHireMe, onOpenHireKrishna, onOpenTrack, onOpenTools, onOpenGPS, onOpenDoubts }) {
   const nameRef = useRef(null);
   const particlesRef = useRef(null);
-  const { t } = useTranslation();
   const [roleIndex, setRoleIndex] = useState(0);
   const [roleText, setRoleText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);

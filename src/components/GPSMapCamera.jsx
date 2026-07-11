@@ -129,7 +129,7 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
       const H = canvas.height;
 
       // Sizing scale responsive to image width (reference width 1080px)
-      const scale = W / 1080;
+      const _scale = W / 1080;
       const pad = Math.round(W * 0.04);
       const padBottom = Math.round(W * 0.04);
       const panelH = Math.round(W * 0.24);
@@ -281,7 +281,7 @@ async function drawGPSOverlay(canvas, photoDataUrl, gpsData) {
           };
           qrImg.src = qrDataUrl;
         });
-      } catch (err) {
+      } catch (_err) {
         // fallback in case QR fails
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
@@ -405,7 +405,6 @@ export default function GPSMapCamera({ isOpen, onClose }) {
 
   const [phase, setPhase] = useState('idle'); // idle | locating | camera | processing | result | error
   const [gpsData, setGpsData] = useState(null);
-  const [capturedPhoto, setCapturedPhoto] = useState(null);
   const [taggedPhoto, setTaggedPhoto] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [facingMode, setFacingMode] = useState('environment');
@@ -417,7 +416,6 @@ export default function GPSMapCamera({ isOpen, onClose }) {
     if (!isOpen) {
       stopCamera();
       setPhase('idle');
-      setCapturedPhoto(null);
       setTaggedPhoto(null);
       setGpsData(null);
     }
@@ -612,11 +610,9 @@ export default function GPSMapCamera({ isOpen, onClose }) {
     try {
       const tagged = await drawGPSOverlay(canvas, rawDataUrl, updatedGps);
       setTaggedPhoto(tagged);
-      setCapturedPhoto(rawDataUrl);
       setPhase('result');
-    } catch (e) {
+    } catch (_e) {
       setTaggedPhoto(rawDataUrl);
-      setCapturedPhoto(rawDataUrl);
       setPhase('result');
     }
   }, [gpsData]);
@@ -631,7 +627,6 @@ export default function GPSMapCamera({ isOpen, onClose }) {
 
   const retake = useCallback(async () => {
     setTaggedPhoto(null);
-    setCapturedPhoto(null);
     await openCamera();
   }, [openCamera]);
 

@@ -93,6 +93,12 @@ export default function AdminDashboard() {
   const [vaultFileData, setVaultFileData] = useState(null);
   const [vaultFileName, setVaultFileName] = useState('');
   const [vaultFileSize, setVaultFileSize] = useState(0);
+  
+  // Link and user uploads states
+  const [vaultSourceType, setVaultSourceType] = useState('file'); // file | link
+  const [vaultLinkUrl, setVaultLinkUrl] = useState('');
+  const [userUploads, setUserUploads] = useState([]);
+  const [userUploadsLoading, setUserUploadsLoading] = useState(false);
 
   // Notification state
   const [toast, setToast] = useState(null);
@@ -140,6 +146,7 @@ export default function AdminDashboard() {
       fetchTestimonials();
       fetchDoubts();
       fetchVaultDocs();
+      fetchUserUploads();
     }
   }, [token]);
 
@@ -243,7 +250,7 @@ export default function AdminDashboard() {
       const d = await r.json();
       if (d.success) showToast('Availability updated!');
       else showToast(d.error || 'Failed to update', 'error');
-    } catch (e) { showToast('Error updating availability', 'error'); }
+    } catch (_e) { showToast('Error updating availability', 'error'); }
     setAvailLoading(false);
   };
 
@@ -289,29 +296,72 @@ export default function AdminDashboard() {
     setVaultLoading(false);
   };
 
-  const uploadVaultDoc = async () => {
-    if (!vaultDocName.trim() || !vaultFileData) return showToast('Please select a file and enter a name', 'error');
-    setVaultUploading(true);
+  const fetchUserUploads = async () => {
+    setUserUploadsLoading(true);
     try {
-      const d = await api({
-        action: 'upload-vault-document',
-        name: vaultDocName.trim(),
-        type: vaultDocType,
-        fileData: vaultFileData,
-        size: vaultFileSize
-      });
-      if (d.success) {
-        showToast('Document uploaded securely! 🔒');
-        setVaultDocName('');
-        setVaultFileData(null);
-        setVaultFileName('');
-        setVaultFileSize(0);
-        fetchVaultDocs();
-      } else {
-        showToast(d.error || 'Upload failed', 'error');
-      }
-    } catch (e) { showToast('Upload error', 'error'); }
-    setVaultUploading(false);
+      const d = await api({ action: 'get-user-uploads' });
+      if (d.success) setUserUploads(d.uploads || []);
+    } catch (e) { console.error(e); }
+    setUserUploadsLoading(false);
+  };
+
+  const deleteUserUpload = async (uploadId) => {
+    if (!confirm('Permanently delete this user upload?')) return;
+    const d = await api({ action: 'delete-user-upload', uploadId });
+    if (d.success) { showToast('User upload deleted.'); fetchUserUploads(); }
+    else showToast(d.error || 'Delete failed', 'error');
+  };
+
+  const uploadVaultDoc = async () => {
+    const name = vaultDocName.trim();
+    if (!name) return showToast('Please enter a document name', 'error');
+
+    if (vaultSourceType === 'link') {
+      const url = vaultLinkUrl.trim();
+      if (!url) return showToast('Please enter a link URL', 'error');
+      setVaultUploading(true);
+      try {
+        const d = await api({
+          action: 'upload-vault-document',
+          name,
+          type: 'link',
+          fileData: url,
+          size: 0
+        });
+        if (d.success) {
+          showToast('Link saved to vault! 🔗');
+          setVaultDocName('');
+          setVaultLinkUrl('');
+          fetchVaultDocs();
+        } else {
+          showToast(d.error || 'Upload failed', 'error');
+        }
+      } catch (_e) { showToast('Upload error', 'error'); }
+      setVaultUploading(false);
+    } else {
+      if (!vaultFileData) return showToast('Please select a file to upload', 'error');
+      setVaultUploading(true);
+      try {
+        const d = await api({
+          action: 'upload-vault-document',
+          name,
+          type: vaultDocType,
+          fileData: vaultFileData,
+          size: vaultFileSize
+        });
+        if (d.success) {
+          showToast('Document uploaded securely! 🔒');
+          setVaultDocName('');
+          setVaultFileData(null);
+          setVaultFileName('');
+          setVaultFileSize(0);
+          fetchVaultDocs();
+        } else {
+          showToast(d.error || 'Upload failed', 'error');
+        }
+      } catch (_e) { showToast('Upload error', 'error'); }
+      setVaultUploading(false);
+    }
   };
 
   const deleteVaultDoc = async (docId) => {
@@ -354,7 +404,7 @@ export default function AdminDashboard() {
       } else {
         showToast(d.error || 'Failed to send answer', 'error');
       }
-    } catch (e) { showToast('Error sending answer', 'error'); }
+    } catch (_e) { showToast('Error sending answer', 'error'); }
     setAnsweringId(null);
   };
 
@@ -369,7 +419,7 @@ export default function AdminDashboard() {
         const d = await r.json();
         if (d.success) { showToast('Question deleted'); fetchDoubts(); }
         else showToast(d.error || 'Delete failed', 'error');
-      } catch (e) { showToast('Error deleting', 'error'); }
+      } catch (_e) { showToast('Error deleting', 'error'); }
     });
   };
 
@@ -390,7 +440,7 @@ export default function AdminDashboard() {
       const d = await r.json();
       if (d.success) { setEditingTestimonial(null); fetchTestimonials(); }
       else showToast(d.error || 'Save failed', 'error');
-    } catch (e) { showToast('Error saving testimonial', 'error'); }
+    } catch (_e) { showToast('Error saving testimonial', 'error'); }
   };
 
   const deleteTestimonial = async (id) => {
@@ -404,7 +454,7 @@ export default function AdminDashboard() {
       const d = await r.json();
       if (d.success) fetchTestimonials();
       else showToast(d.error || 'Delete failed', 'error');
-    } catch (e) { showToast('Error deleting', 'error'); }
+    } catch (_e) { showToast('Error deleting', 'error'); }
   };
 
   const fetchCalSlots = async () => {
@@ -700,70 +750,131 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <h3 style={{ margin: 0, color: 'var(--text-bright)' }}>Emergency Document Vault</h3>
-                <p style={{ margin: 0, fontSize: '0.78em', color: 'rgba(255,255,255,0.45)' }}>Upload sensitive identity documents. Accessible from the sidebar with admin password only.</p>
+                <p style={{ margin: 0, fontSize: '0.78em', color: 'rgba(255,255,255,0.45)' }}>Upload sensitive identity documents or save helper links. Accessible with admin password only.</p>
               </div>
             </div>
 
             {/* Upload Form */}
             <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '20px', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '24px' }}>
               <h4 style={{ margin: '0 0 16px 0', color: '#ef4444', fontSize: '0.9em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                <i className="fas fa-upload" style={{ marginRight: '8px' }} />Upload New Document
+                <i className="fas fa-upload" style={{ marginRight: '8px' }} />Upload New Document / Link
               </h4>
+
+              {/* Source Type Toggle */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setVaultSourceType('file')}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: vaultSourceType === 'file' ? 'rgba(239,68,68,0.15)' : 'var(--surface-2)',
+                    color: vaultSourceType === 'file' ? '#ef4444' : 'gray',
+                    cursor: 'pointer', fontWeight: 600, fontSize: '0.85em',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <i className="fas fa-file-arrow-up" style={{ marginRight: '6px' }} /> Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVaultSourceType('link')}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: vaultSourceType === 'link' ? 'rgba(239,68,68,0.15)' : 'var(--surface-2)',
+                    color: vaultSourceType === 'link' ? '#ef4444' : 'gray',
+                    cursor: 'pointer', fontWeight: 600, fontSize: '0.85em',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <i className="fas fa-link" style={{ marginRight: '6px' }} /> Save Link
+                </button>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8em', color: 'gray', marginBottom: '6px' }}>Document Label</label>
+                  <label style={{ display: 'block', fontSize: '0.8em', color: 'gray', marginBottom: '6px' }}>
+                    {vaultSourceType === 'file' ? 'Document Label' : 'Link Title'}
+                  </label>
                   <input
                     type="text"
-                    placeholder="e.g. Aadhar Card Front"
+                    placeholder={vaultSourceType === 'file' ? "e.g. Aadhar Card Front" : "e.g. Personal Google Drive"}
                     value={vaultDocName}
                     onChange={e => setVaultDocName(e.target.value)}
                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8em', color: 'gray', marginBottom: '6px' }}>Document Type</label>
-                  <select
-                    value={vaultDocType}
-                    onChange={e => setVaultDocType(e.target.value)}
-                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }}
-                  >
-                    <option value="aadhar">Aadhar Card</option>
-                    <option value="pan">PAN Card</option>
-                    <option value="voter">Voter ID</option>
-                    <option value="passport">Passport</option>
-                    <option value="other">Other Document</option>
-                  </select>
+                {vaultSourceType === 'file' ? (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8em', color: 'gray', marginBottom: '6px' }}>Document Type</label>
+                    <select
+                      value={vaultDocType}
+                      onChange={e => setVaultDocType(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }}
+                    >
+                      <option value="aadhar">Aadhar Card</option>
+                      <option value="pan">PAN Card</option>
+                      <option value="voter">Voter ID</option>
+                      <option value="passport">Passport</option>
+                      <option value="other">Other Document</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8em', color: 'gray', marginBottom: '6px' }}>Link URL</label>
+                    <input
+                      type="url"
+                      placeholder="https://example.com"
+                      value={vaultLinkUrl}
+                      onChange={e => setVaultLinkUrl(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'white', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {vaultSourceType === 'file' && (
+                <div
+                  onClick={() => document.getElementById('vault-file-input').click()}
+                  style={{
+                    border: `2px dashed ${vaultFileData ? 'rgba(239,68,68,0.6)' : 'rgba(255,255,255,0.15)'}`,
+                    borderRadius: '10px', padding: '20px', textAlign: 'center', cursor: 'pointer',
+                    background: vaultFileData ? 'rgba(239,68,68,0.05)' : 'transparent',
+                    transition: 'all 0.2s', marginBottom: '14px'
+                  }}
+                >
+                  <i className={`fas ${vaultFileData ? 'fa-file-check' : 'fa-cloud-upload-alt'}`} style={{ fontSize: '2em', color: vaultFileData ? '#ef4444' : 'gray', marginBottom: '8px', display: 'block' }} />
+                  <p style={{ margin: 0, fontSize: '0.85em', color: vaultFileData ? '#fca5a5' : 'gray' }}>
+                    {vaultFileData ? `✅ ${vaultFileName} (${(vaultFileSize / 1024).toFixed(1)} KB)` : 'Click to choose a file (PDF, JPG, PNG — max 5 MB)'}
+                  </p>
                 </div>
-              </div>
-              <div
-                onClick={() => document.getElementById('vault-file-input').click()}
-                style={{
-                  border: `2px dashed ${vaultFileData ? 'rgba(239,68,68,0.6)' : 'rgba(255,255,255,0.15)'}`,
-                  borderRadius: '10px', padding: '20px', textAlign: 'center', cursor: 'pointer',
-                  background: vaultFileData ? 'rgba(239,68,68,0.05)' : 'transparent',
-                  transition: 'all 0.2s', marginBottom: '14px'
-                }}
-              >
-                <i className={`fas ${vaultFileData ? 'fa-file-check' : 'fa-cloud-upload-alt'}`} style={{ fontSize: '2em', color: vaultFileData ? '#ef4444' : 'gray', marginBottom: '8px', display: 'block' }} />
-                <p style={{ margin: 0, fontSize: '0.85em', color: vaultFileData ? '#fca5a5' : 'gray' }}>
-                  {vaultFileData ? `✅ ${vaultFileName} (${(vaultFileSize / 1024).toFixed(1)} KB)` : 'Click to choose a file (PDF, JPG, PNG — max 5 MB)'}
-                </p>
-              </div>
-              <input id="vault-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" style={{ display: 'none' }} onChange={handleVaultFileSelect} />
+              )}
+
+              {vaultSourceType === 'file' && (
+                <input id="vault-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" style={{ display: 'none' }} onChange={handleVaultFileSelect} />
+              )}
+
               <button
                 className="btn"
                 onClick={uploadVaultDoc}
-                disabled={vaultUploading || !vaultFileData || !vaultDocName.trim()}
+                disabled={vaultUploading || !vaultDocName.trim() || (vaultSourceType === 'file' ? !vaultFileData : !vaultLinkUrl.trim())}
                 style={{ background: 'linear-gradient(135deg,#ef4444,#D4AF37)', color: '#000', fontWeight: 'bold', padding: '12px 28px', border: 'none' }}
               >
-                {vaultUploading ? <><i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }} />Encrypting & Uploading…</> : <><i className="fas fa-lock" style={{ marginRight: '8px' }} />Secure Upload to Vault</>}
+                {vaultUploading ? (
+                  <><i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }} />Saving…</>
+                ) : vaultSourceType === 'file' ? (
+                  <><i className="fas fa-lock" style={{ marginRight: '8px' }} />Secure Upload to Vault</>
+                ) : (
+                  <><i className="fas fa-link" style={{ marginRight: '8px' }} />Save Link to Vault</>
+                )}
               </button>
             </div>
 
             {/* Document List */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h4 style={{ margin: 0, fontSize: '0.9em', color: 'rgba(255,255,255,0.6)' }}>Stored Documents ({vaultDocs.length})</h4>
+                <h4 style={{ margin: 0, fontSize: '0.9em', color: 'rgba(255,255,255,0.6)' }}>Stored Official Items ({vaultDocs.length})</h4>
                 <button onClick={fetchVaultDocs} className="btn" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'white', fontSize: '0.8em', padding: '6px 14px' }}>
                   <i className="fas fa-sync-alt" style={{ marginRight: '6px' }} />Refresh
                 </button>
@@ -775,18 +886,90 @@ export default function AdminDashboard() {
               ) : vaultDocs.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px', color: 'gray', border: '1px dashed rgba(255,255,255,0.08)', borderRadius: '10px' }}>
                   <i className="fas fa-folder-open" style={{ fontSize: '2em', display: 'block', marginBottom: '10px', opacity: 0.4 }} />
-                  No documents in vault. Upload one above.
+                  No official items in vault.
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {vaultDocs.map(doc => (
                     <div key={doc.docId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <i className="fas fa-file-shield" style={{ color: '#ef4444', fontSize: '1.4em' }} />
+                        <i className={`fas ${doc.type === 'link' ? 'fa-link' : 'fa-file-shield'}`} style={{ color: doc.type === 'link' ? '#D4AF37' : '#ef4444', fontSize: '1.4em' }} />
                         <div>
                           <strong style={{ display: 'block', color: 'var(--text-bright)', fontSize: '0.9em' }}>{doc.name}</strong>
                           <span style={{ fontSize: '0.75em', color: 'gray' }}>
-                            {doc.type?.toUpperCase()} · {doc.size ? (doc.size / 1024).toFixed(1) + ' KB' : 'Unknown size'} · Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}
+                            {doc.type === 'link' ? (
+                              `LINK · ${doc.fileData?.slice(0, 45)}${doc.fileData?.length > 45 ? '...' : ''} · Uploaded ${new Date(doc.uploadedAt).toLocaleDateString()}`
+                            ) : (
+                              `${doc.type?.toUpperCase()} · ${doc.size ? (doc.size / 1024).toFixed(1) + ' KB' : 'Unknown size'} · Uploaded ${new Date(doc.uploadedAt).toLocaleDateString()}`
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {doc.type === 'link' ? (
+                          <button
+                            onClick={() => window.open(doc.fileData, '_blank', 'noopener,noreferrer')}
+                            style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82em', fontWeight: 600 }}
+                          >
+                            <i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />Go to Link
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = doc.fileData;
+                              link.download = doc.name;
+                              link.click();
+                            }}
+                            style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82em', fontWeight: 600 }}
+                          >
+                            <i className="fas fa-download" style={{ marginRight: '5px' }} />Download
+                          </button>
+                        )}
+                        <button
+                          onClick={() => deleteVaultDoc(doc.docId)}
+                          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82em' }}
+                        >
+                          <i className="fas fa-trash-alt" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* User Uploads Section */}
+            <div style={{ marginTop: '36px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div>
+                  <h3 style={{ margin: 0, color: 'var(--text-bright)' }}>User Uploads</h3>
+                  <p style={{ margin: 0, fontSize: '0.78em', color: 'rgba(255,255,255,0.45)' }}>Files securely submitted by public users through the decrypted vault page.</p>
+                </div>
+                <button onClick={fetchUserUploads} className="btn" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'white', fontSize: '0.8em', padding: '6px 14px' }}>
+                  <i className="fas fa-sync-alt" style={{ marginRight: '6px' }} />Refresh
+                </button>
+              </div>
+
+              {userUploadsLoading ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: '#D4AF37' }}>
+                  <i className="fas fa-spinner fa-spin" style={{ fontSize: '1.5em', display: 'block', marginBottom: '8px' }} />Loading uploads…
+                </div>
+              ) : userUploads.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'gray', border: '1px dashed rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                  <i className="fas fa-file-shield" style={{ fontSize: '2em', display: 'block', marginBottom: '10px', opacity: 0.4 }} />
+                  No user uploads found.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {userUploads.map(upl => (
+                    <div key={upl.uploadId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <i className="fas fa-file-arrow-up" style={{ color: 'var(--gold)', fontSize: '1.4em' }} />
+                        <div>
+                          <strong style={{ display: 'block', color: 'var(--text-bright)', fontSize: '0.9em' }}>{upl.name}</strong>
+                          <span style={{ fontSize: '0.75em', color: 'gray' }}>
+                            {upl.size ? (upl.size / 1024).toFixed(1) + ' KB' : 'Unknown size'} · Uploaded {new Date(upl.uploadedAt).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -794,16 +977,16 @@ export default function AdminDashboard() {
                         <button
                           onClick={() => {
                             const link = document.createElement('a');
-                            link.href = doc.fileData;
-                            link.download = doc.name;
+                            link.href = upl.fileData;
+                            link.download = upl.name;
                             link.click();
                           }}
-                          style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82em', fontWeight: 600 }}
+                          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82em', fontWeight: 600 }}
                         >
                           <i className="fas fa-download" style={{ marginRight: '5px' }} />Download
                         </button>
                         <button
-                          onClick={() => deleteVaultDoc(doc.docId)}
+                          onClick={() => deleteUserUpload(upl.uploadId)}
                           style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.82em' }}
                         >
                           <i className="fas fa-trash-alt" />
@@ -1297,7 +1480,7 @@ export default function AdminDashboard() {
                     No testimonials yet. Click "Add Testimonial" to get started.
                   </div>
                 : <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {testimonials.map((t, idx) => (
+                    {testimonials.map((t, _idx) => (
                       <div key={t._id} style={{
                         background: 'var(--bg)', borderRadius: '12px', padding: '16px 20px',
                         border: '1px solid rgba(255,255,255,0.06)',

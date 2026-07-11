@@ -6,6 +6,7 @@ const ADMIN_EMAIL = 'krishnatejareddy2003@gmail.com';
 const GMAIL_APP_PASSWORD = 'kqdvnpdqtneakjjr';
 
 let cachedClient = null;
+
 async function connectToDatabase() {
   if (cachedClient) return cachedClient;
   const client = new MongoClient(MONGODB_URI);

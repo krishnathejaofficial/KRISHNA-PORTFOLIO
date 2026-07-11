@@ -46,7 +46,7 @@ export default defineConfig({
             proxyReq.setHeader('Content-Type', 'application/json');
             proxyReq.setHeader('Accept-Encoding', 'identity');
           });
-          proxy.on('error', (err, req, res) => {
+          proxy.on('error', (err, _req, _res) => {
             console.error('[proxy/tailor-resume] error:', err.message);
           });
         },
@@ -61,7 +61,7 @@ export default defineConfig({
           proxy.on('proxyReq', (proxyReq) => {
             proxyReq.setHeader('Content-Type', 'application/json');
           });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
+          proxy.on('proxyRes', (proxyRes, _req, _res) => {
             proxyRes.headers['content-type'] = 'application/pdf';
           });
         },

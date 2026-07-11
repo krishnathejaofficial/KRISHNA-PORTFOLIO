@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useTranslation } from '../components/LanguageSwitcher';
+import { useTranslation } from '../utils/translation';
 import AIBioSummarizer from '../components/AIBioSummarizer';
 
 export default function About() {

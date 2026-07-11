@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { socialLogos } from '../data/socialLogos';
-import { useTranslation } from '../components/LanguageSwitcher';
+import { useTranslation } from '../utils/translation';
 
 export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpenTools, onOpenDoubts, onOpenVault }) {
   const { t } = useTranslation();
@@ -23,7 +23,7 @@ export default function Sidebar({ isOpen, onClose, onOpenQR, onOpenTrack, onOpen
     { href: '#contact', icon: 'fa-envelope', label: t('nav_contact') },
   ];
 
-  const activeLinkRef = useRef(null);
+
 
   useEffect(() => {
     const sections = document.querySelectorAll('section[id]');
