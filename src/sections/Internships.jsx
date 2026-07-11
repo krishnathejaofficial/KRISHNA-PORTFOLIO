@@ -17,6 +17,16 @@ export default function Internships() {
       <div className="section-divider" />
       <div className="grid-2">
         <div className="card" data-animate>
+          <i className="fas fa-chart-line proj-icon" />
+          <h3>Marketing Research Analyst Intern — Agilent Technologies</h3>
+          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Chennai, India | Jun 2026 – Dec 2026 (Ongoing)</p>
+          <ul>
+            <li>Conducting market research and competitive intelligence analyses to evaluate trends, customer profiles, and product positioning in the analytical instrumentation market.</li>
+            <li>Analyzing business development metrics and market data to generate insights that support lead generation and strategic marketing campaigns.</li>
+            <li>Supporting cross-functional initiatives to align biotechnology industry requirements with analytical instrumentation solutions.</li>
+          </ul>
+        </div>
+        <div className="card" data-animate>
           <i className="fas fa-pills proj-icon" />
           <h3>Industrial Intern — Glory Pharma Chem India Pvt Ltd</h3>
           <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>Pharmaceutical Manufacturing | Jun–Jul 2025</p>
