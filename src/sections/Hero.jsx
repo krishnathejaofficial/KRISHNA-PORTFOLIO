@@ -6,6 +6,7 @@ import CopyEmail from '../components/CopyEmail';
 
 const ROLES = [
   "Integrated M.Sc. Biotechnology",
+  "Marketing Research Analyst",
   "Pharma Business Dev",
   "Clinical Operations",
   "Full-Stack Developer",
