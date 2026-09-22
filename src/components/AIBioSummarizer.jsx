@@ -26,7 +26,7 @@ export default function AIBioSummarizer() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'meta/llama-3.3-70b-instruct',
+          model: 'meta/llama-3.2-11b-vision-instruct',
           messages: [
             { role: 'system', content: sys },
             { role: 'user', content: msg },

@@ -5,7 +5,7 @@
 
 export const config = { runtime: 'edge' };
 
-const NVIDIA_API_KEY = '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';
+const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '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';
 
 export default async function handler(req) {
   if (req.method !== 'POST') {

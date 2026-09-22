@@ -1552,7 +1552,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
         : `You are an expert translator. Translate the following document extract into fluent, natural ${pdfIntelLanguage}. Maintain the original tone and format perfectly.`;
       
       const payload = {
-        model: 'meta/llama-3.3-70b-instruct',
+        model: 'meta/llama-3.2-11b-vision-instruct',
         messages: [
           { role: 'system', content: sysPrompt },
           { role: 'user', content: pdfIntelText }

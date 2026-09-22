@@ -1,5 +1,5 @@
 // Vercel serverless function for Voice Assistant — uses separate NVIDIA key
-const NVIDIA_VOICE_KEY = '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';
+const NVIDIA_VOICE_KEY = process.env.NVIDIA_VOICE_KEY || process.env.NVIDIA_API_KEY || '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';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

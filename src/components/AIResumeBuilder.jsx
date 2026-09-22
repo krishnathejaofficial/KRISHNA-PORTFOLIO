@@ -60,7 +60,7 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
     const isProduction = import.meta.env.PROD;
 
     const payload = {
-      model: 'meta/llama-3.3-70b-instruct',
+      model: 'meta/llama-3.2-11b-vision-instruct',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },

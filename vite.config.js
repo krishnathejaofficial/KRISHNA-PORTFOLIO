@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const NVIDIA_KEY = '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';
+const NVIDIA_KEY = process.env.NVIDIA_API_KEY || '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';
+const NVIDIA_VOICE_KEY = process.env.NVIDIA_VOICE_KEY || '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';
 
 export default defineConfig({
   plugins: [react()],
@@ -27,7 +28,7 @@ export default defineConfig({
         rewrite: (p) => p.replace('/api/voice', '/chat/completions'),
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq) => {
-            proxyReq.setHeader('Authorization', 'Bearer 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');
+            proxyReq.setHeader('Authorization', `Bearer ${NVIDIA_VOICE_KEY}`);
             proxyReq.setHeader('Content-Type', 'application/json');
           });
         },

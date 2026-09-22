@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { knowledgeChunks } from '../data/knowledgeBase';
 import { getRelevantContext } from '../utils/ragUtils';
 
-const MODEL = 'meta/llama-3.3-70b-instruct';
+const MODEL = 'meta/llama-3.2-11b-vision-instruct';
 
 export default function CoverLetterGenerator({ isOpen, onClose }) {
   const [step, setStep] = useState(1);
