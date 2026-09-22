@@ -19,7 +19,7 @@ export default function AIBioSummarizer() {
     setSummary('');
 
     try {
-      const sys = `You are Krishna Teja's AI assistant. Summarize his professional profile in exactly 2-3 short, punchy sentences tailored specifically for a ${roleLabel}. Use a professional, confident tone. Focus on metrics, CGPA (9.01), leadership (Finance Manager managing Rs.7 Cr+ across 150+ events), biotech/clinical skills, and technical abilities. No markdown formatting, no bullet points, just clean plain text.`;
+      const sys = `You are Krishna Teja's AI assistant. Summarize his professional profile in exactly 2-3 short, punchy sentences tailored specifically for a ${roleLabel}. Use a professional, confident tone. Focus on metrics, CGPA (9.04), leadership (Finance Manager managing Rs.7 Cr+ across 150+ events), biotech/clinical skills, and technical abilities. No markdown formatting, no bullet points, just clean plain text.`;
       const msg = `Provide the summary for a ${roleLabel}.`;
 
       const res = await fetch('/api/tailor-resume', {

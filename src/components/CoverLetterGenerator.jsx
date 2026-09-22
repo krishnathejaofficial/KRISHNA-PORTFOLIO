@@ -23,7 +23,7 @@ export default function CoverLetterGenerator({ isOpen, onClose }) {
     setLoading(true);
     setStep(2);
     const context = getRelevantContext(form.role + ' ' + form.jd, knowledgeChunks, 8);
-    const prompt = `You are writing a cover letter FOR G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA 9.01). Write a ${form.tone} cover letter for the position of "${form.role}" at "${form.company}".
+    const prompt = `You are writing a cover letter FOR G. Krishna Teja, an Integrated M.Sc. Biotechnology student at VIT Vellore (CGPA 9.04). Write a ${form.tone} cover letter for the position of "${form.role}" at "${form.company}".
 
 Use ONLY these facts about Krishna:
 ${context}

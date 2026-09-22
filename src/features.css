@@ -702,19 +702,27 @@ body.light { --hm-0: #ebedf0; --hm-1: #9be9a8; --hm-2: #40c463; --hm-3: #30a14e;
 /* ── WhatsApp FAB ── */
 .whatsapp-fab {
   position: fixed;
-  bottom: calc(90px + env(safe-area-inset-bottom));
-  left: 20px;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  left: 14px;
   z-index: 1150;
-  width: 50px; height: 50px;
+  width: 48px; height: 48px;
   border-radius: 50%; border: none;
   background: #25D366;
-  color: #fff; font-size: 1.5em;
+  color: #fff; font-size: 1.4em;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 20px rgba(37,211,102,0.5);
   cursor: pointer; transition: all 0.3s;
   text-decoration: none;
 }
 .whatsapp-fab:hover { transform: scale(1.12); box-shadow: 0 6px 28px rgba(37,211,102,0.7); }
+@media (max-width: 480px) {
+  .whatsapp-fab {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    left: 10px;
+    width: 46px; height: 46px;
+    font-size: 1.3em;
+  }
+}
 @media (min-width: 769px) { .whatsapp-fab { display: none; } }
 
 /* ── Barcode/QR Code Scanner Styles ── */

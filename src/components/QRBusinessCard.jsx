@@ -90,7 +90,7 @@ export default function QRBusinessCard({ isOpen, onClose }) {
                         G. Krishna Teja
                       </h3>
                       <p style={{ fontSize: '0.75em', opacity: 0.75, lineHeight: 1.5, margin: 0 }}>
-                        Integrated M.Sc. Biotechnology<br />VIT Vellore · CGPA 9.01
+                        Integrated M.Sc. Biotechnology<br />VIT Vellore · CGPA 9.04
                       </p>
                     </div>
                   </div>

@@ -3,12 +3,12 @@
 
 export const knowledgeChunks = [
   // --- BIO & OBJECTIVE ---
-  `G. Krishna Teja was born on 23 March 2003. He is an Integrated M.Sc. Biotechnology student at VIT Vellore with a CGPA of 9.01 (as of 2025). He is passionate about Pharmaceutical Operations, Industrial Biotechnology, Healthcare Systems, and Business Development. He combines deep scientific knowledge with strong leadership, financial management, and automation-driven system-building skills.`,
+  `G. Krishna Teja was born on 23 March 2003. He is an Integrated M.Sc. Biotechnology student at VIT Vellore with a CGPA of 9.04. He is passionate about Pharmaceutical Operations, Industrial Biotechnology, Healthcare Systems, and Business Development. He combines deep scientific knowledge with strong leadership, financial management, and automation-driven system-building skills.`,
 
   `Career objective: Currently working as a Marketing Research Analyst Intern at Agilent Technologies (June - December 2026). Seeking roles in pharmaceutical operations, industrial biotechnology, healthcare systems, and business development — specifically leveraging his experience in marketing research and analytical instrumentation to drive measurable business outcomes in the life sciences industry. He has hands-on experience with analytical instruments (GC, HPLC, UV-Vis) and deep familiarity with pharma/biopharma value chains. Demonstrated ability to deliver high-impact outcomes including managing Rs. 7 crore finances across 150+ events and executing 952 successful blood donations within approximately 7 hours — a university record.`,
 
   // --- EDUCATION ---
-  `Education: Krishna completed his Integrated M.Sc. Biotechnology from Vellore Institute of Technology (VIT), Vellore from 2022 to 2027. His CGPA is 9.01. He received 100% Attendance Awards for 2 times in 2023 and 2025.`,
+  `Education: Krishna completed his Integrated M.Sc. Biotechnology from Vellore Institute of Technology (VIT), Vellore from 2022 to 2027. His CGPA is 9.04. He received 100% Attendance Awards for 2 times in 2023 and 2025.`,
 
   `Education: He completed Intermediate (BiPC) from Sri Chaitanya Junior College, Vijayawada from 2019 to 2021, scoring 96% (954/1000).`,
 

@@ -20,7 +20,7 @@ export const GTRANS = {
 
 const TRANSLATIONS = {
   hero_greeting: "Hi, I'm",
-  hero_tagline: "Integrated M.Sc. Biotechnology | VIT Vellore | CGPA 9.01",
+  hero_tagline: "Integrated M.Sc. Biotechnology | VIT Vellore | CGPA 9.04",
   about_title: "About Me",
   contact_title: "Contact Me",
   download_resume: "Download Resume",

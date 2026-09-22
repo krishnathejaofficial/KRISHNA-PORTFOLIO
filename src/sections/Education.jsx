@@ -21,7 +21,7 @@ export default function Education() {
           <h3>Integrated M.Sc. Biotechnology</h3>
           <p><strong>Vellore Institute of Technology (VIT)</strong> | 2022 – 2027</p>
           <a href="https://drive.google.com/file/d/1MURK8z4sF1ZxJLiPiarqxK-zR6nW8Rob/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', display: 'inline-block', marginBottom: '8px', textDecoration: 'none' }}><i className="fas fa-external-link-alt" style={{ marginRight: '5px' }} />View Grade History</a>
-          <p style={{ color: 'var(--gold)', margin: '6px 0', fontWeight: 600 }}>CGPA: 9.01</p>
+          <p style={{ color: 'var(--gold)', margin: '6px 0', fontWeight: 600 }}>CGPA: 9.04</p>
           <ul>
             <li>100% Attendance Awards for 2022–23 and 2024–25.</li>
             <li>Research in Aquaculture sustainability, Biotechnological e-waste leaching, and bioinformatics.</li>
