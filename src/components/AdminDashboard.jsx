@@ -148,10 +148,12 @@ export default function AdminDashboard() {
       fetchVaultDocs();
       fetchUserUploads();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   useEffect(() => {
     if (step === 'dashboard' && calDate) fetchCalSlots();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calDate, step]);
 
   // Browser notification support check
@@ -182,6 +184,7 @@ export default function AdminDashboard() {
       }
     }, 60000);
     return () => clearInterval(notifPollRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, notifGranted]);
 
 

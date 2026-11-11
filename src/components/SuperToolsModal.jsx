@@ -149,6 +149,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   
   const certContainerRef = useRef(null);
   const dragItemRef = useRef(null);
+  const plotGraphRef = useRef(null);
 
   // PDF Tools States
   const [activePdfTool, setActivePdfTool] = useState(null); // null (dashboard) or tool ID
@@ -246,9 +247,11 @@ export default function SuperToolsModal({ isOpen, onClose }) {
   // Initialize scientific graphing plotter path
   useEffect(() => {
     if (activeTab === 'grapher') {
-      plotGraph();
+      plotGraphRef.current?.();
     }
   }, [graphEquation, activeTab]);
+
+
 
   if (!isOpen) return null;
 
@@ -372,6 +375,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
       setGraphPath('');
     }
   };
+  plotGraphRef.current = plotGraph;
 
   // --- LATEX TEMPLATE INSERTS ---
   const insertLatexPreset = (latexCode) => {
@@ -1552,7 +1556,7 @@ export default function SuperToolsModal({ isOpen, onClose }) {
         : `You are an expert translator. Translate the following document extract into fluent, natural ${pdfIntelLanguage}. Maintain the original tone and format perfectly.`;
       
       const payload = {
-        model: 'meta/llama-3.2-11b-vision-instruct',
+        model: 'nvidia/nemotron-3.5-bolt-e4b',
         messages: [
           { role: 'system', content: sysPrompt },
           { role: 'user', content: pdfIntelText }

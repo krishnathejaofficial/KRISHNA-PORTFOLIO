@@ -19,19 +19,19 @@ function polarToCartesian(cx, cy, r, angleInDeg) {
   };
 }
 
+const SIZE = 340;
+const cx = SIZE / 2;
+const cy = SIZE / 2;
+const maxR = (SIZE / 2) - 50;
+const n = RADAR_DATA.length;
+const levels = 5;
+
 export default function SkillsRadarChart() {
   const canvasRef = useRef(null);
   const [animated, setAnimated] = useState(false);
   const [progress, setProgress] = useState(0);
   const [hovered, setHovered] = useState(null);
   const wrapRef = useRef(null);
-
-  const SIZE = 340;
-  const cx = SIZE / 2;
-  const cy = SIZE / 2;
-  const maxR = (SIZE / 2) - 50;
-  const n = RADAR_DATA.length;
-  const levels = 5;
 
   // Animate in on intersection
   useEffect(() => {

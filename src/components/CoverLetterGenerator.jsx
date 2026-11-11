@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { knowledgeChunks } from '../data/knowledgeBase';
 import { getRelevantContext } from '../utils/ragUtils';
 
-const MODEL = 'meta/llama-3.2-11b-vision-instruct';
+const MODEL = 'nvidia/nemotron-3.5-bolt-e4b';
 
 export default function CoverLetterGenerator({ isOpen, onClose }) {
   const [step, setStep] = useState(1);

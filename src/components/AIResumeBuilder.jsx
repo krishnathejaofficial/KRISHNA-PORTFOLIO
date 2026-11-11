@@ -40,6 +40,7 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
   const [editMsg, setEditMsg] = useState('');
 
   const textareaRef = useRef(null);
+  const compilePDFRef = useRef(null);
 
   /* Helper to fetch the base resume.tex */
   async function fetchBaseResume() {
@@ -60,7 +61,7 @@ export default function AIResumeBuilder({ isOpen, onClose }) {
     const isProduction = import.meta.env.PROD;
 
     const payload = {
-      model: 'meta/llama-3.2-11b-vision-instruct',
+      model: 'nvidia/nemotron-3.5-bolt-e4b',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
@@ -193,7 +194,7 @@ RULES:
       setActiveTab('latex');
       
       // Auto-compile after successful generation
-      setTimeout(() => compilePDF(newLatex), 100);
+      setTimeout(() => compilePDFRef.current?.(newLatex), 100);
     } catch (err) {
       setGenStatus('error');
       setGenMsg(`Error: ${err.message}`);
@@ -250,7 +251,7 @@ Output NOTHING else. You can provide multiple blocks if needed.`;
       setEditMsg(`Applied ${blocks.length} edits. Re-compiling PDF...`);
       
       // Auto-compile after edit
-      setTimeout(() => compilePDF(newLatex), 100);
+      setTimeout(() => compilePDFRef.current?.(newLatex), 100);
     } catch (err) {
       setEditStatus('error');
       setEditMsg(`Error: ${err.message}`);
@@ -293,6 +294,7 @@ Output NOTHING else. You can provide multiple blocks if needed.`;
       setCompileMsg(`Compile error: ${err.message}`);
     }
   }, [latex, pdfUrl]);
+  compilePDFRef.current = compilePDF;
 
   /* ── Download PDF ── */
   const downloadPDF = useCallback(() => {

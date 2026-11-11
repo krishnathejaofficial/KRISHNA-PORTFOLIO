@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const NVIDIA_KEY = process.env.NVIDIA_API_KEY || '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';
-const NVIDIA_VOICE_KEY = process.env.NVIDIA_VOICE_KEY || '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';
+const NVIDIA_KEY = process.env.NVIDIA_API_KEY || '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';
+const NVIDIA_VOICE_KEY = process.env.NVIDIA_VOICE_KEY || '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';
 
 export default defineConfig({
   plugins: [react()],

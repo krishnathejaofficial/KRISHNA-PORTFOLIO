@@ -428,6 +428,32 @@ export default function GPSMapCamera({ isOpen, onClose }) {
     }
   };
 
+  const openCamera = useCallback(async () => {
+    try {
+      const constraints = {
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      setPhase('camera');
+      // Attach to video after state update
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+      }, 100);
+    } catch (err) {
+      setErrorMsg('Camera access denied or unavailable. ' + (err.message || ''));
+      setPhase('error');
+    }
+  }, []);
+
   const startLocating = useCallback(async () => {
     setPhase('locating');
     setLocProgress('Requesting GPS access…');
@@ -500,25 +526,25 @@ export default function GPSMapCamera({ isOpen, onClose }) {
         const { dateStr, timeStr } = formatDateTime(now);
 
         setGpsData({ 
-          lat, 
-          lon, 
-          accuracy, 
-          address, 
-          city, 
-          state, 
-          country, 
-          countryCode, 
-          flag, 
-          plusCode, 
-          dateStr, 
-          timeStr, 
-          dmsCoords: toLatLonDMS(lat, lon),
-          road,
-          suburb,
-          village,
-          town,
-          postcode
-        });
+            lat, 
+            lon, 
+            accuracy, 
+            address, 
+            city, 
+            state, 
+            country, 
+            countryCode, 
+            flag, 
+            plusCode, 
+            dateStr, 
+            timeStr, 
+            dmsCoords: toLatLonDMS(lat, lon),
+            road,
+            suburb,
+            village,
+            town,
+            postcode
+          });
         setLocProgress('Location found! Opening camera…');
 
         // Start camera
@@ -535,33 +561,7 @@ export default function GPSMapCamera({ isOpen, onClose }) {
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
-  }, []);
-
-  const openCamera = useCallback(async () => {
-    try {
-      const constraints = {
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-        audio: false,
-      };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-      setPhase('camera');
-      // Attach to video after state update
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(() => {});
-        }
-      }, 100);
-    } catch (err) {
-      setErrorMsg('Camera access denied or unavailable. ' + (err.message || ''));
-      setPhase('error');
-    }
-  }, []);
+  }, [openCamera]);
 
   const switchCamera = useCallback(async () => {
     stopCamera();

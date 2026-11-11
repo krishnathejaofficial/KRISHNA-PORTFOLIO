@@ -26,6 +26,8 @@ dist-ssr
 # Backup and stale files
 *.bak
 old_index.css
+.env
+.env.*
 .env.local
 
 # Vercel internals (not needed in git)
