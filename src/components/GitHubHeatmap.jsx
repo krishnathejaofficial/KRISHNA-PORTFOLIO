@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 /* GitHub Activity Heatmap using GitHub's public API */
 const GITHUB_USER = 'krishnathejaofficial';
@@ -15,17 +15,20 @@ function getColor(count) {
 export default function GitHubHeatmap() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [tooltip, setTooltip] = useState(null);
   const [stats, setStats] = useState({ total: 0, streak: 0, peak: 0 });
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
+    setLoading(true);
+    setError(false);
     fetch(CONTRIBUTION_API)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('API unavailable'); return r.json(); })
       .then(d => {
         setData(d.contributions || []);
         const contribs = d.contributions || [];
         const total = contribs.reduce((s, c) => s + c.count, 0);
-        const peak = Math.max(...contribs.map(c => c.count));
+        const peak = Math.max(0, ...contribs.map(c => c.count));
         // streak: consecutive days from today
         let streak = 0;
         for (let i = contribs.length - 1; i >= 0; i--) {
@@ -35,8 +38,10 @@ export default function GitHubHeatmap() {
         setStats({ total, streak, peak });
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => { setError(true); setLoading(false); });
   }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   // Group by week for calendar layout
   function getWeeks(contributions) {
@@ -84,8 +89,13 @@ export default function GitHubHeatmap() {
           <i className="fas fa-circle-notch fa-spin" style={{ color: 'var(--gold)' }} />
           <span>Loading activity...</span>
         </div>
-      ) : !data ? (
-        <div className="gh-loading"><span style={{ opacity: 0.6 }}>Could not load GitHub data</span></div>
+      ) : (!data || error) ? (
+        <div className="gh-loading" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+          <span style={{ opacity: 0.6 }}>Could not load live GitHub activity</span>
+          <button onClick={fetchData} style={{ background: 'transparent', border: '1px solid var(--gold)', color: 'var(--gold)', padding: '5px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8em', transition: 'all 0.2s' }}>
+            <i className="fas fa-redo" style={{ marginRight: '6px' }} /> Retry
+          </button>
+        </div>
       ) : (
         <div className="gh-grid-wrap" style={{ position: 'relative' }}>
           <div className="gh-grid">

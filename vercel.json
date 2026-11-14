@@ -10,7 +10,12 @@
     "api/analytics.js": { "maxDuration": 10 },
     "api/availability.js": { "maxDuration": 10 },
     "api/testimonials.js": { "maxDuration": 10 },
-    "api/doubts.js": { "maxDuration": 20 }
+    "api/doubts.js": { "maxDuration": 20 },
+    "api/voice.js": { "maxDuration": 30 },
+    "api/submit-form.js": { "maxDuration": 30 },
+    "api/admin.js": { "maxDuration": 20 },
+    "api/slots.js": { "maxDuration": 10 },
+    "api/track.js": { "maxDuration": 10 }
   },
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" },

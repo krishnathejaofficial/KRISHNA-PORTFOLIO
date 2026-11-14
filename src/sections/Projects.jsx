@@ -73,10 +73,10 @@ export default function Projects() {
     },
     {
       icon: 'fa-laptop-code', title: 'Personal Portfolio Website',
-      meta: 'React · Vite · Vercel | 2025', status: 'Live', color: '#10b981',
+      meta: 'React 19 · Vite · NVIDIA AI · MongoDB', status: 'Live', color: '#10b981',
       bullets: [
-        'Fully responsive portfolio with elegant UI, sidebar navigation, and resume integration.',
-        'Vercel deployment, contact form, SplashCursor fluid animation, dark/light mode toggle.'
+        'Fully responsive portfolio with luxury black & gold aesthetic, sidebar navigation, and interactive animations.',
+        'Features NVIDIA NIM AI chat & voice assistant with RAG, live meeting scheduler with Jitsi integration, and QR request tracking.'
       ],
       link: 'https://gkrishnateja.vercel.app'
     }

@@ -1,103 +1,56 @@
 # AI Coding Agent Instructions – Krishna Portfolio
 
 ## Project Overview
-A personal portfolio website for G. Krishna Teja (Integrated M.Sc. Biotechnology student at VIT). The site showcases academic achievements, projects, experience, skills, and community involvement. It's a **static, client-side only** website with no backend services or build process.
+Personal portfolio website for G. Krishna Teja (Integrated M.Sc. Biotechnology student at VIT, CGPA: 9.04). The site showcases academic achievements, research publications, internships, projects, leadership experience, skills, and community involvement. It is built as a modern full-stack web application with React + Vite frontend, Vercel Serverless/Edge backend, MongoDB Atlas database, and NVIDIA NIM AI services.
 
-## Architecture & Key Patterns
+## Architecture & Tech Stack
 
-### File Organization
-- **`index.html`** – Single-page structure with semantic sections anchored by IDs (`#hero`, `#about`, `#projects`, etc.)
-- **`style.css`** – All styling; uses a **luxury black & gold theme** (background: `#000000`, accents: `#D4AF37`, text: `#C0C0C0`)
-- **`script.js`** – Lightweight DOM utilities; no external libraries or frameworks
-- **`images/`** – Profile photos and assets
+### Frontend
+- **Framework**: React 19 + Vite 6
+- **Routing & State**: Single-page application with modular sections in `src/sections/`, reusable modals & widgets in `src/components/`
+- **Styling**: Luxury Black & Gold theme defined in `src/index.css`, `src/features.css`, `src/right-dock.css`
+- **PWA**: Service Worker (`/sw.js`) registered in `src/main.jsx`
+- **Build tool**: Vite (`npm run build` -> `dist/`)
 
-### Design Philosophy
-- **Single-page app**: Navigation links use anchor scrolling to section IDs with smooth behavior
-- **No build process**: Changes to any file are immediately visible—no compilation or bundling
-- **Progressive enhancement**: Canvas particles and flip-card animations degrade gracefully
-- **Mobile-responsive**: Media queries adjust layout for `max-width: 768px`
+### Backend & API
+- **Deployment**: Vercel Serverless Functions (`/api/` folder configured in `vercel.json`)
+- **Database**: MongoDB Atlas (`trackingDB` database: `submissions`, `doubts`, `vault`, `analytics`, `activity_log`, `settings`, `auth` collections)
+- **Email Service**: Nodemailer (Gmail App Password) for notifications, automated confirmations, QR and barcode attachments
+- **Meeting & Jitsi**: Automated video meeting room generation (`meet.jit.si`)
 
-## Key Technical Patterns
+### AI Integration
+- **Provider**: NVIDIA NIM API (`https://integrate.api.nvidia.com/v1`)
+- **Primary Model**: `nvidia/nemotron-3.5-bolt-e4b` (fast, high quality, 200 OK verified)
+- **AI Features**:
+  1. AI Portfolio Chat Assistant with RAG knowledge base (`src/data/knowledgeBase.js`, `src/utils/ragUtils.js`, `api/chat.js`)
+  2. Voice Assistant with speech synthesis and voice commands (`api/voice.js`, `src/utils/voiceCommands.js`)
+  3. AI Bio Summarizer tailored by persona (`src/components/AIBioSummarizer.jsx`)
+  4. AI Resume Builder & Tailor (`src/components/AIResumeBuilder.jsx`, `api/tailor-resume.js`)
+  5. AI Cover Letter Generator (`src/components/CoverLetterGenerator.jsx`)
+  6. Super Tools Modal AI functions (`src/components/SuperToolsModal.jsx`)
 
-### 1. Smooth Scrolling & Navigation
-All internal links (`href="#section-id"`) trigger browser smooth scrolling via JavaScript:
-```javascript
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
-        });
-    });
-});
-```
-**When modifying**: Ensure new sections have matching IDs in both HTML and nav links.
+### Key Directories & Files
+- `src/App.jsx` – Main app root managing modals and section rendering
+- `src/sections/` – Hero, About, Experience, Internships, Research, Projects, Education, Skills, Career, Certifications, Languages, Testimonials, Media, Resume, Contact
+- `src/components/` – RightDock, Sidebar, Preloader, MeetingScheduler, TrackingWidget, DoubtsForm, VaultModal, AdminDashboard, GitHubStats, GitHubHeatmap, AIBioSummarizer, etc.
+- `src/data/knowledgeBase.js` – Comprehensive portfolio knowledge chunks for RAG
+- `api/` – Serverless routes: `chat.js`, `tailor-resume.js`, `voice.js`, `submit-form.js`, `track.js`, `availability.js`, `analytics.js`, `doubts.js`, `testimonials.js`, `slots.js`, `admin.js`, `compile-pdf-api.js`
 
-### 2. Animated Particle Effect (Hero Section)
-Canvas-based animation in hero section (`#hero`):
-- 100 particles with random gold/silver colors cycling upward
-- Respawns at bottom when reaching top
-- Resizes on window resize
-- **Key file**: `script.js` lines 10–35
-
-**When adding sections**: Don't add additional canvas elements; reuse the existing pattern only in hero.
-
-### 3. Flip-Card Components
-3D CSS flip animation for projects/experience:
-```html
-<div class="flip-card">
-    <div class="flip-card-inner">
-        <div class="flip-card-front"><!-- Title --></div>
-        <div class="flip-card-back"><!-- Details --></div>
-    </div>
-</div>
-```
-- Triggered on `:hover` with `transform: rotateY(180deg)`
-- Front: dark background, silver text
-- Back: darker background, gold text
-- **File**: `style.css` lines 118–140
-
-**When adding cards**: Use exact class names; break on mobile (`width: 100%` at `768px`).
-
-### 4. Color Scheme (Immutable)
+## Design System (Immutable)
 | Element | Color | Hex |
 |---------|-------|-----|
-| Background | Black gradient | `#000000`, `#111111`, `#222222` |
-| Primary accent | Gold | `#D4AF37` |
-| Text | Silver | `#C0C0C0` |
-| Borders/Highlights | Gold | `#D4AF37` |
+| Background | Pure / Deep Black | `#000000`, `#0a0a0a`, `#111111` |
+| Primary Accent | Classic Gold | `#D4AF37` |
+| Secondary Accent | Gold Dim / Hover | `rgba(212, 175, 55, 0.15–0.4)` |
+| Text Main | Silver / White | `#ffffff`, `#e5e7eb`, `#C0C0C0` |
+| Surface Containers | Dark Glass / Card | `var(--surface)`, `var(--surface-2)` |
 
-**When styling**: Never use other color schemes; maintain luxury aesthetic throughout.
+**Constraint**: Never alter the luxury black & gold aesthetic. Maintain high contrast, clean typography, and elegant borders.
 
-### 5. Animated Background Gradient
-`body` has a looping gradient animation (10s cycle) via `@keyframes gradientAnimation`. This is decorative; don't interfere with content visibility.
-
-## Content Structure
-Sections in order (reflect in nav):
-1. **Hero** – Intro, CTA to portfolio
-2. **About** – Brief bio
-3. **Projects** – 4 flip-cards (E-waste, NSS Blood Donation, Aquaculture, Water Conservation)
-4. **Education** – 3 education entries
-5. **Experience** – 4 flip-cards (Riviera'25, Gravitas'24, NSS Secretary, Biosummit)
-6. **Skills** – 5 categories (Management, Technical, Biotech, Bioinformatics, Industrial)
-7. **Certifications** – Bulleted list
-8. **Clubs** – Bulleted list
-9. **Contact** – Form + contact info
-10. **Footer** – Copyright
-
-**When modifying content**: Keep section order consistent with nav and HTML structure.
-
-## Common Tasks
-
-### Adding a New Project Card
-1. Add entry in `#projects` section as a `flip-card` div
-2. Update nav link if creating new section (rare)
-3. Keep class names: `project-item`, `flip-card`, `flip-card-inner`, `flip-card-front`, `flip-card-back`
-4. Example:
-```html
-<div class="project-item flip-card">
-    <div class="flip-card-inner">
-        <div class="flip-card-front">
+## Development & Build Rules
+- Build command: `npm run build`
+- Always verify builds compile with zero errors before committing.
+- Do not hardcode secret keys without fallback handling, and never leak unauthenticated write routes.
             <h3>Project Title</h3>
             <p>Timeline</p>
         </div>

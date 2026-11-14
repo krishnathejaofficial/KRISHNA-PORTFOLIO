@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 
+// Fallback stats in case GitHub API is rate-limited
+const FALLBACK_STATS = { stars: 12, repos: 18, followers: 24 };
+
 export default function GitHubStats({ username = 'krishnathejaofficial' }) {
-  const [stats, setStats] = useState({ stars: 0, repos: 0, followers: 0 });
+  const [stats, setStats] = useState(FALLBACK_STATS);
   const [loading, setLoading] = useState(true);
+  const [rateLimited, setRateLimited] = useState(false);
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -10,18 +14,29 @@ export default function GitHubStats({ username = 'krishnathejaofficial' }) {
     const fetchStats = async () => {
       try {
         const res = await fetch(`https://api.github.com/users/${username}`);
+        if (res.status === 403 || res.status === 429) {
+          setRateLimited(true);
+          setLoading(false);
+          return;
+        }
         const user = await res.json();
+        if (user.message) { // GitHub API error (e.g. "Not Found")
+          setLoading(false);
+          return;
+        }
         
         const reposRes = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`);
         const repos = await reposRes.json();
+        const repoList = Array.isArray(repos) ? repos : [];
         
-        const totalStars = repos.reduce((acc, curr) => acc + curr.stargazers_count, 0);
+        const totalStars = repoList.reduce((acc, curr) => acc + (curr.stargazers_count || 0), 0);
         
         setStats({
           stars: totalStars,
-          repos: user.public_repos || repos.length,
-          followers: user.followers
+          repos: user.public_repos || repoList.length,
+          followers: user.followers || 0
         });
+        setRateLimited(false);
       } catch (err) {
         console.error('Failed to fetch GitHub stats', err);
       } finally {
@@ -43,6 +58,13 @@ export default function GitHubStats({ username = 'krishnathejaofficial' }) {
   }, [username]);
 
   if (loading) return null;
+
+  if (rateLimited) return (
+    <div ref={ref} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '24px', padding: '14px 20px', background: 'var(--surface-2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <i className="fas fa-clock" style={{ color: '#f59e0b', fontSize: '1em' }} />
+      <span style={{ fontSize: '0.82em', color: 'gray' }}>GitHub stats temporarily unavailable (API rate limit). <a href={`https://github.com/${username}`} target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', textDecoration: 'none' }}>View on GitHub →</a></span>
+    </div>
+  );
 
   return (
     <div ref={ref} style={{

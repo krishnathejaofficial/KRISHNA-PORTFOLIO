@@ -42,7 +42,7 @@ export default function Experience() {
         <div className="card" data-animate>
           <i className="fas fa-campground proj-icon" />
           <h3>NSS Special Rural Camps — 4 Villages</h3>
-          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>7 Days Each, 400+ Volunteers | 2022 – 2025</p>
+          <p style={{ color: 'var(--gold)', fontSize: '0.85em', marginBottom: '10px' }}>7 Days Each, 400+ Volunteers | 2023 – 2026</p>
           <ul>
             <li>Progressed through NSS roles: Volunteer → Coordinator → Organizer → Advisory, demonstrating consistent leadership growth.</li>
             <li>Managed logistics, team coordination, and field operations across 4 rural camps, overseeing <strong>400+ volunteers per camp</strong>.</li>
@@ -52,6 +52,7 @@ export default function Experience() {
             <a href="https://drive.google.com/file/d/13_4x3JMNtPtUulgp1ZAJB5clVbOgFmPs/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Volunteer (Thiruvallam)</a>
             <a href="https://drive.google.com/file/d/13VtTA_-B_5-ayLEPOsn2vwrATXAS3lrH/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Coordinator (Vandranthangal)</a>
             <a href="https://drive.google.com/file/d/13RI6Hox2c5HpU-Qo5WOvDUNUdHpwx-6F/view?usp=sharing" target="_blank" rel="noreferrer" style={{ color: 'var(--gold)', fontSize: '0.85em', textDecoration: 'none' }}><i className="fas fa-certificate" style={{ marginRight: '5px' }} />Organizer (Anaicut)</a>
+            <span style={{ color: 'var(--gold)', fontSize: '0.85em', opacity: 0.9 }}><i className="fas fa-shield-alt" style={{ marginRight: '5px' }} />Advisory (Kaniyambadi)</span>
           </div>
         </div>
         <div className="card" data-animate>
